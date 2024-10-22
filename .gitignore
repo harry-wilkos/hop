@@ -1,0 +1,19 @@
+__pycache__/
+    *.pyc
+    *.pyo
+    tmp/
+    .env
+    env/
+    venv/
+    .ipynb_checkpoints/
+    .pytest_cache/
+    *.log
+    build/
+    dist/
+    .idea/
+    .vscode/
+    *.sublime-workspace
+    .DS_Store
+    Thumbs.db
+    .coverage
+    htmlcov/

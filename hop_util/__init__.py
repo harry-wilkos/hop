@@ -17,13 +17,12 @@ try:
 except ModuleNotFoundError:
     # Get the current directory where this file (__init__.py) is located
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Move up one level to find requirements.txt
     project_root = os.path.dirname(current_dir)
     requirements_path = os.path.join(project_root, "requirements.txt")
 
     # Install the requirements
     import subprocess
+
     subprocess.check_call([
         sys.executable,
         "-m",
@@ -46,4 +45,3 @@ __all__ = [
     "post",
     "get_collection",
 ]
-
