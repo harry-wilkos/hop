@@ -1,10 +1,10 @@
+import os
+import site
 import sys
 from importlib import reload
-import site
-import os
 
 
-def refresh_modules(ignore_module_paths: str | list = []):
+def refresh_modules(ignore_module_paths: str | list = []) -> list:
     if isinstance(ignore_module_paths, str):
         ignore_module_paths = [ignore_module_paths]
 
@@ -16,14 +16,12 @@ def refresh_modules(ignore_module_paths: str | list = []):
     for module_name in module_names:
         module = sys.modules.get(module_name)
 
-        # Skip __main__ and standard modules
         if module_name == "__main__" or module is None:
             continue
 
-        if hasattr(module, "__file__"):
+        if hasattr(module, "__file__") and module.__file__ is not None:
             module_file = os.path.abspath(module.__file__)
 
-            # Skip standard library modules or ignored module paths
             if any(
                 os.path.commonpath([module_file, os.path.abspath(path)])
                 == os.path.abspath(path)
@@ -32,7 +30,6 @@ def refresh_modules(ignore_module_paths: str | list = []):
             ):
                 continue
 
-        # Try reloading the module if it's not in ignored paths
         try:
             reload(module)
             reloads.append(module_name)
@@ -40,4 +37,3 @@ def refresh_modules(ignore_module_paths: str | list = []):
             continue
     reload(site)
     return reloads
-

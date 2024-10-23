@@ -1,11 +1,12 @@
 import os
 import requests
 from pymongo import MongoClient
+from pymongo.collection import Collection
 
 
 def upload(
     filepath: str, location: list, api_address: str = "API_ADDRESS", uuid: bool = False
-):
+) -> dict:
     path = ""
     for i in location:
         path = os.path.join(path, i)
@@ -16,7 +17,7 @@ def upload(
     return resp.json()
 
 
-def post(method: str, data: dict, api_address: str = "API_ADDRESS"):
+def post(method: str, data: dict, api_address: str = "API_ADDRESS") -> dict:
     url = f"{os.environ[api_address]}/{method}"
     headers = {"Content-Type": "application/json"}
     resp = requests.post(url, headers=headers, json=data)
@@ -25,7 +26,7 @@ def post(method: str, data: dict, api_address: str = "API_ADDRESS"):
 
 def get_collection(
     database_name: str, collection_name: str, mongo_address: str = "MONGO_ADDRESS"
-):
+) -> Collection:
     client = MongoClient(os.environ[mongo_address])
     if database_name in client.list_database_names():
         db = client.get_database(database_name)

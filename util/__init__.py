@@ -8,7 +8,7 @@ def imports():
     from .api_ping import get_collection, post, upload
     from .process import process, retrieve, thread
     from .refresh_modules import refresh_modules
-
+    from .import_hou import import_hou
     globals().update(locals())
 
 
@@ -44,4 +44,5 @@ __all__ = [
     "upload",
     "post",
     "get_collection",
+    "import_hou",
 ]
