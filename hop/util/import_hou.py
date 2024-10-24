@@ -1,7 +1,7 @@
 import sys
 import os
 from typing import Any
-
+from warnings import warn
 
 def find_install() -> str | None:
     install_dir = None
@@ -17,51 +17,54 @@ def find_install() -> str | None:
 
 
 def import_hou(install_path: str = "") -> Any:
-    install = find_install()
-
-    s_dlopen_flag = False
-    old_dlopen_flags = 0
-    if install is not None:
-        jemalloc = os.path.join(install, "dsolib/libjemalloc.so")
-        if os.path.exists(jemalloc):
-            os.environ["LD_PRELOAD"] = jemalloc
-
-    if hasattr(sys, "setdlopenflags"):
-        old_dlopen_flags = sys.getdlopenflags()
-        sys.setdlopenflags(old_dlopen_flags | os.RTLD_GLOBAL)
-        s_dlopen_flag = True
-
-    if sys.platform == "win32   " and hasattr(os, "add_dll_directory"):
-        hfs_path = os.getenv("HFS")
-        if hfs_path:
-            os.add_dll_directory(f"{hfs_path}/bin")
-
     try:
         import hou
+
+        return hou
     except ModuleNotFoundError:
-        HHP = os.getenv("HHP")
+        install = find_install()
 
-        # Attempt to locate hou.py
-        if HHP is not None:
-            sys.path.append(HHP)
-        elif os.path.exists(os.path.join(install_path, "hou.py")):
-            sys.path.append(install_path)
-        elif install is not None:
-            houdini_path = os.path.join(
-                install,
-                f"houdini/python{sys.version_info[0]}.{sys.version_info[1]}libs",
-            )
-            if os.path.exists(os.path.join(houdini_path, "hou.py")):
-                sys.path.append(houdini_path)
-        else:
-            raise ModuleNotFoundError("Couldn't find hou module path")
+        s_dlopen_flag = False
+        old_dlopen_flags = 0
+        if install is not None:
+            jemalloc = os.path.join(install, "dsolib/libjemalloc.so")
+            LD_PRELOAD = os.getenv("LD_PRELOAD")
+            if os.path.exists(jemalloc) and LD_PRELOAD is None:
+                warn(f"set LD_PRELOAD to {jemalloc}", RuntimeWarning)
+        
+        if hasattr(sys, "setdlopenflags"):
+            old_dlopen_flags = sys.getdlopenflags()
+            sys.setdlopenflags(old_dlopen_flags | os.RTLD_GLOBAL)
+            s_dlopen_flag = True
 
-        import hou
+        if sys.platform == "win32   " and hasattr(os, "add_dll_directory"):
+            hfs_path = os.getenv("HFS")
+            if hfs_path:
+                os.add_dll_directory(f"{hfs_path}/bin")
 
-    if s_dlopen_flag:
-        sys.setdlopenflags(old_dlopen_flags)
+        try:
+            import hou
+        except ModuleNotFoundError:
+            HHP = os.getenv("HHP")
 
-    return hou
+            # Attempt to locate hou.py
+            if HHP is not None:
+                sys.path.append(HHP)
+            elif os.path.exists(os.path.join(install_path, "hou.py")):
+                sys.path.append(install_path)
+            elif install is not None:
+                houdini_path = os.path.join(
+                    install,
+                    f"houdini/python{sys.version_info[0]}.{sys.version_info[1]}libs",
+                )
+                if os.path.exists(os.path.join(houdini_path, "hou.py")):
+                    sys.path.append(houdini_path)
+            else:
+                raise ModuleNotFoundError("Couldn't find hou module path")
 
+            import hou
 
-find_install()
+        if s_dlopen_flag:
+            sys.setdlopenflags(old_dlopen_flags)
+
+        return hou

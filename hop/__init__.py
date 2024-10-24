@@ -7,6 +7,7 @@ from importlib import reload
 def imports():
     from . import util
     from . import shelf_tools
+    from . import shot
     globals().update(locals())
 
 
@@ -37,5 +38,6 @@ except ModuleNotFoundError:
 __all__ = [
         "shelf_tools",
         "util",
+        "shot"
 ]
 

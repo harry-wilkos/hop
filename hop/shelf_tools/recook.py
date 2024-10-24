@@ -1,5 +1,5 @@
-import hou
-
+from ..util import import_hou
+hou = import_hou()
 
 def recook():
     nodes = hou.selectedNodes()
