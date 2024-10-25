@@ -6,7 +6,7 @@ hou = import_hou()
 
 
 def update_shot_num(start_frame: int, end_frame: int, shots: Collection) -> int:
-    docs_ahead = shots.find({"start_frame": {"$gt": end_frame}})
+    docs_ahead = shots.find({"start_frame": {"$gt": end_frame}}).sort("shot_number", 1)
     shot_number = None
     for count, ahead in enumerate(docs_ahead):
         ahead_sn = ahead["shot_number"]
@@ -14,7 +14,12 @@ def update_shot_num(start_frame: int, end_frame: int, shots: Collection) -> int:
             shot_number = ahead_sn
         shots.update_one({"_id": ahead["_id"]}, {"$set": {"shot_number": ahead_sn + 1}})
     if shot_number is None:
-        doc_behind = shots.find_one({"end_frame": {"$lt": start_frame}})
+        doc_behind_cursor = (
+            shots.find({"end_frame": {"$lt": start_frame}})
+            .sort("shot_number", -1)
+            .limit(1)
+        )
+        doc_behind = next(doc_behind_cursor, None)
         if doc_behind is not None:
             shot_number = doc_behind["shot_number"] + 1
         else:
@@ -47,4 +52,5 @@ def create_shot(start_frame: int, end_frame: int):
 
 
 if __name__ == "__main__":
-    create_shot(100, 150)
+    create_shot(-20, -11)
+
