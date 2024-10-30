@@ -3,20 +3,6 @@ from pymongo.collection import Collection
 from ..util.api_ping import get_collection
 
 
-def update_doc(collection: Collection, doc: dict, key: int, value: int):
-    pass
-
-
-def move_shot():
-    pass
-
-
-def overwrite_shot():
-    # inherit options
-    pass
-    # delete_shot
-
-
 def update_shot_num(start_frame: int, end_frame: int, shots: Collection) -> int:
     docs_ahead = shots.find({"start_frame": {"$gt": end_frame}}).sort("shot_number", 1)
     shot_number = None
@@ -40,6 +26,16 @@ def update_shot_num(start_frame: int, end_frame: int, shots: Collection) -> int:
 
 
 def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""):
+    insert_shot = {
+        "shot_number": None,
+        "start_frame": start_frame,
+        "end_frame": end_frame,
+        "plate": plate,
+        "cam": cam,
+        "lights": "",
+        "assets": [],
+    }
+
     if start_frame > end_frame:
         return None
     shots = get_collection("hop", "shots")
@@ -55,18 +51,12 @@ def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""
             intersections.append([intersect.start, intersect.stop])
             docs.append(doc)
     if len(intersections) == 0:
+        # Move to end of shot creation 
         shot_number = update_shot_num(start_frame, end_frame, shots)
-        shots.insert_one({
-            "shot_number": shot_number,
-            "start_frame": start_frame,
-            "end_frame": end_frame,
-            "plate": "plate",
-            "cam": "cam",
-            "lights": "lights",
-            "assets": ["tree", "ed"],
-        })
+        insert_shot["shot_number"] = shot_number
     else:
         keys = {"cam": [], "plate": [], "lights": [], "assets": []}
+        compare_shots = []
         for index, inter in enumerate(intersections):
             print(inter)
             inter_start = inter[0]
@@ -96,6 +86,7 @@ def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""
                 print("shot is nested within existing shot")
             else:
                 trim = False
+                compare_shots.append(trim_doc["shot_number"])
                 for key in keys:
                     trim_element = trim_doc[key]
                     if (type(trim_element) is list and len(trim_element) != 0) or (
@@ -106,11 +97,35 @@ def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""
                         keys[key].append(None)
 
             if trim:
+                # Add confirmation check
                 shots.update_one(
                     {"_id": trim_doc["_id"]},
                     {"$set": {"end_frame": inter_start, "start_frame": inter_end}},
                 )
+        del_keys = []
+        new_shot_added = False
+
+        for key in keys:
+            input_value = insert_shot[key]
+            if (isinstance(input_value, list) and len(input_value) == 0) or (
+                isinstance(input_value, str) and input_value == ""
+            ):
+                if len(keys[key]) == 0:
+                    del_keys.append(key)
+                else:
+                    keys[key].insert(0, None)
+            else:
+                keys[key].insert(0, insert_shot[key])
+                if not new_shot_added and any(
+                    shot != "New Shot" for shot in compare_shots
+                ):
+                    compare_shots.insert(0, "New Shot")
+                    new_shot_added = True
+        for key in del_keys:
+            del keys[key]
+
         print(keys)
+        print(compare_shots)
 
 
 if __name__ == "__main__":
