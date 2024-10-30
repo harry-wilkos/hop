@@ -1,8 +1,20 @@
-from ..util.api_ping import get_collection
-from ..util.import_hou import import_hou
 from pymongo.collection import Collection
 
-hou = import_hou()
+from ..util.api_ping import get_collection
+
+
+def update_doc(collection: Collection, doc: dict, key: int, value: int):
+    pass
+
+
+def move_shot():
+    pass
+
+
+def overwrite_shot():
+    # inherit options
+    pass
+    # delete_shot
 
 
 def update_shot_num(start_frame: int, end_frame: int, shots: Collection) -> int:
@@ -27,7 +39,9 @@ def update_shot_num(start_frame: int, end_frame: int, shots: Collection) -> int:
     return shot_number
 
 
-def create_shot(start_frame: int, end_frame: int):
+def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""):
+    if start_frame > end_frame:
+        return None
     shots = get_collection("hop", "shots")
     frame_range = range(start_frame, end_frame)
     intersections = []
@@ -46,11 +60,58 @@ def create_shot(start_frame: int, end_frame: int):
             "shot_number": shot_number,
             "start_frame": start_frame,
             "end_frame": end_frame,
+            "plate": "plate",
+            "cam": "cam",
+            "lights": "lights",
+            "assets": ["tree", "ed"],
         })
     else:
-        pass
+        keys = {"cam": [], "plate": [], "lights": [], "assets": []}
+        for index, inter in enumerate(intersections):
+            print(inter)
+            inter_start = inter[0]
+            inter_end = inter[1]
+            trim_doc = docs[index]
+            trim = True
+            if (
+                inter_start == start_frame
+                and inter_end < end_frame
+                and trim_doc["start_frame"] != start_frame
+            ):
+                inter_start += -1
+                inter_end = trim_doc["start_frame"]
+                print("clipping_front")
+            elif (
+                inter_end == end_frame
+                and inter_start > start_frame
+                and trim_doc["end_frame"] != end_frame
+            ):
+                print("clipping_back")
+                inter_end += 1
+                inter_start = trim_doc["end_frame"]
+            elif (
+                trim_doc["start_frame"] < start_frame
+                and trim_doc["end_frame"] > end_frame
+            ):
+                print("shot is nested within existing shot")
+            else:
+                trim = False
+                for key in keys:
+                    trim_element = trim_doc[key]
+                    if (type(trim_element) is list and len(trim_element) != 0) or (
+                        type(trim_element) is str and trim_element != ""
+                    ):
+                        keys[key].append(trim_element)
+                    else:
+                        keys[key].append(None)
+
+            if trim:
+                shots.update_one(
+                    {"_id": trim_doc["_id"]},
+                    {"$set": {"end_frame": inter_start, "start_frame": inter_end}},
+                )
+        print(keys)
 
 
 if __name__ == "__main__":
-    create_shot(-20, -11)
-
+    create_shot(30, 60, "camera1", "back_plate.hdr")
