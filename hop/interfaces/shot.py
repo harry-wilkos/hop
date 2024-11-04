@@ -19,31 +19,22 @@ class ShotMerge(QDialog):
         super().__init__()
         self.modules = modules
         self.shots = shots
-        self.results = self.init_results()
-        self.ui()
+        self.results = {key: [None] * len(shots) for key in modules}
+        self.setup_ui()
 
-    def init_results(self):
-        results = {}
-        for key in self.modules:
-            results[key] = []
-            for _ in self.shots:
-                results[key].append(None)
-        return results
-
-    def ui(self):
+    def setup_ui(self):
         main_vertical = QVBoxLayout(self)
+
         for key, items in self.modules.items():
             container = QWidget()
             layout = QVBoxLayout(container)
             container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-            # Init Button Groups
             exclusive_buttons = QButtonGroup(self)
             exclusive_buttons.setExclusive(True)
             exclusive_buttons.buttonPressed.connect(self.handle_pressed)
             exclusive_buttons.buttonClicked.connect(self.handle_clicked)
 
-            # Init Module Labels
             module_label = QLabel(key.title())
             module_label.setAlignment(Qt.AlignCenter)
             layout.addWidget(module_label)
@@ -52,7 +43,6 @@ class ShotMerge(QDialog):
             for count, item in enumerate(items):
                 options_layout = QVBoxLayout()
 
-                # Init Shot Labels
                 if item is not None:
                     shot = self.shots[count]
                     shot_label = QLabel(
@@ -61,25 +51,19 @@ class ShotMerge(QDialog):
                     shot_label.setAlignment(Qt.AlignCenter)
                     options_layout.addWidget(shot_label)
 
-                    if isinstance(item, str):
-                        item = [item]
-
-                    # Init Option BUttons
-                    for i in item:
+                    for i in item if isinstance(item, list) else [item]:
                         button = QPushButton(str(i))
                         button.setCheckable(True)
                         options_layout.addWidget(button)
                         if key in ["cam", "plate"]:
                             exclusive_buttons.addButton(button)
 
-                        # Connect to store result in dir
+                        # Connect button toggle signal to result recording
                         button.toggled.connect(
                             lambda checked,
-                            module=key,
-                            selection=i,
-                            idx=count: self.record_selection(
-                                module, selection, idx, checked
-                            )
+                            m=key,
+                            s=i,
+                            idx=count: self.record_selection(m, s, idx, checked)
                         )
                 shots_layout.addLayout(options_layout)
 
@@ -97,25 +81,24 @@ class ShotMerge(QDialog):
         finish_layout.addWidget(cancel, alignment=Qt.AlignCenter)
         main_vertical.addLayout(finish_layout)
 
-    def record_selection(self, module, selection, count, checked):
+    def record_selection(self, module, selection, index, checked):
+        current_selection = self.results[module][index]
+
         if checked:
-            if self.results[module][count] is None:
-                self.results[module][count] = selection
-            elif isinstance(self.results[module][count], list):
-                if selection not in self.results[module][count]:
-                    self.results[module][count].append(selection)
+            if current_selection is None:
+                self.results[module][index] = selection
+            elif isinstance(current_selection, list):
+                if selection not in current_selection:
+                    current_selection.append(selection)
             else:
-                self.results[module][count] = [
-                    self.results[module][count],
-                    selection,
-                ]
+                self.results[module][index] = [current_selection, selection]
         else:
-            if isinstance(self.results[module][count], list):
-                self.results[module][count].remove(selection)
-                if len(self.results[module][count]) == 1:
-                    self.results[module][count] = self.results[module][count][0]
+            if isinstance(current_selection, list):
+                current_selection.remove(selection)
+                if len(current_selection) == 1:
+                    self.results[module][index] = current_selection[0]
             else:
-                self.results[module][count] = None
+                self.results[module][index] = None
 
     def handle_pressed(self, button):
         button.group().setExclusive(not button.isChecked())
@@ -124,10 +107,7 @@ class ShotMerge(QDialog):
         button.group().setExclusive(True)
 
     def get_result(self):
-        result = self.exec_()
-        if result == QDialog.Accepted:
-            return self.results
-        return None
+        return self.results if self.exec_() == QDialog.Accepted else None
 
 
 def run(modules=None, shots=None) -> None | dict:
@@ -150,3 +130,4 @@ if __name__ == "__main__":
         ["New Shot", 1, 2],
     )
     print(selections)
+
