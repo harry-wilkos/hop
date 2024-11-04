@@ -37,11 +37,13 @@ class ShotMerge(QDialog):
             layout = QVBoxLayout(container)
             container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
+            # Init Button Groups
             exclusive_buttons = QButtonGroup(self)
             exclusive_buttons.setExclusive(True)
             exclusive_buttons.buttonPressed.connect(self.handle_pressed)
             exclusive_buttons.buttonClicked.connect(self.handle_clicked)
 
+            # Init Module Labels
             module_label = QLabel(key.title())
             module_label.setAlignment(Qt.AlignCenter)
             layout.addWidget(module_label)
@@ -49,6 +51,8 @@ class ShotMerge(QDialog):
             shots_layout = QHBoxLayout()
             for count, item in enumerate(items):
                 options_layout = QVBoxLayout()
+
+                # Init Shot Labels
                 if item is not None:
                     shot = self.shots[count]
                     shot_label = QLabel(
@@ -59,14 +63,16 @@ class ShotMerge(QDialog):
 
                     if isinstance(item, str):
                         item = [item]
+
+                    # Init Option BUttons
                     for i in item:
                         button = QPushButton(str(i))
                         button.setCheckable(True)
                         options_layout.addWidget(button)
-
                         if key in ["cam", "plate"]:
                             exclusive_buttons.addButton(button)
 
+                        # Connect to store result in dir
                         button.toggled.connect(
                             lambda checked,
                             module=key,
@@ -75,20 +81,20 @@ class ShotMerge(QDialog):
                                 module, selection, idx, checked
                             )
                         )
-
                 shots_layout.addLayout(options_layout)
+
             layout.addLayout(shots_layout)
             main_vertical.addWidget(container)
 
+        # Add Finish Options
         main_vertical.addStretch()
-
         finish_layout = QHBoxLayout()
-        self.confirm = QPushButton("Confirm")
-        self.confirm.clicked.connect(self.accept)
-        self.cancel = QPushButton("Cancel")
-        self.cancel.clicked.connect(self.reject)
-        finish_layout.addWidget(self.confirm, alignment=Qt.AlignCenter)
-        finish_layout.addWidget(self.cancel, alignment=Qt.AlignCenter)
+        confirm = QPushButton("Confirm")
+        confirm.clicked.connect(self.accept)
+        cancel = QPushButton("Cancel")
+        cancel.clicked.connect(self.reject)
+        finish_layout.addWidget(confirm, alignment=Qt.AlignCenter)
+        finish_layout.addWidget(cancel, alignment=Qt.AlignCenter)
         main_vertical.addLayout(finish_layout)
 
     def record_selection(self, module, selection, count, checked):
@@ -107,9 +113,7 @@ class ShotMerge(QDialog):
             if isinstance(self.results[module][count], list):
                 self.results[module][count].remove(selection)
                 if len(self.results[module][count]) == 1:
-                    self.results[module][count] = self.results[
-                        module
-                    ][count][0]
+                    self.results[module][count] = self.results[module][count][0]
             else:
                 self.results[module][count] = None
 
@@ -131,6 +135,7 @@ def run(modules=None, shots=None) -> None | dict:
     app = QApplication(sys.argv)
     dialogue = ShotMerge(modules, shots).get_result()
     del app
+
     return dialogue
 
 
