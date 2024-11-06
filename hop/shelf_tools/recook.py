@@ -1,5 +1,11 @@
 from ..util import import_hou
-hou = import_hou()
+
+try:
+    import hou
+except ModuleNotFoundError:
+    from ..util import import_hou
+
+    hou = import_hou()
 
 def recook():
     nodes = hou.selectedNodes()

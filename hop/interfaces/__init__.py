@@ -1,3 +1,3 @@
-from . import shot
+from .shot import ShotMerge
 
-__all__ = ["shot"]
+__all__ = ["ShotMerge"]

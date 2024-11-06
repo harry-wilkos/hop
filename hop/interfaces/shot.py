@@ -14,12 +14,13 @@ from PySide2.QtWidgets import (
 )
 
 
-class ShotMerge(QDialog):
+class ShotMerge_UI(QDialog):
     def __init__(self, modules, shots):
         super().__init__()
         self.modules = modules
         self.shots = shots
         self.results = {key: [None] * len(shots) for key in modules}
+        self.setWindowTitle("Absorb Shots")
         self.setup_ui()
 
     def setup_ui(self):
@@ -42,7 +43,6 @@ class ShotMerge(QDialog):
             shots_layout = QHBoxLayout()
             for count, item in enumerate(items):
                 options_layout = QVBoxLayout()
-
                 if item is not None:
                     shot = self.shots[count]
                     shot_label = QLabel(
@@ -110,17 +110,20 @@ class ShotMerge(QDialog):
         return self.results if self.exec_() == QDialog.Accepted else None
 
 
-def run(modules=None, shots=None) -> None | dict:
-    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
-    app = QApplication(sys.argv)
-    dialogue = ShotMerge(modules, shots).get_result()
-    del app
-
+def ShotMerge(modules=None, shots=None) -> None | dict:
+    app = QApplication.instance()
+    created_app = False
+    if not app:
+        app = QApplication(sys.argv)
+        created_app = True
+    dialogue = ShotMerge_UI(modules, shots).get_result()
+    if created_app:
+        del app
     return dialogue
 
 
 if __name__ == "__main__":
-    selections = run(
+    selections = ShotMerge(
         {
             "cam": ["camera1", "cam", "cam"],
             "plate": ["back_plate.hdr", "plate", "plate"],
@@ -130,4 +133,3 @@ if __name__ == "__main__":
         ["New Shot", 1, 2],
     )
     print(selections)
-
