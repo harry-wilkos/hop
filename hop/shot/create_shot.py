@@ -36,7 +36,9 @@ def update_shot_num(start_frame: int, end_frame: int, shots: Collection) -> int:
 def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""):
     if start_frame >= end_frame:
         hou.ui.displayMessage(
-            text="Invalid Frame Range", severity=hou.severityType.Error
+            text="Invalid Frame Range",
+            severity=hou.severityType.Error,
+            title="Create Shot",
         )
         return None
 
@@ -121,8 +123,7 @@ def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""
                 str(trim["trim_doc"]["shot_number"]) for trim in trim_shots
             )
             trim_shot_frames = ", ".join(
-                f"{trim['inter_start']} - {trim['inter_end']}"
-                for trim in trim_shots
+                f"{trim['inter_start']} - {trim['inter_end']}" for trim in trim_shots
             )
             confirm_trim = hou.ui.displayMessage(
                 text=f"Change the frame range of the following shots: {trim_shot_numbers}?",
@@ -130,6 +131,7 @@ def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""
                 severity=hou.severityType.Warning,
                 default_choice=1,
                 close_choice=1,
+                title="Trime Shot",
                 help=(
                     f"The entered frame range overlaps with existing shots frames: {trim_shot_frames}"
                 ),
@@ -160,10 +162,10 @@ def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""
                         )
 
             else:
-                return None 
+                return None
 
         # Merge Shots
-        if any(keys[key] for key in keys):        
+        if any(keys[key] for key in keys):
             del_keys = []
             for key, items in keys.items():
                 input_value = insert_shot[key]
@@ -179,8 +181,8 @@ def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""
             compare_shots.insert(0, "New Shot")
             for key in del_keys:
                 del keys[key]
-            ShotMerge(keys, compare_shots)
-
+            merge_results = ShotMerge(keys, compare_shots)
+            
 
 if __name__ == "__main__":
     create_shot(10, 20, "camera1", "back_plate.hdr")
