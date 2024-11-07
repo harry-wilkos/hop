@@ -31,7 +31,7 @@ class drag_list(QListWidget):
         super().__init__(*args, **kwargs)
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
-        self.setDefaultDropAction(Qt.MoveAction)
+        self.setDefaultDropAction(Qt.IgnoreAction)
         self.stuck = set()
         self.source = set()
 
@@ -42,15 +42,35 @@ class drag_list(QListWidget):
         super().startDrag(*args, **kwargs)
 
     def dropEvent(self, event):
-        item = event.source().currentItem()
+        # get list widget item
+        source_list = event.source()
+        item = source_list.currentItem()
+        
+        print("item:", item.text())
+        # if dragged into wrong list widget
         if item.text() not in self.source:
-            parent = item.origin
-            parent.addItem(item)
+            print("dragged item to INCORRECT list widget")
+
+            # add item
+            new_item = drag_item(item.text())
+            new_item.origin = item.origin
+            item.origin.addItem(new_item)
+
+            # remove item
+            row = source_list.row(item)
+            source_list.takeItem(row)
+
+            self.removeItemWidget(item)
             event.accept()
             return
+
+        # if dragged into right list widget
+        print("dragged item to CORRECT list widget")
         new_item = drag_item(item.text())
         new_item.origin = item.origin
         self.addItem(new_item)
+        row = source_list.row(item)
+        source_list.takeItem(row)
         event.accept()
 
 
@@ -79,6 +99,14 @@ class ShotMerge_UI(QDialog):
         finish_layout.addWidget(confirm, alignment=Qt.AlignCenter)
         finish_layout.addWidget(cancel, alignment=Qt.AlignCenter)
         self.main_vertical.addLayout(finish_layout)
+
+
+        # test_list = QListWidget()
+        # self.main_vertical.addWidget(test_list)
+        # new_item = QListWidgetItem("FOO")
+        # test_list.addItem(new_item)
+        # row = test_list.row(new_item)
+        # test_list.takeItem(row)
 
     def multi_options(self, options):
         for key, items in options.items():
@@ -112,7 +140,7 @@ class ShotMerge_UI(QDialog):
             for shot, collection in enumerate(items):
                 if collection is not None:
                     stored_assets = drag_list()
-                    stored_assets.setDefaultDropAction(Qt.MoveAction)
+                    stored_assets.setDefaultDropAction(Qt.IgnoreAction)
                     tabs.addTab(stored_assets, f"Shot {self.shots[shot + 1]}")
                     for item in collection:
                         asset = drag_item(item)
