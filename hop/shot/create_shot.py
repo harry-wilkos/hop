@@ -181,8 +181,13 @@ def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""
             compare_shots.insert(0, "New Shot")
             for key in del_keys:
                 del keys[key]
+
+            from pprint import pprint
+            pprint(keys)
+            pprint(compare_shots)
+
             merge_results = ShotMerge(keys, compare_shots)
             
 
 if __name__ == "__main__":
-    create_shot(10, 20, "camera1", "back_plate.hdr")
+    create_shot(1, 100, "camera1", "back_plate.hdr")
