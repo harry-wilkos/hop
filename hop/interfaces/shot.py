@@ -1,6 +1,7 @@
 import sys
-from typing import Optional
 import uuid
+from typing import Optional
+
 from PySide2.QtCore import Qt
 from PySide2.QtWidgets import (
     QApplication,
@@ -20,69 +21,70 @@ from PySide2.QtWidgets import (
 from ..util import pop_dict
 
 
-class Drag_Item(QListWidgetItem):
+class DragItem(QListWidgetItem):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.origin: Optional[Drag_List] = None
+        self.origin: Optional[DragList] = None
         self.key: Optional[str] = None
         self.selection: Optional[str] = None
         self.index: Optional[int] = None
-        self.id = uuid.uuid4()
         self.source = set()
+        self.id = uuid.uuid4()
 
     def __hash__(self):
         return hash(self.id)
 
 
-class Drag_List(QListWidget):
+class DragList(QListWidget):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setDragEnabled(True)
         self.setAcceptDrops(True)
         self.setDefaultDropAction(Qt.IgnoreAction)
         self.stuck = set()
-        self.source = set()
         self.selection = False
 
     def startDrag(self, *args, **kwargs):
-        # Lock existing assets
-        item = self.currentItem()
-        if item in self.stuck:
-            return
-        super().startDrag(*args, **kwargs)
+        # Lock existing assets to selected
+        if self.currentItem() not in self.stuck:
+            super().startDrag(*args, **kwargs)
 
     def dropEvent(self, event):
+        # Create New Item
         source_list = event.source()
         item = source_list.currentItem()
-        new_item = Drag_Item(item.text())
-        new_item.origin = item.origin
-        new_item.key = item.key
-        new_item.selection = item.selection
-        new_item.index = item.index
-        new_item.id = item.id
-        new_item.source = item.source
+        new_item = self.copy_drag_item(item)
+
         if self not in item.source:
-            # Add item to correct list
+            # Move to correct list
             item.origin.addItem(new_item)
             source_list.takeItem(source_list.row(item))
             self.window().record_selection(
                 item.key, item.selection, item.index, self.selection
             )
-            event.accept()
-            return
-
-        # Add item to current list if valid
-        self.addItem(new_item)
-        source_list.takeItem(source_list.row(item))
-        print(item.key, item.selection, item.index, self.selection)
-        self.window().record_selection(
-            item.key, item.selection, item.index, self.selection
-        )
+        else:
+            # Copy into list
+            self.addItem(new_item)
+            source_list.takeItem(source_list.row(item))
+            self.window().record_selection(
+                item.key, item.selection, item.index, self.selection
+            )
 
         event.accept()
 
+    @staticmethod
+    def copy_drag_item(item):
+        new_item = DragItem(item.text())
+        new_item.origin, new_item.key, new_item.selection = (
+            item.origin,
+            item.key,
+            item.selection,
+        )
+        new_item.index, new_item.id, new_item.source = item.index, item.id, item.source
+        return new_item
 
-class ShotMerge_UI(QDialog):
+
+class ShotMergeUI(QDialog):
     def __init__(self, modules, shots):
         super().__init__()
         self.modules = modules
@@ -92,13 +94,150 @@ class ShotMerge_UI(QDialog):
         self.setup_ui()
 
     def setup_ui(self):
-        self.main_vertical = QVBoxLayout(self)
-        assets, exclusive_modules = pop_dict(self.modules, "assets")
-        self.exclusive_options(exclusive_modules)
-        self.multi_options(assets)
+        self.main_layout = QVBoxLayout(self)
 
-        # Finish Options
-        self.main_vertical.addStretch()
+        # Split based on type
+        assets, exclusive_modules = pop_dict(self.modules, "assets")
+        self.create_exclusive_options(exclusive_modules)
+        self.create_multi_options(assets)
+
+        # Add confirm options
+        finish_layout = self.create_finish_layout()
+        self.main_layout.addStretch()
+        self.main_layout.addLayout(finish_layout)
+
+    def create_multi_options(self, options):
+        for key, items in options.items():
+            # Init new module
+            container, layout, list_layout = self.create_base_layout(key)
+
+            # Create selected list on left
+            selected = self.create_selected_list(list_layout, key, items[0])[0]
+
+            # Create possible asseets on right
+            self.create_asset_tabs_or_labels(items[1:], key, list_layout, selected)
+
+            layout.addLayout(list_layout)
+            self.main_layout.addWidget(container)
+
+    def create_asset_tabs_or_labels(self, items, key, list_layout, selected):
+        # Filter out None Values
+        valid_collections = [item for item in items if item is not None]
+
+        if len(valid_collections) == 1:
+            # Don't Create tabs if only one shot
+            list_layout.addLayout(
+                self.create_labeled_layout(valid_collections[0], key, selected, 1)
+            )
+        else:
+            tabs = QTabWidget()
+            list_layout.addWidget(tabs)
+            for shot, collection in enumerate(items):
+                if collection is not None:
+                    stored_assets = self.setup_stored_assets(
+                        collection, key, selected, shot + 1
+                    )
+                    tabs.addTab(stored_assets, f"Shot {self.shots[shot + 1]}")
+
+    def create_labeled_layout(self, items, key, selected, index):
+        label_layout = QVBoxLayout()
+        shot_label = QLabel(f"Shot {self.shots[index]}")
+        shot_label.setAlignment(Qt.AlignCenter)
+        label_layout.addWidget(shot_label)
+        stored_assets = self.setup_stored_assets(items, key, selected, index)
+        label_layout.addWidget(stored_assets)
+        return label_layout
+
+    def setup_stored_assets(self, items, key, selected, index):
+        # Create list with assets
+        stored_assets = DragList()
+        self.configure_drag_list(stored_assets)
+        for item in items:
+            asset = DragItem(item)
+            asset.key, asset.selection, asset.index, asset.origin = (
+                key,
+                item,
+                index,
+                stored_assets,
+            )
+            asset.source.update({stored_assets, selected})
+            stored_assets.addItem(asset)
+        return stored_assets
+
+    @staticmethod
+    def configure_drag_list(drag_list):
+        drag_list.setDefaultDropAction(Qt.IgnoreAction)
+        drag_list.setWordWrap(True)
+        drag_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        drag_list.setUniformItemSizes(True)
+
+    def create_exclusive_options(self, options):
+        for key, items in options.items():
+            container, layout, shots_layout = self.create_base_layout(
+                key, for_buttons=True
+            )
+
+            exclusive_buttons = QButtonGroup(self)
+            exclusive_buttons.setExclusive(True)
+            exclusive_buttons.buttonPressed.connect(self.handle_pressed)
+            exclusive_buttons.buttonClicked.connect(self.handle_clicked)
+
+            for count, item in enumerate(items):
+                if item is not None:
+                    button = QPushButton(
+                        f"Shot {self.shots[count]}"
+                        if isinstance(self.shots[count], int)
+                        else str(self.shots[count])
+                    )
+                    button.setCheckable(True)
+                    exclusive_buttons.addButton(button)
+                    button.toggled.connect(
+                        lambda checked, m=key, s=item, idx=count: self.record_selection(
+                            m, s, idx, checked
+                        )
+                    )
+                    shots_layout.addWidget(button)
+
+            layout.addLayout(shots_layout)
+            self.main_layout.addWidget(container)
+
+    def create_base_layout(self, key, for_buttons=False):
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        module_label = QLabel(key.title())
+        module_label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(module_label)
+
+        if for_buttons:
+            return container, layout, QHBoxLayout()
+
+        list_layout = QHBoxLayout()
+        return container, layout, list_layout
+
+    def create_selected_list(self, list_layout, key, current_selection):
+        selected_layout = QVBoxLayout()
+        list_layout.addLayout(selected_layout)
+
+        label = QLabel(self.shots[0])
+        label.setAlignment(Qt.AlignCenter)
+        selected_layout.addWidget(label)
+
+        selected = DragList()
+        selected.selection = True
+        selected_layout.addWidget(selected)
+
+        if current_selection is not None:
+            for item in current_selection:
+                asset = DragItem(item)
+                selected.addItem(asset)
+                selected.stuck.add(asset)
+                self.record_selection(key, item, 0, True)
+
+        return selected, selected_layout
+
+    def create_finish_layout(self):
         finish_layout = QHBoxLayout()
         confirm = QPushButton("Confirm")
         confirm.clicked.connect(self.accept)
@@ -106,124 +245,7 @@ class ShotMerge_UI(QDialog):
         cancel.clicked.connect(self.reject)
         finish_layout.addWidget(confirm, alignment=Qt.AlignCenter)
         finish_layout.addWidget(cancel, alignment=Qt.AlignCenter)
-        self.main_vertical.addLayout(finish_layout)
-
-    def multi_options(self, options):
-        for key, items in options.items():
-            container = QWidget()
-            layout = QVBoxLayout(container)
-            container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-            module_label = QLabel(key.title())
-            module_label.setAlignment(Qt.AlignCenter)
-            layout.addWidget(module_label)
-            list_layout = QHBoxLayout()
-
-            selected_layout = QVBoxLayout()
-            list_layout.addLayout(selected_layout)
-            label = QLabel(self.shots[0])
-            label.setAlignment(Qt.AlignCenter)
-            selected_layout.addWidget(label)
-            selected = Drag_List()
-            selected.selection = True
-            selected_layout.addWidget(selected)
-
-            # Add existing assets to selection and lock
-            current_selection = items.pop(0)
-            if current_selection is not None:
-                for item in current_selection:
-                    asset = Drag_Item(item)
-                    selected.addItem(asset)
-                    selected.stuck.add(asset)
-                    self.record_selection(key, item, 0, True)
-
-            # Create tabs for available items
-            if len(items) == 1 and items[0] is not None:
-                label_list_layout = QVBoxLayout()
-                list_layout.addLayout(label_list_layout)
-                shot_label = QLabel(f"Shot {self.shots[1]}")
-                shot_label.setAlignment(Qt.AlignCenter)
-                label_list_layout.addWidget(shot_label)
-
-                stored_assets = Drag_List()
-                label_list_layout.addWidget(stored_assets)
-                stored_assets.setDefaultDropAction(Qt.IgnoreAction)
-                stored_assets.setWordWrap(True)
-                stored_assets.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-                stored_assets.setUniformItemSizes(True)
-
-                for item in items[0]:
-                    asset = Drag_Item(item)
-                    asset.key = key
-                    asset.selection = item
-                    asset.index = 1
-                    asset.origin = stored_assets
-                    stored_assets.addItem(asset)
-                    # stored_assets.source.add(asset)
-                    asset.source.add(stored_assets)
-                    asset.source.add(selected)                    
-                    # selected.source.add(asset)
-
-            else:
-                tabs = QTabWidget()
-                list_layout.addWidget(tabs)
-                for shot, collection in enumerate(items):
-                    if collection is not None:
-                        stored_assets = Drag_List()
-                        stored_assets.setDefaultDropAction(Qt.IgnoreAction)
-                        stored_assets.setWordWrap(True)
-                        stored_assets.setHorizontalScrollBarPolicy(
-                            Qt.ScrollBarAlwaysOff
-                        )
-                        stored_assets.setUniformItemSizes(True)
-                        tabs.addTab(stored_assets, f"Shot {self.shots[shot + 1]}")
-
-                        for item in collection:
-                            asset = Drag_Item(item)
-                            asset.key = key
-                            asset.selection = item
-                            asset.index = shot + 1
-                            asset.origin = stored_assets
-                            stored_assets.addItem(asset)
-                            asset.source.add(stored_assets)
-                            asset.source.add(selected)                            
-                            # stored_assets.source.add(asset)
-                            # selected.source.add(asset)
-
-            layout.addLayout(list_layout)
-            self.main_vertical.addWidget(container)
-
-    def exclusive_options(self, options):
-        for key, items in options.items():
-            container = QWidget()
-            layout = QVBoxLayout(container)
-            container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-            module_label = QLabel(key.title())
-            module_label.setAlignment(Qt.AlignCenter)
-            layout.addWidget(module_label)
-
-            exclusive_buttons = QButtonGroup(self)
-            exclusive_buttons.setExclusive(True)
-            exclusive_buttons.buttonPressed.connect(self.handle_pressed)
-            exclusive_buttons.buttonClicked.connect(self.handle_clicked)
-
-            shots_layout = QHBoxLayout()
-            for count, item in enumerate(items):
-                if item is not None:
-                    shot = self.shots[count]
-                    button = QPushButton(
-                        f"Shot {shot}" if isinstance(shot, int) else str(shot)
-                    )
-                    button.setCheckable(True)
-                    exclusive_buttons.addButton(button)
-                    button.toggled.connect(
-                        lambda checked,
-                        m=key,
-                        s=items[count],
-                        idx=count: self.record_selection(m, s, idx, checked)
-                    )
-                    shots_layout.addWidget(button)
-            layout.addLayout(shots_layout)
-            self.main_vertical.addWidget(container)
+        return finish_layout
 
     def record_selection(self, module, selection, index, checked):
         current_selection = self.results[module][index]
@@ -254,13 +276,13 @@ class ShotMerge_UI(QDialog):
         return self.results if self.exec_() == QDialog.Accepted else None
 
 
-def ShotMerge(modules=None, shots=None) -> None | dict:
+def ShotMerge(modules=None, shots=None) -> Optional[dict]:
     app = QApplication.instance()
     created_app = False
     if not app:
         app = QApplication(sys.argv)
         created_app = True
-    dialogue = ShotMerge_UI(modules, shots).get_result()
+    dialogue = ShotMergeUI(modules, shots).get_result()
     if created_app:
         del app
     return dialogue
@@ -272,7 +294,7 @@ if __name__ == "__main__":
             "cam": ["camera1", "cam", "cam"],
             "plate": ["back_plate.hdr", "plate", "plate"],
             "lights": [None, "lights", "lights"],
-            "assets": [["harry"], ["robbie", "harry"], ["robbie", "harry"]],
+            "assets": [["harry"], ["robbie", "harry"], ["harry", "robbie"]],
         },
         ["New Shot", 1, 2],
     )
