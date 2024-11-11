@@ -182,11 +182,8 @@ def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""
             for key in del_keys:
                 del keys[key]
 
-            from pprint import pprint
-            pprint(keys)
-            pprint(compare_shots)
-
             merge_results = ShotMerge(keys, compare_shots)
+            print(merge_results)
             
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@ from PySide2.QtWidgets import (
 )
 
 from ..util import pop_dict
-
+from .load_style import load_style
 
 class DragItem(QListWidgetItem):
     def __init__(self, *args, **kwargs):
@@ -92,6 +92,10 @@ class ShotMergeUI(QDialog):
         self.results = {key: [None] * len(shots) for key in modules}
         self.setWindowTitle("Absorb Shots")
         self.setup_ui()
+        try:
+            self.setStyleSheet(load_style())
+        except AttributeError:
+            pass
 
     def setup_ui(self):
         self.main_layout = QVBoxLayout(self)
@@ -170,6 +174,7 @@ class ShotMergeUI(QDialog):
         drag_list.setWordWrap(True)
         drag_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         drag_list.setUniformItemSizes(True)
+        drag_list.setAlternatingRowColors(True)
 
     def create_exclusive_options(self, options):
         for key, items in options.items():
@@ -207,6 +212,7 @@ class ShotMergeUI(QDialog):
         container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         module_label = QLabel(key.title())
+        module_label.setObjectName("bold")
         module_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(module_label)
 
@@ -225,6 +231,7 @@ class ShotMergeUI(QDialog):
         selected_layout.addWidget(label)
 
         selected = DragList()
+        self.configure_drag_list(selected)
         selected.selection = True
         selected_layout.addWidget(selected)
 
