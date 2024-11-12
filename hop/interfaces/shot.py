@@ -112,17 +112,18 @@ class ShotMergeUI(QDialog):
 
     def create_multi_options(self, options):
         for key, items in options.items():
-            # Init new module
-            container, layout, list_layout = self.create_base_layout(key)
+            if [value for value in items if value is not None]:
+                # Init new module
+                container, layout, list_layout = self.create_base_layout(key)
 
-            # Create selected list on left
-            selected = self.create_selected_list(list_layout, key, items[0])[0]
+                # Create selected list on left
+                selected = self.create_selected_list(list_layout, key, items[0])[0]
 
-            # Create possible asseets on right
-            self.create_asset_tabs_or_labels(items[1:], key, list_layout, selected)
+                # Create possible asseets on right
+                self.create_asset_tabs_or_labels(items[1:], key, list_layout, selected)
 
-            layout.addLayout(list_layout)
-            self.main_layout.addWidget(container)
+                layout.addLayout(list_layout)
+                self.main_layout.addWidget(container)
 
     def create_asset_tabs_or_labels(self, items, key, list_layout, selected):
         # Filter out None Values
@@ -178,33 +179,34 @@ class ShotMergeUI(QDialog):
 
     def create_exclusive_options(self, options):
         for key, items in options.items():
-            container, layout, shots_layout = self.create_base_layout(
-                key, for_buttons=True
-            )
+            if [value for value in items if value is not None]:
+                container, layout, shots_layout = self.create_base_layout(
+                    key, for_buttons=True
+                )
 
-            exclusive_buttons = QButtonGroup(self)
-            exclusive_buttons.setExclusive(True)
-            exclusive_buttons.buttonPressed.connect(self.handle_pressed)
-            exclusive_buttons.buttonClicked.connect(self.handle_clicked)
+                exclusive_buttons = QButtonGroup(self)
+                exclusive_buttons.setExclusive(True)
+                exclusive_buttons.buttonPressed.connect(self.handle_pressed)
+                exclusive_buttons.buttonClicked.connect(self.handle_clicked)
 
-            for count, item in enumerate(items):
-                if item is not None:
-                    button = QPushButton(
-                        f"Shot {self.shots[count]}"
-                        if isinstance(self.shots[count], int)
-                        else str(self.shots[count])
-                    )
-                    button.setCheckable(True)
-                    exclusive_buttons.addButton(button)
-                    button.toggled.connect(
-                        lambda checked, m=key, s=item, idx=count: self.record_selection(
-                            m, s, idx, checked
+                for count, item in enumerate(items):
+                    if item is not None:
+                        button = QPushButton(
+                            f"Shot {self.shots[count]}"
+                            if isinstance(self.shots[count], int)
+                            else str(self.shots[count])
                         )
-                    )
-                    shots_layout.addWidget(button)
+                        button.setCheckable(True)
+                        exclusive_buttons.addButton(button)
+                        button.toggled.connect(
+                            lambda checked, m=key, s=item, idx=count: self.record_selection(
+                                m, s, idx, checked
+                            )
+                        )
+                        shots_layout.addWidget(button)
 
-            layout.addLayout(shots_layout)
-            self.main_layout.addWidget(container)
+                layout.addLayout(shots_layout)
+                self.main_layout.addWidget(container)
 
     def create_base_layout(self, key, for_buttons=False):
         container = QWidget()
