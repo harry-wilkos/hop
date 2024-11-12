@@ -120,20 +120,27 @@ def shot_merge(
 
 # Deletes shots that overlap entirely with the new shot being created
 def shot_delete(overlapping_shot_ids: list, shots_collection: Collection):
+    shot_number_min = None
     for shot_id in overlapping_shot_ids:
+        shot_number = shots_collection.find_one({"_id": shot_id})
+        if shot_number_min is None or (
+            shot_number is not None and shot_number["shot_number"] < shot_number_min
+        ):
+            shot_number_min = shot_number
         shots_collection.update_one({"_id": shot_id}, {"$set": {"shot_number": None}})
         retired_shots = get_collection("shots", "retired_shots")
         retired_shots.insert_one(shots_collection.find_one({"_id": shot_id}))
         shots_collection.delete_one({"_id": shot_id})
 
-    shots_ahead = shots_collection.find({
-        "shot_number": {"$gt": max(overlapping_shot_ids)}
-    }).sort("shot_number", 1)
-    for ahead_shot in shots_ahead:
-        shots_collection.update_one(
-            {"_id": ahead_shot["_id"]},
-            {"$set": {"shot_number": max(overlapping_shot_ids)}},
-        )
+    if shot_number_min is not None:
+        shots_ahead = shots_collection.find({
+            "shot_number": {"$gt": shot_number_min["shot_number"]}
+        }).sort("shot_number", 1)
+        for count, ahead_shot in enumerate(shots_ahead):
+            shots_collection.update_one(
+                {"_id": ahead_shot["_id"]},
+                {"$set": {"shot_number": shot_number_min["shot_number"] + count}},
+            )
 
 
 # Helper to find overlapping frame ranges
@@ -169,7 +176,7 @@ def flattern_dict(attribute_dict) -> dict:
 
 
 # Main function to create a shot
-def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""):
+def create_shot_entry(start_frame: int, end_frame: int, cam: str = "", plate: str = ""):
     if start_frame >= end_frame:
         hou.ui.displayMessage(
             text="Invalid Frame Range",
@@ -254,10 +261,9 @@ def create_shot(start_frame: int, end_frame: int, cam: str = "", plate: str = ""
         shot_delete(overlapping_shot_ids, shots_collection)
 
     new_shot["shot_number"] = update_shot_num(start_frame, end_frame, shots_collection)
-    shots_collection.insert_one(new_shot)
-    return new_shot
+    shot_doc = shots_collection.insert_one(new_shot)
+    return shot_doc
 
 
 if __name__ == "__main__":
-    create_shot(90, 100, "camera1", "back_plate.hdr")
-
+    create_shot_entry(10, 30, "camera1", "back_plate.hdr")
