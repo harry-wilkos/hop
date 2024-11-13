@@ -124,7 +124,8 @@ def shot_delete(overlapping_shot_ids: list, shots_collection: Collection):
     for shot_id in overlapping_shot_ids:
         shot_number = shots_collection.find_one({"_id": shot_id})
         if shot_number_min is None or (
-            shot_number is not None and shot_number["shot_number"] < shot_number_min
+            shot_number is not None
+            and shot_number["shot_number"] < shot_number_min["shot_number"]
         ):
             shot_number_min = shot_number
         shots_collection.update_one({"_id": shot_id}, {"$set": {"shot_number": None}})
@@ -251,8 +252,8 @@ def create_shot_entry(start_frame: int, end_frame: int, cam: str = "", plate: st
                     "trimmed_shot": trimmed_shot,
                     "trim_direction": trim_direction,
                 })
-                overlapping_shot_numbers.append(trimmed_shot["shot_number"])
-                overlapping_shot_ids.append(trimmed_shot["_id"])
+                # overlapping_shot_numbers.append(trimmed_shot["shot_number"])
+                # overlapping_shot_ids.append(trimmed_shot["_id"])
 
         if not shot_trim(shots_collection, overlapping_shots):
             return None
