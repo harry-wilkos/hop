@@ -1,3 +1,5 @@
 requests
 pymongo
 PySide2
+numpy
+scipy

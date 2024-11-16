@@ -7,6 +7,7 @@ except ModuleNotFoundError:
 
     hou = import_hou()
 
+
 def recook():
     nodes = hou.selectedNodes()
     sorted = hou.sortedNodes(nodes)
@@ -23,4 +24,7 @@ def recook():
             find_parm = node.parm(parm)
             if find_parm is not None:
                 find_parm.pressButton()
-        node.cook(force=True)
+        try:
+            node.cook(force=True)
+        except hou.OperationFailed:
+            print("Error while cooking")
