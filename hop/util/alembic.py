@@ -30,11 +30,3 @@ def frame_info(path: str, frame_rate: float | None = None) -> tuple | None:
     end_frame = int(end_time * frame_rate)
 
     return start_frame, end_frame, frame_rate
-
-
-if __name__ == "__main__":
-    test = "/home/Harry/Twelvefold/pipeline/exports/Shot_060_Track.abc"
-    cam_path = find_cam_paths(test)[0]
-    xform = abc.getWorldXform(test, cam_path, 0)
-    print(len(xform[0]))
-    # print(frame_info("/home/Harry/Twelvefold/pipeline/exports/Shot_060_Track.abc"))

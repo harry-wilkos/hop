@@ -2,7 +2,7 @@ from .api_ping import get_collection, post, upload
 from .import_hou import import_hou
 from .process import process, retrieve, thread
 from .refresh_modules import refresh_modules
-from .helpers import pop_dict, place_node
+from .helpers import pop_dict, place_node, matrix_to_euler, extract_matrix
 from . import alembic
 
 __all__ = [
@@ -17,4 +17,6 @@ __all__ = [
     "pop_dict",
     "alembic",
     "place_node",
+    "matrix_to_euler",
+    "extract_matrix"
 ]
