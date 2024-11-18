@@ -1,6 +1,8 @@
 import loptoolutils
 import math
 import numpy as np
+import os
+from pathlib import Path
 
 try:
     import hou
@@ -48,6 +50,13 @@ def pop_dict(data: dict, key_to_split: str) -> tuple:
     dict_1 = {key_to_split: data[key_to_split]} if key_to_split in data else {}
     dict_2 = {k: v for k, v in data.items() if k != key_to_split}
     return dict_1, dict_2
+
+
+def expand_path(path: str) -> str | None:
+    expanded_path = Path(hou.text.expandString(path)).resolve().as_posix()
+    if os.path.exists(expanded_path):
+        return expanded_path
+    return None
 
 
 def place_node(

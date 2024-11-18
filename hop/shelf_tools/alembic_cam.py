@@ -1,4 +1,4 @@
-from ..util import alembic, place_node, extract_matrix
+from ..util import alembic, place_node, extract_matrix, expand_path
 from pathlib import Path
 import _alembic_hom_extensions as abc
 import math
@@ -36,7 +36,7 @@ def alembic_transform_value():
     parm_name = hou.expandString("$CH")
     file = node.evalParm("alembic_file")
     alembic_path = node.evalParm("alembic_path")
-    alembic_file = Path(hou.text.expandString(file)).resolve().as_posix()
+    alembic_file = expand_path(file)
 
     final_transform = np.identity(4)
     current_path = alembic_path

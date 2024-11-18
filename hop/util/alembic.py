@@ -1,6 +1,5 @@
 import _alembic_hom_extensions as abc
-import os
-
+from .helpers import expand_path
 
 def find_cam_paths(path: str) -> list:
     cams = []
@@ -20,7 +19,7 @@ def find_cam_paths(path: str) -> list:
 
 
 def frame_info(path: str, frame_rate: float | None = None) -> tuple | None:
-    if not os.path.exists(path):
+    if not expand_path(path):
         return None
     start_time, end_time = abc.alembicTimeRange(path)
     frame_rate = frame_rate or next(

@@ -1,7 +1,9 @@
 import copy
+from math import exp
 from pymongo.collection import Collection
 from ..interfaces import ShotMerge
-from ..util import get_collection
+from ..util import get_collection, alembic, expand_path
+import os
 
 try:
     import hou
@@ -119,9 +121,9 @@ def shot_merge(
 
 
 # Deletes shots that overlap entirely with the new shot being created
-def shot_delete(overlapping_shot_ids: list, shots_collection: Collection):
+def shot_delete(shot_ids: list, shots_collection: Collection) -> None:
     shot_number_min = None
-    for shot_id in overlapping_shot_ids:
+    for shot_id in shot_ids:
         shot_number = shots_collection.find_one({"_id": shot_id})
         if shot_number_min is None or (
             shot_number is not None
@@ -176,6 +178,29 @@ def flattern_dict(attribute_dict) -> dict:
     return result
 
 
+def update_camera(cam: str, shot: dict, start_frame: int, end_frame: int) -> str | None:
+    cam_file = expand_path(cam)
+    if cam_file is not None:
+        alembic_info = alembic.frame_info(cam, int(os.environ["FPS"]))
+        if alembic_info is not None:
+            if alembic_info[0] != start_frame or alembic_info[1] != end_frame:
+                if not hou.ui.displayConfirmation(
+                    f"The camera's frame range {alembic_info[0]} - {alembic_info[1]} doesn't match the input frame range",
+                    severity=hou.severityType.Warning,
+                    title="Create Shot",
+                ):
+                    return None
+            shot["cam_path"] = alembic.find_cam_paths(cam_file)[0]
+            shot["cam"] = cam_file
+            return cam_file
+    hou.ui.displayMessage(
+        text="Invalid Camera",
+        severity=hou.severityType.Error,
+        title="Create Shot",
+    )
+    return None
+
+
 # Main function to create a shot
 def create_shot_entry(start_frame: int, end_frame: int, cam: str = "", plate: str = ""):
     if start_frame >= end_frame:
@@ -192,6 +217,7 @@ def create_shot_entry(start_frame: int, end_frame: int, cam: str = "", plate: st
         "end_frame": end_frame,
         "plate": plate,
         "cam": cam,
+        "cam_path": "",
         "lights": "",
         "assets": [],
     }
@@ -199,6 +225,12 @@ def create_shot_entry(start_frame: int, end_frame: int, cam: str = "", plate: st
     overlapping_ranges, overlapping_docs = find_frame_intersects(
         shots_collection, start_frame, end_frame
     )
+
+    if cam != "":
+        cam_path = update_camera(cam, new_shot, start_frame, end_frame)
+        if cam_path is None:
+            return None
+        print(cam_path)
 
     if overlapping_ranges:
         shot_attributes = {"cam": [], "plate": [], "lights": [], "assets": []}
@@ -252,13 +284,12 @@ def create_shot_entry(start_frame: int, end_frame: int, cam: str = "", plate: st
                     "trimmed_shot": trimmed_shot,
                     "trim_direction": trim_direction,
                 })
-                # overlapping_shot_numbers.append(trimmed_shot["shot_number"])
-                # overlapping_shot_ids.append(trimmed_shot["_id"])
 
-        if not shot_trim(shots_collection, overlapping_shots):
+        if not shot_trim(shots_collection, overlapping_shots) or not shot_merge(
+            new_shot, shot_attributes, overlapping_shot_numbers
+        ):
             return None
-        if not shot_merge(new_shot, shot_attributes, overlapping_shot_numbers):
-            return None
+
         shot_delete(overlapping_shot_ids, shots_collection)
 
     new_shot["shot_number"] = update_shot_num(start_frame, end_frame, shots_collection)
