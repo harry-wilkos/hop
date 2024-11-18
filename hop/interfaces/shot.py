@@ -258,7 +258,6 @@ class ShotMergeUI(QDialog):
 
     def record_selection(self, module, selection, index, checked):
         current_selection = self.results[module][index]
-
         if checked:
             if current_selection is None:
                 self.results[module][index] = selection
