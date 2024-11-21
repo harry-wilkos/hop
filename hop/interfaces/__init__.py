@@ -1,4 +1,3 @@
-from .shot import ShotMerge
-from .load_style import load_style
+from .merge_shot_ui import merge_shots
 
-__all__ = ["ShotMerge", "load_style"]
+__all__ = ["merge_shots"]

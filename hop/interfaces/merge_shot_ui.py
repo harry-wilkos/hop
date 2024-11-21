@@ -284,7 +284,7 @@ class ShotMergeUI(QDialog):
         return self.results if self.exec_() == QDialog.Accepted else None
 
 
-def ShotMerge(modules=None, shots=None) -> Optional[dict]:
+def merge_shots(modules=None, shots=None) -> Optional[dict]:
     app = QApplication.instance()
     created_app = False
     if not app:
@@ -297,7 +297,7 @@ def ShotMerge(modules=None, shots=None) -> Optional[dict]:
 
 
 if __name__ == "__main__":
-    selections = ShotMerge(
+    selections = merge_shots(
         {
             "cam": ["camera1", "cam", "cam"],
             "plate": ["back_plate.hdr", "plate", "plate"],

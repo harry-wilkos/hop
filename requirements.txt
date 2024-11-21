@@ -2,3 +2,5 @@ requests
 pymongo
 PySide2
 numpy
+clique
+ffmpeg-python

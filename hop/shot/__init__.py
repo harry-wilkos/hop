@@ -1,3 +1,2 @@
-from .create_shot_entry import create_shot_entry
-
-__all__ = ["create_shot_entry"]
+from .shot_class import Shot
+__all__ = ["Shot"]

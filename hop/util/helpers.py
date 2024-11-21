@@ -1,16 +1,73 @@
-import loptoolutils
 import math
 import numpy as np
 import os
+import site
+import sys
+from importlib import reload
+from ..util.hou_helpers import expand_path
+from shutil import copy2, move
 from pathlib import Path
 
-try:
-    import hou
-except ModuleNotFoundError:
-    from .import_hou import import_hou
 
-    hou = import_hou()
-from hou import ObjNode
+def copy_file(file: str, target: list) -> None | str:
+    target[-1] = f"{target[-1]}{Path(file).suffix}"
+    path = expand_path(file)
+    root = os.environ["HOP"]
+    if path is not None and root is not None:
+        save_dir = os.path.join(root, *target[:-1])
+        save_path = os.path.join(save_dir, target[-1])
+        try:
+            os.remove(save_path)
+        except FileNotFoundError:
+            pass
+        os.makedirs(save_dir, exist_ok=True)
+        new_location = copy2(path, save_path)
+        return new_location.replace(root, "$HOP")
+
+
+def move_folder(folder: str, target: list) -> None | str:
+    path = expand_path(folder)
+    root = os.environ["HOP"]
+    if path is not None and root is not None:
+        save_path = os.path.join(root, *target)
+        os.makedirs(save_path, exist_ok=True)
+        new_location = move(path, save_path)
+        return new_location.replace(root, "$HOP")
+
+
+def refresh_modules(ignore_module_paths: str | list = []) -> list:
+    if isinstance(ignore_module_paths, str):
+        ignore_module_paths = [ignore_module_paths]
+
+    standard_library_paths = [os.path.dirname(os.__file__)]
+    ignore_paths = [os.path.abspath(path) for path in ignore_module_paths]
+    module_names = list(sys.modules.keys())
+    reloads = []
+
+    for module_name in module_names:
+        module = sys.modules.get(module_name)
+
+        if module_name == "__main__" or module is None:
+            continue
+
+        if hasattr(module, "__file__") and module.__file__ is not None:
+            module_file = os.path.abspath(module.__file__)
+
+            if any(
+                os.path.commonpath([module_file, os.path.abspath(path)])
+                == os.path.abspath(path)
+                for path in standard_library_paths + ignore_paths
+                if path is not None
+            ):
+                continue
+
+        try:
+            reload(module)
+            reloads.append(module_name)
+        except Exception:
+            continue
+    reload(site)
+    return reloads
 
 
 def matrix_to_euler(matrix):
@@ -50,44 +107,3 @@ def pop_dict(data: dict, key_to_split: str) -> tuple:
     dict_1 = {key_to_split: data[key_to_split]} if key_to_split in data else {}
     dict_2 = {k: v for k, v in data.items() if k != key_to_split}
     return dict_1, dict_2
-
-
-def expand_path(path: str) -> str | None:
-    expanded_path = Path(hou.text.expandString(path)).resolve().as_posix()
-    if os.path.exists(expanded_path):
-        return expanded_path
-    return None
-
-
-def place_node(
-    kwargs: dict, pane_type: str | list, node_type: str, node_name: None | str = None
-) -> ObjNode:
-    if node_name is None:
-        node_name = node_type
-
-    node = None
-    try:
-        node = loptoolutils.genericTool(
-            kwargs, node_type, node_name, clicktoplace=False
-        )
-    except AttributeError:
-        desktop = hou.ui.curDesktop()
-        pane = desktop.paneTabUnderCursor()
-        if pane is not None:
-            current_context = pane.pwd()
-            if current_context.type().name() == pane_type:
-                node = current_context.createNode(
-                    node_type, node_name, True, True, False, True
-                )
-                node.moveToGoodPosition()
-        else:
-            if pane_type[0] != "/":
-                pane_type = f"/{pane_type}"
-            current_context = hou.node(pane_type)
-            if current_context is not None:
-                node = current_context.createNode(
-                    node_type, node_name, True, True, False, True
-                )
-                node.moveToGoodPosition()
-
-    return node

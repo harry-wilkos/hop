@@ -1,15 +1,16 @@
-from ..util import alembic, place_node, extract_matrix, expand_path
+from ..util import alembic_helpers, extract_matrix
+from ..util.hou_helpers import place_node, expand_path
 from pathlib import Path
-import _alembic_hom_extensions as abc
 import math
 import numpy as np
 
 try:
     import hou
 except ModuleNotFoundError:
-    from ..util import import_hou
-
+    from ..util.hou_helpers import import_hou
     hou = import_hou()
+import _alembic_hom_extensions as abc
+
 
 bindings = [
     "tx",
@@ -81,71 +82,72 @@ def import_alembic_cam(kwargs: dict):
         chooser_mode=hou.fileChooserMode.Read,
     )
     if file:
-        path = Path(hou.text.expandString(file)).resolve().as_posix()
-        cams = alembic.find_cam_paths(path)
-        start, end, frame = alembic.frame_info(path)
-        if (
-            hou.fps() != frame
-            or hou.playbar.frameRange()[0] != start
-            or hou.playbar.frameRange()[1] != end
-        ):
-            if hou.ui.displayCustomConfirmation(
-                f"Set frame range ({start} - {end}) and fps ({frame}) from alembic?",
-                buttons=("No", "Yes"),
-                severity=hou.severityType.Message,
-                default_choice=0,
-                close_choice=0,
-                title="Alembic Camera Import",
+        path = expand_path(file)
+        if path is not None:
+            cams = alembic_helpers.find_cam_paths(path)
+            start, end, frame = alembic_helpers.frame_info(path)
+            if (
+                hou.fps() != frame
+                or hou.playbar.frameRange()[0] != start
+                or hou.playbar.frameRange()[1] != end
             ):
-                hou.setFps(frame, False)
-                hou.playbar.setFrameRange(start, end)
-                hou.playbar.setPlaybackRange(start, end)
-                if start > hou.frame() or hou.frame() > end:
-                    hou.setFrame(start)
-        for cam in cams:
-            node = place_node(kwargs, "obj", "cam")
-            if node is not None:
-                template = node.parmTemplateGroup()
-                alembic_file = hou.StringParmTemplate(
-                    name="alembic_file",
-                    label="Alembic File",
-                    num_components=1,
-                    string_type=hou.stringParmType.FileReference,
-                    file_type=hou.fileType.Geometry,
-                )
-                alembic_path = hou.StringParmTemplate(
-                    name="alembic_path", label="Alembic Path", num_components=1
-                )
-                scale = hou.FloatParmTemplate(
-                    name="uni_scale",
-                    label="Uniform Scale",
-                    num_components=1,
-                    default_value=(1.0,),
-                )
-                template.append(alembic_file)
-                template.append(alembic_path)
-                template.appendToFolder("Transform", scale)
-                node.setParmTemplateGroup(template)
-                node.setParms({"alembic_file": file, "alembic_path": cam})
-                parms = abc.alembicGetCameraDict(path, cam, 0)
-                resx = node.evalParm("resx")
-                resy = node.evalParm("resy")
-                for xform in bindings:
-                    xf_parm = node.parm(xform)
-                    xf_parm.setExpression(
-                        xfrom_expression, hou.exprLanguage.Python, True
+                if hou.ui.displayCustomConfirmation(
+                    f"Set frame range ({start} - {end}) and fps ({frame}) from alembic?",
+                    buttons=("No", "Yes"),
+                    severity=hou.severityType.Message,
+                    default_choice=0,
+                    close_choice=0,
+                    title="Alembic Camera Import",
+                ):
+                    hou.setFps(frame, False)
+                    hou.playbar.setFrameRange(start, end)
+                    hou.playbar.setPlaybackRange(start, end)
+                    if start > hou.frame() or hou.frame() > end:
+                        hou.setFrame(start)
+            for cam in cams:
+                node = place_node(kwargs, "obj", "cam")
+                if node is not None:
+                    template = node.parmTemplateGroup()
+                    alembic_file = hou.StringParmTemplate(
+                        name="alembic_file",
+                        label="Alembic File",
+                        num_components=1,
+                        string_type=hou.stringParmType.FileReference,
+                        file_type=hou.fileType.Geometry,
                     )
-                for key in parms:
-                    parm = node.parm(key)
-                    if parm is not None:
-                        parm.setExpression(
-                            parm_expression, hou.exprLanguage.Python, True
+                    alembic_path = hou.StringParmTemplate(
+                        name="alembic_path", label="Alembic Path", num_components=1
+                    )
+                    scale = hou.FloatParmTemplate(
+                        name="uni_scale",
+                        label="Uniform Scale",
+                        num_components=1,
+                        default_value=(1.0,),
+                    )
+                    template.append(alembic_file)
+                    template.append(alembic_path)
+                    template.appendToFolder("Transform", scale)
+                    node.setParmTemplateGroup(template)
+                    node.setParms({"alembic_file": file, "alembic_path": cam})
+                    parms = abc.alembicGetCameraDict(path, cam, 0)
+                    resx = node.evalParm("resx")
+                    resy = node.evalParm("resy")
+                    for xform in bindings:
+                        xf_parm = node.parm(xform)
+                        xf_parm.setExpression(
+                            xfrom_expression, hou.exprLanguage.Python, True
                         )
-                    elif key == "filmaspectratio" and not math.isclose(
-                        resx / resy, parms[key]
-                    ):
-                        hou.ui.displayMessage(
-                            text=f"{resx} x {resy} is not the same aspect ration as the alembic ({round(parms[key], 2)})",
-                            severity=hou.severityType.Warning,
-                            title="Alembic camera",
-                        )
+                    for key in parms:
+                        parm = node.parm(key)
+                        if parm is not None:
+                            parm.setExpression(
+                                parm_expression, hou.exprLanguage.Python, True
+                            )
+                        elif key == "filmaspectratio" and not math.isclose(
+                            resx / resy, parms[key]
+                        ):
+                            hou.ui.displayMessage(
+                                text=f"{resx} x {resy} is not the same aspect ration as the alembic ({round(parms[key], 2)})",
+                                severity=hou.severityType.Warning,
+                                title="Alembic camera",
+                            )
