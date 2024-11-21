@@ -6,6 +6,8 @@ from .camera import update_camera
 from .plate import update_plate, generate_back_plate
 from ..util.hou_helpers import error_dialog, expand_path
 import os
+from typing import Callable
+from shutil import rmtree
 
 try:
     import hou
@@ -110,38 +112,83 @@ class Shot:
         return self.shot_data
 
     def publish(self):
-        def perform_step(step_function, *args, **kwargs):
+        def perform_step(step_function: Callable, progress_title: str, *args, **kwargs):
             nonlocal status
             if status:
-                status = step_function(*args, **kwargs)
-            if not status:
-                error_dialog("Publish Shot", "Error Publishing Shot")
-                if self.shot_data:
-                    shot_dir = expand_path(
-                        os.path.join("$HOP", "shots", str(self.shot_data["_id"]))
-                    )
-                    if shot_dir:
-                        os.remove(shot_dir)
+                try:
+                    with hou.InterruptableOperation(
+                        progress_title, open_interrupt_dialog=False
+                    ) as progress:
+                        # Check if the function accepts a `progress` parameter
+                        if "progress" in step_function.__code__.co_varnames:
+                            status = step_function(progress, *args, **kwargs)
+                        else:
+                            status = step_function(*args, **kwargs)
+                        progress.updateProgress(1.0)
+                except hou.OperationInterrupted:
+                    status = False
+                if status:
+                    overall_progress.updateLongProgress(1/4)
+                else:
+                    if self.shot_data:
+                        shot_dir = expand_path(
+                            os.path.join(
+                                "$HOP",
+                                "shots",
+                                "active_shots",
+                                str(self.shot_data["_id"]),
+                            )
+                        )
+                        if shot_dir:
+                            rmtree(shot_dir)
+                    error_dialog("Publish Shot", "Error Publishing Shot")
+
+        def copy_files_with_progress(progress, files):
+            total_files = len(files)
+            for index, file in enumerate(files, start=1):
+                if copy_file(*file) is None:
+                    return False
+                progress.updateProgress(index / total_files)
+            return True
 
         if self.shot_data is None:
             return self.shot_data
+
         status = True
 
-        perform_step(
-            lambda: all(copy_file(*file) is not None for file in self.rip_files)
-        )
+        try:
+            with hou.InterruptableOperation(
+                "Publishing Shot",
+                "Publishing Shot",
+                open_interrupt_dialog=True,
+            ) as overall_progress:
 
-        if self.shot_data["plate"] and self.new_plate:
-            perform_step(generate_back_plate, self)
-            self.new_plate = False
+                if self.rip_files:
+                    perform_step(
+                        copy_files_with_progress, "Copying Files", self.rip_files
+                    )
 
-        if self.delete_shots:
-            perform_step(shot_delete, self.delete_shots, self.collection)
+                if self.shot_data["plate"] and self.new_plate:
+                    perform_step(generate_back_plate, "Generating Back Plate", self)
+                    self.new_plate = False
 
-        perform_step(update_shot_num, self)
-        self.collection.insert_one(self.shot_data)
+                if self.delete_shots:
+                    perform_step(
+                        shot_delete,
+                        "Deleting Shots",
+                        self.delete_shots,
+                        self.collection,
+                    )
 
-        hou.ui.displayMessage(
-            f"Shot published as shot {self.shot_data['shot_number']}!"
-        )
+                perform_step(update_shot_num, "Updating Shot Numbers", self)
+
+                self.collection.insert_one(self.shot_data)
+
+            hou.ui.displayMessage(
+                f"Shot published as shot {self.shot_data['shot_number']}!"
+            )
+
+        except hou.OperationInterrupted:
+            pass
+
         return self.shot_data
