@@ -77,7 +77,7 @@ def update_plate(shot: "Shot", plate: str) -> bool:
     assembly = clique.assemble(exrs)[0][0]
     frames = sorted(assembly.indexes)
     if len(frames) < shot.shot_data["end_frame"] - shot.shot_data["start_frame"]:
-        error_dialog("Not enough frames in plate for given frame range", "Update Plate")
+        error_dialog("Update Plate", "Not enough frames in plate for given frame range")
         return False
     ripped_plate_path = ["shots", "active_shots", str(shot.shot_data["_id"]), "plate"]
     for index, file in enumerate(exrs):

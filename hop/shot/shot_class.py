@@ -7,6 +7,13 @@ from .plate import update_plate, generate_back_plate
 from ..util.hou_helpers import error_dialog, expand_path
 import os
 
+try:
+    import hou
+except ModuleNotFoundError:
+    from ..util.hou_helpers import import_hou
+
+    hou = import_hou()
+
 
 def shot_delete(shot_ids: ObjectId | list, shots_collection: Collection) -> bool:
     if isinstance(shot_ids, ObjectId):
@@ -95,12 +102,12 @@ class Shot:
             if self.shot_data is not None and self.shot_data["plate"] != "":
                 if not update_plate(self, self.shot_data["plate"]):
                     self.shot_data = None
+
     def delete(self):
         if self.shot_data is not None:
             if shot_delete(self.shot_data["_id"], self.collection):
                 self.shot_data = None
         return self.shot_data
-
 
     def publish(self):
         def perform_step(step_function, *args, **kwargs):
@@ -110,7 +117,9 @@ class Shot:
             if not status:
                 error_dialog("Publish Shot", "Error Publishing Shot")
                 if self.shot_data:
-                    shot_dir = expand_path(os.path.join("$HOP", "shots", str(self.shot_data["_id"])))
+                    shot_dir = expand_path(
+                        os.path.join("$HOP", "shots", str(self.shot_data["_id"]))
+                    )
                     if shot_dir:
                         os.remove(shot_dir)
 
@@ -118,7 +127,9 @@ class Shot:
             return self.shot_data
         status = True
 
-        perform_step(lambda: all(copy_file(*file) is not None for file in self.rip_files))
+        perform_step(
+            lambda: all(copy_file(*file) is not None for file in self.rip_files)
+        )
 
         if self.shot_data["plate"] and self.new_plate:
             perform_step(generate_back_plate, self)
@@ -129,4 +140,8 @@ class Shot:
 
         perform_step(update_shot_num, self)
         self.collection.insert_one(self.shot_data)
+
+        hou.ui.displayMessage(
+            f"Shot published as shot {self.shot_data['shot_number']}!"
+        )
         return self.shot_data

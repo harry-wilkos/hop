@@ -36,6 +36,6 @@ def update_camera(shot: "Shot", cam: str) -> bool:
 
     ripped_cam_path = ["shots", "active_shots", str(shot.shot_data["_id"]), "camera"]
     shot.shot_data["cam_path"] = alembic_helpers.find_cam_paths(cam_file)[0]
-    shot.shot_data["cam"] = f"{os.path.join("$HOP", *ripped_cam_path)}.abc"
+    shot.shot_data["cam"] = f"{os.path.join('$HOP', *ripped_cam_path)}.abc"
     shot.rip_files.append((cam_file, ripped_cam_path))
     return True
