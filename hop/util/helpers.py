@@ -4,7 +4,7 @@ import os
 import site
 import sys
 from importlib import reload
-from ..util.hou_helpers import expand_path
+from hop.util.hou_helpers import expand_path
 from shutil import copy2, move
 from pathlib import Path
 
