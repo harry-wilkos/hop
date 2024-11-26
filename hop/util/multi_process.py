@@ -144,7 +144,6 @@ if __name__ == "__main__":
 
     # Execute function in parallel
     with ProcessPoolExecutor() as executor:
-        # Submit all tasks before retrieving results
         futures = {
             executor.submit(function, *chunk): idx for idx, chunk in enumerate(args)
         }

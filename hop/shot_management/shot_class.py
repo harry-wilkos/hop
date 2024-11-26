@@ -4,23 +4,23 @@ from typing import Callable
 
 from pymongo.collection import Collection, ObjectId
 
-from hop.util.api_helpers import get_collection
-from hop.util.helpers import copy_file, move_folder
-from hop.util.hou_helpers import error_dialog, expand_path
-from hop.shot.camera import update_camera
-from hop.shot.frame_range import update_frame_range, update_shot_num
-from hop.shot.plate import generate_back_plate, update_plate
-from hop.util import MultiProcess
+from hop.shot_management.camera import update_camera
+from hop.shot_management.frame_range import update_frame_range, update_shot_num
+from hop.shot_management.plate import generate_back_plate, update_plate
+from hop.util import MultiProcess, copy_file, move_folder, get_collection
+from hop.util.hou_helpers import error_dialog
 
 try:
     import hou
 except ModuleNotFoundError:
-    from ..util.hou_helpers import import_hou
+    from hop.util.hou_helpers import import_hou
 
     hou = import_hou()
 
 
-def shot_delete(shot_ids: ObjectId | list, shots_collection: Collection) -> bool:
+def shot_delete(
+    shot_ids: ObjectId | list, shots_collection: Collection, retire: bool = True
+) -> bool:
     if isinstance(shot_ids, ObjectId):
         shot_ids = [shot_ids]
 
@@ -50,8 +50,8 @@ def shot_delete(shot_ids: ObjectId | list, shots_collection: Collection) -> bool
         ):
             shot_number_min = shot_data["shot_number"]
 
-        retired_shots_collection.insert_one(shot_data)
-
+        if retire:
+            retired_shots_collection.insert_one(shot_data)
         shots_collection.delete_one({"_id": shot_id})
 
     if shot_number_min is not None:
@@ -69,10 +69,31 @@ def shot_delete(shot_ids: ObjectId | list, shots_collection: Collection) -> bool
 
 
 class Shot:
+    class Update:
+        def __init__(self, shot: "Shot") -> None:
+            self.shot = shot
+
+        def frame_range(self, start_frame: int, end_frame: int):
+            if self.shot.shot_data is None or not update_frame_range(
+                self.shot, start_frame, end_frame
+            ):
+                self.shot.shot_data = None
+            return self.shot
+
+        def camera(self, cam: str):
+            if self.shot.shot_data is not None and not update_camera(self.shot, cam):
+                self.shot_data = None
+            return self.shot
+
+        def plate(self, plate: str):
+            if self.shot.shot_data is not None and not update_plate(self.shot, plate):
+                self.shot_data = None
+            return self.shot
+
     def __init__(
         self,
-        start_frame: int,
-        end_frame: int,
+        start_frame: int | None = None,
+        end_frame: int | None = None,
         cam: str = "",
         plate: str = "",
         shot_number: int | None = None,
@@ -80,6 +101,8 @@ class Shot:
         self.collection = get_collection("shots", "active_shots")
         self.delete_shots, self.rip_files = [], []
         self.new_plate = False
+        self.update = self.Update(self)
+
         if shot_number is not None:
             retrieve_shot = self.collection.find_one({"shot_number": shot_number})
             if retrieve_shot is not None:
@@ -90,23 +113,24 @@ class Shot:
             self.shot_data = {
                 "_id": ObjectId(),
                 "shot_number": None,
-                "start_frame": None,
-                "end_frame": None,
+                "start_frame": start_frame,
+                "end_frame": end_frame,
                 "plate": plate,
                 "back_plate": "",
+                "distortion_plate": "",
                 "cam": cam,
                 "cam_path": "",
                 "lights": "",
                 "assets": [],
             }
-            if not update_frame_range(self, start_frame, end_frame):
-                self.shot_data = None
-            if self.shot_data is not None and self.shot_data["cam"] != "":
-                if not update_camera(self, self.shot_data["cam"]):
-                    self.shot_data = None
-            if self.shot_data is not None and self.shot_data["plate"] != "":
-                if not update_plate(self, self.shot_data["plate"]):
-                    self.shot_data = None
+
+            self.update.frame_range(
+                self.shot_data["start_frame"], self.shot_data["end_frame"]
+            )
+            if self.shot_data is not None:
+                self.update.camera(self.shot_data["cam"])
+            if self.shot_data is not None:
+                self.update.plate(self.shot_data["plate"])
 
     def delete(self):
         if self.shot_data is not None:
@@ -131,7 +155,7 @@ class Shot:
                 except hou.OperationInterrupted:
                     status = False
                 if status:
-                    overall_progress.updateLongProgress(1 / 4)
+                    overall_progress.updateLongProgress(1 / 2)
                 else:
                     if self.shot_data:
                         if shot_dir:
@@ -169,7 +193,6 @@ class Shot:
 
                 if self.shot_data["plate"] and self.new_plate:
                     perform_step(generate_back_plate, "Generating Back Plate", self)
-                    self.new_plate = False
 
                 if self.delete_shots:
                     perform_step(
@@ -179,9 +202,13 @@ class Shot:
                         self.collection,
                     )
 
-                perform_step(update_shot_num, "Updating Shot Numbers", self)
-
-                self.collection.insert_one(self.shot_data)
+                if self.shot_data["shot_number"] is None:
+                    perform_step(update_shot_num, "Updating Shot Numbers", self)
+                    self.collection.insert_one(self.shot_data)
+                else:
+                    self.collection.update_one(
+                        {"_id": self.shot_data["_id"]}, {"$set": self.shot_data}
+                    )
 
             hou.ui.displayMessage(
                 f"Shot published as shot {self.shot_data['shot_number']}!"

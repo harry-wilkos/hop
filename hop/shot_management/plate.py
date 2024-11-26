@@ -1,30 +1,26 @@
-from typing import TYPE_CHECKING
-from ..util.hou_helpers import expand_path, error_dialog
 import os
 from glob import glob
+from typing import TYPE_CHECKING
+
 import clique
 import ffmpeg
+import OpenEXR as openexr
 
-try:
-    import hou
-except ModuleNotFoundError:
-    from ..util.hou_helpers import import_hou
-
-    hou = import_hou()
+from hop.util.hou_helpers import error_dialog, expand_path
 
 if TYPE_CHECKING:
-    from .shot_class import Shot
+    from hop.shot_management.shot_class import Shot
 
 
 def generate_back_plate(shot: "Shot") -> bool:
     if shot.shot_data is None:
         return False
-    
+
     shot_plate = shot.shot_data["plate"]
     plate_dir = expand_path(os.path.dirname(shot_plate))
     if plate_dir is None:
         return False
-    
+
     plate = os.path.join(plate_dir, os.path.basename(shot_plate))
     exrs = sorted(glob(plate.replace("####", "*")))
     assembly = clique.assemble(exrs)[0][0]
@@ -59,7 +55,9 @@ def generate_back_plate(shot: "Shot") -> bool:
         os.rename(back_plate, new_name)
         frame += 1
 
-    shot.shot_data["back_plate"] = back_plate_path.replace("%04d", "$F").replace(os.environ["HOP"], "$HOP")
+    shot.shot_data["back_plate"] = back_plate_path.replace("%04d", "$F").replace(
+        os.environ["HOP"], "$HOP"
+    )
     return True
 
 
@@ -74,6 +72,9 @@ def update_plate(shot: "Shot", plate: str) -> bool:
     search = name.replace("$F", "*").replace("####", "*")
     files = os.path.join(plate_dir, search)
     exrs = sorted(glob(files))
+
+    # print(openexr.File(exrs[0]).header()["fps"])
+
     assembly = clique.assemble(exrs)[0][0]
     frames = sorted(assembly.indexes)
     if len(frames) < shot.shot_data["end_frame"] - shot.shot_data["start_frame"]:

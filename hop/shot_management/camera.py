@@ -1,17 +1,10 @@
 from typing import TYPE_CHECKING
-from ..util.hou_helpers import expand_path, confirmation_dialog, error_dialog
-from ..util import alembic_helpers
+from hop.util.hou_helpers import expand_path, confirmation_dialog, error_dialog
+from hop.util import alembic_helpers
 import os
 
-try:
-    import hou
-except ModuleNotFoundError:
-    from ..util.hou_helpers import import_hou
-
-    hou = import_hou()
-
 if TYPE_CHECKING:
-    from .shot_class import Shot
+    from hop.shot_management import Shot
 
 
 def update_camera(shot: "Shot", cam: str) -> bool:

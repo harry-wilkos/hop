@@ -1,17 +1,11 @@
-from typing import TYPE_CHECKING
 import copy
-from ..interfaces import merge_shots
-from ..util.hou_helpers import confirmation_dialog, error_dialog
+from typing import TYPE_CHECKING
 
-try:
-    import hou
-except ModuleNotFoundError:
-    from ..util.hou_helpers import import_hou
-
-    hou = import_hou()
+from hop.interfaces import merge_shots
+from hop.util.hou_helpers import confirmation_dialog, error_dialog
 
 if TYPE_CHECKING:
-    from .shot_class import Shot
+    from hop.shot_management.shot_class import Shot
 
 
 def find_overlapping_shots(
@@ -24,6 +18,8 @@ def find_overlapping_shots(
     shot_to_merge_data = {key: [] for key in ["cam", "plate", "lights", "assets"]}
 
     for existing_shot in shot.collection.find({}):
+        if str(existing_shot["_id"]) == str(shot.shot_data["_id"]):
+            continue
         shot_start, shot_end = existing_shot["start_frame"], existing_shot["end_frame"]
         intersection_start, intersection_end = (
             max(start_frame, shot_start),
@@ -52,7 +48,7 @@ def find_overlapping_shots(
                 shots_to_trim.append(existing_shot)
             elif shot_start < start_frame and shot_end > end_frame:
                 error_dialog(
-                    "Frame range is nested within existing shot", "Update Frame Range"
+                    "Update Frame Range", "Frame range is nested within existing shot"
                 )
                 return None
             else:
@@ -180,8 +176,10 @@ def update_shot_num(shot: "Shot") -> bool:
 
 
 def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
-    if shot.shot_data is None:
+    if shot.shot_data is None or start_frame >= end_frame or start_frame < 1001:
+        error_dialog("Update Frame Range", "Invalid Frame Range")
         return False
+
     intersecting_shots = find_overlapping_shots(shot, start_frame, end_frame)
     if intersecting_shots:
         shots_to_trim, (shots_to_merge, shot_data_to_merge) = intersecting_shots
