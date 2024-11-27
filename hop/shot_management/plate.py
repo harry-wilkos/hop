@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 import clique
 import ffmpeg
-import OpenEXR as openexr
+import OpenEXR
 
 from hop.util.hou_helpers import error_dialog, expand_path
 
@@ -66,14 +66,22 @@ def update_plate(shot: "Shot", plate: str) -> bool:
         return False
     plate_dir = expand_path(os.path.dirname(plate))
     if plate_dir is None or plate.split(".")[-1] != "exr":
-        error_dialog("Invalid Plate", "Update Plate")
+        error_dialog("Update Plate", "Invalid Plate")
         return False
     name = os.path.basename(plate)
     search = name.replace("$F", "*").replace("####", "*")
     files = os.path.join(plate_dir, search)
     exrs = sorted(glob(files))
 
-    # print(openexr.File(exrs[0]).header()["fps"])
+    if not OpenEXR.isOpenExrFile(exrs[0]):
+        error_dialog("Update Plate", "Invalid Plate")
+        return False
+
+    file = OpenEXR.InputFile(exrs[0])
+    rational = file.header()["framesPerSecond"]
+    if rational.n // rational.d != int(os.environ["FPS"]):
+        error_dialog("Update Plate", f"Plate doesn't match {os.environ['FPS']} fps")
+        return False
 
     assembly = clique.assemble(exrs)[0][0]
     frames = sorted(assembly.indexes)

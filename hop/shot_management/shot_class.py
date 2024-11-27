@@ -7,7 +7,7 @@ from pymongo.collection import Collection, ObjectId
 from hop.shot_management.camera import update_camera
 from hop.shot_management.frame_range import update_frame_range, update_shot_num
 from hop.shot_management.plate import generate_back_plate, update_plate
-from hop.util import MultiProcess, copy_file, move_folder, get_collection
+from hop.util import MultiProcess, copy_file, get_collection, move_folder
 from hop.util.hou_helpers import error_dialog
 
 try:
@@ -21,7 +21,7 @@ except ModuleNotFoundError:
 def shot_delete(
     shot_ids: ObjectId | list, shots_collection: Collection, retire: bool = True
 ) -> bool:
-    if isinstance(shot_ids, ObjectId):
+    if type(shot_ids) is not list:
         shot_ids = [shot_ids]
 
     if not shot_ids:
@@ -29,7 +29,6 @@ def shot_delete(
 
     retired_shots_collection = get_collection("shots", "retired_shots")
     shot_number_min = None
-
     for shot_id in shot_ids:
         existing_shot_path = os.path.join(
             os.environ["HOP"], "shots", "active_shots", str(shot_id)
@@ -81,13 +80,17 @@ class Shot:
             return self.shot
 
         def camera(self, cam: str):
-            if self.shot.shot_data is not None and not update_camera(self.shot, cam):
-                self.shot_data = None
+            if cam == "":
+                pass
+            elif self.shot.shot_data is None or not update_camera(self.shot, cam):
+                self.shot.shot_data = None
             return self.shot
 
         def plate(self, plate: str):
-            if self.shot.shot_data is not None and not update_plate(self.shot, plate):
-                self.shot_data = None
+            if plate == "":
+                pass
+            elif self.shot.shot_data is None or not update_plate(self.shot, plate):
+                self.shot.shot_data = None
             return self.shot
 
     def __init__(
@@ -134,8 +137,10 @@ class Shot:
 
     def delete(self):
         if self.shot_data is not None:
-            if shot_delete(self.shot_data["_id"], self.collection):
+            shot_status = shot_delete(self.shot_data["_id"], self.collection)
+            if shot_status:
                 self.shot_data = None
+            return shot_status
         return self.shot_data
 
     def publish(self):
@@ -210,9 +215,9 @@ class Shot:
                         {"_id": self.shot_data["_id"]}, {"$set": self.shot_data}
                     )
 
-            hou.ui.displayMessage(
-                f"Shot published as shot {self.shot_data['shot_number']}!"
-            )
+                hou.ui.displayMessage(
+                    f"Shot published as shot {self.shot_data['shot_number']}!"
+                )
 
         except hou.OperationInterrupted:
             pass

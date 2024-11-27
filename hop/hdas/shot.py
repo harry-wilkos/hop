@@ -1,8 +1,24 @@
 from hop.shot_management import Shot
 from hop.util import get_collection
-from hop.util.hou_helpers import error_dialog, expand_path
+from hop.util.hou_helpers import error_dialog, expand_path, confirmation_dialog
+
+try:
+    import hou
+except ImportError:
+    from hop.util.hou_helpers import import_hou
+
+    hou = import_hou()
 
 collection = get_collection("shots", "active_shots")
+
+
+def load_frame_range(uievent) -> None:
+    node = uievent.selected.item
+    if node.evalParm("load_shot") != -1:
+        hou.playbar.setFrameRange(
+            node.evalParm("frame_rangex"), node.evalParm("frame_rangey")
+        )
+    return
 
 
 def load_shot_menu() -> list:
@@ -15,12 +31,11 @@ def load_shot_menu() -> list:
 
 def load(kwargs: dict) -> None:
     node = kwargs["node"]
-    shot = get_collection("shots", "active_shots").find_one({
-        "shot_number": node.evalParm("load_shot")
-    })
+    shot = collection.find_one({"shot_number": node.evalParm("load_shot")})
     if shot:
         shot["frame_rangex"] = shot["start_frame"]
         shot["frame_rangey"] = shot["end_frame"]
+        hou.setFrame(shot["start_frame"])
         for key, value in shot.items():
             parm = node.parm(key)
             if parm:
@@ -46,17 +61,29 @@ def publish(kwargs: dict) -> None:
         if shot is None:
             error_dialog("Publish Shot", "Cannot find shot")
             return
-        elif shot.shot_data is not None:
-            if (
+        else:
+            if shot.shot_data is not None and (
                 shot.shot_data["start_frame"] != start_frame
                 or shot.shot_data["end_frame"] != end_frame
             ):
                 shot.update.frame_range(start_frame, end_frame)
-            if expand_path(shot.shot_data["cam"]) != cam:
+            if shot.shot_data is not None and expand_path(shot.shot_data["cam"]) != cam:
                 shot.update.camera(cam)
-            if shot.shot_data["plate"] != plate:
+            if shot.shot_data is not None and shot.shot_data["plate"] != plate:
                 shot.update.plate(plate)
+
     shot.publish()
     if shot.shot_data is not None:
         node.parm("load_shot").set(shot.shot_data["shot_number"])
         load(kwargs)
+
+
+def delete(kwargs):
+    node = kwargs["node"]
+    loaded_shot = node.evalParm("load_shot")
+    if loaded_shot != -1 and confirmation_dialog(
+        "Delete Shot", f"Delete shot {loaded_shot}?"
+    ):
+        if Shot(shot_number=loaded_shot).delete():
+            node.parm("load_shot").set(-1)
+            load(kwargs)
