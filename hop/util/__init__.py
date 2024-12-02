@@ -7,7 +7,7 @@ from .helpers import (
     copy_file,
     move_folder,
 )
-from . import alembic_helpers, hou_helpers
+from . import alembic_helpers, hou_helpers, usd_helpers
 from .multi_process import MultiProcess
 
 __all__ = [

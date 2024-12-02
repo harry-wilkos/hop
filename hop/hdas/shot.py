@@ -78,7 +78,7 @@ def publish(kwargs: dict) -> None:
         load(kwargs)
 
 
-def delete(kwargs):
+def delete(kwargs: dict) -> None:
     node = kwargs["node"]
     loaded_shot = node.evalParm("load_shot")
     if loaded_shot != -1 and confirmation_dialog(
