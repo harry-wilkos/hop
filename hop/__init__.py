@@ -5,7 +5,7 @@ from importlib import reload
 
 
 def imports():
-    from . import util, shelf_tools, shot_management, interfaces
+    from . import util, shelf_tools, shot_management, interfaces, hdas
 
     globals().update(locals())
 
@@ -34,4 +34,4 @@ except ModuleNotFoundError:
     reload(site)
     imports()
 
-__all__ = ["shelf_tools", "util", "shot_management", "interfaces"]
+__all__ = ["shelf_tools", "util", "shot_management", "interfaces", "hdas"]
