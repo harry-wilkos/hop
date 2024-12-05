@@ -1,5 +1,4 @@
 import _alembic_hom_extensions as abc
-from .hou_helpers import expand_path
 
 def find_cam_paths(path: str) -> list:
     cams = []

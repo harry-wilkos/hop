@@ -14,11 +14,14 @@ def import_hou(install_path: str = "") -> Any:
         install = None
         PATH = os.getenv("PATH")
         if PATH is not None:
-            paths = PATH.split(":")
+            path_separator = ";" if os.name == "nt" else ":"
+            paths = PATH.split(path_separator)
             for path in paths:
-                if "hfs" in path:
+                if "Houdini" in path or "hfs" in path:
                     install = os.path.dirname(path)
+                    print(install)
                     break
+
         s_dlopen_flag = False
         old_dlopen_flags = 0
         if install is not None:
@@ -52,12 +55,13 @@ def import_hou(install_path: str = "") -> Any:
                     install,
                     f"houdini/python{sys.version_info[0]}.{sys.version_info[1]}libs",
                 )
+
                 if os.path.exists(os.path.join(houdini_path, "hou.py")):
                     sys.path.append(houdini_path)
-            else:
+            try:
+                import hou
+            except ModuleNotFoundError:
                 raise ModuleNotFoundError("Couldn't find hou module path")
-
-            import hou
 
         if s_dlopen_flag:
             sys.setdlopenflags(old_dlopen_flags)
@@ -139,3 +143,4 @@ def error_dialog(title: str, text: str) -> None:
         severity=hou.severityType.Error,
         title=title,
     )
+
