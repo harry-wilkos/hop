@@ -1,11 +1,11 @@
-from hop.shot_management import Shot
+from hop.hou.shot_management import Shot
 from hop.util import get_collection
-from hop.util.hou_helpers import error_dialog, expand_path, confirmation_dialog
+from hop.hou.util.helpers import error_dialog, expand_path, confirmation_dialog
 
 try:
     import hou
 except ImportError:
-    from hop.util.hou_helpers import import_hou
+    from hop.hou.util import import_hou
 
     hou = import_hou()
 

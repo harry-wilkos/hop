@@ -5,23 +5,24 @@ from warnings import warn
 from pathlib import Path
 
 
-def import_hou(install_path: str = "") -> Any:
+def import_hou() -> Any:
     try:
         import hou
 
         return hou
     except ModuleNotFoundError:
         install = None
-        PATH = os.getenv("PATH")
-        if PATH is not None:
-            path_separator = ";" if os.name == "nt" else ":"
-            paths = PATH.split(path_separator)
-            for path in paths:
-                if "Houdini" in path or "hfs" in path:
-                    install = os.path.dirname(path)
-                    print(install)
-                    break
-
+        if "HOUDINI_PATH" in os.environ:
+            install = os.environ["HOUDINI_PATH"]
+        else:
+            PATH = os.getenv("PATH")
+            if PATH is not None:
+                path_separator = ";" if os.name == "nt" else ":"
+                paths = PATH.split(path_separator)
+                for path in paths:
+                    if "Houdini" in path or "hfs" in path:
+                        install = os.path.dirname(path)
+                        break
         s_dlopen_flag = False
         old_dlopen_flags = 0
         if install is not None:
@@ -48,16 +49,15 @@ def import_hou(install_path: str = "") -> Any:
             # Attempt to locate hou.py
             if HHP is not None:
                 sys.path.append(HHP)
-            elif os.path.exists(os.path.join(install_path, "hou.py")):
-                sys.path.append(install_path)
             elif install is not None:
                 houdini_path = os.path.join(
                     install,
                     f"houdini/python{sys.version_info[0]}.{sys.version_info[1]}libs",
                 )
-
-                if os.path.exists(os.path.join(houdini_path, "hou.py")):
+                hou_path = os.path.join(houdini_path, "hou.py")
+                if os.path.exists(hou_path):
                     sys.path.append(houdini_path)
+
             try:
                 import hou
             except ModuleNotFoundError:
@@ -144,3 +144,68 @@ def error_dialog(title: str, text: str) -> None:
         title=title,
     )
 
+
+def load_style() -> str:
+    Border = hou.qt.getColor("ListBorder").name()
+    ListEntry1 = hou.qt.getColor("ListEntry1").name()
+    ListEntry2 = hou.qt.getColor("ListEntry2").name()
+    ListShadow = hou.qt.getColor("ListShadow").name()
+    ListHighlight = hou.qt.getColor("ListHighlight").name()
+    ListEntrySelected = hou.qt.getColor("ListEntrySelected").name()
+    ListTitleGradHi = hou.qt.getColor("ListTitleGradHi").name()
+    ListTitleGradLow = hou.qt.getColor("ListTitleGradLow").name()
+    ListText = hou.qt.getColor("ListText").name()
+    Button = hou.qt.getColor("ButtonColor").name()
+    style_sheet = f"""
+    QListWidget {{
+        background-color: {ListEntry2};                     
+        alternate-background-color: {ListEntry1};
+        border: 1px solid {Border};
+    }}
+
+    QListWidget::item:selected {{
+        background-color: {ListEntrySelected};
+        color: {ListText};
+    }}
+
+    QListWidget {{
+        border-top: 1px solid {ListShadow};
+        border-bottom: 1px solid {ListHighlight};
+    }}
+
+    QHeaderView::section {{
+        background: qlineargradient(
+            x1: 0, y1: 0, x2: 0, y2: 1,
+            stop: 0 {ListTitleGradHi},
+            stop: 1 {ListTitleGradLow}
+        );
+        color: {ListText};
+    }}
+
+    QTabBar::tab {{
+        background-color: {Button};
+        border: 1px solid {Border};
+        padding: 4px;
+    }}
+
+    QTabBar::tab:selected {{
+        background-color: {ListEntry2};
+        color: {ListText};
+        border: 1px solid {ListHighlight};
+    }}
+
+    QTabWidget::pane {{
+        border: 1px solid {Border};
+    }}
+
+    QTabWidget::tab-bar {{
+        alignment: center;
+    }}
+
+    QLabel#bold {{
+        font-weight: bold;
+        color: {ListText};
+    }}
+    """
+
+    return style_sheet

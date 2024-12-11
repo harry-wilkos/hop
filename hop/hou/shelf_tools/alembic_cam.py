@@ -1,16 +1,18 @@
-from ..util import alembic_helpers, extract_matrix
-from ..util.hou_helpers import place_node, expand_path
-from pathlib import Path
 import math
+from pathlib import Path
+
 import numpy as np
+
+from hop.hou.util import alembic_helpers, expand_path, place_node
+from hop.util import extract_matrix
 
 try:
     import hou
 except ModuleNotFoundError:
-    from ..util.hou_helpers import import_hou
+    from hop.hou.util import import_hou
+
     hou = import_hou()
 import _alembic_hom_extensions as abc
-
 
 bindings = [
     "tx",
@@ -22,12 +24,12 @@ bindings = [
 ]
 
 parm_expression = r"""
-from hop.shelf_tools import alembic_parm_value
+from hop.hou.shelf_tools import alembic_parm_value
 return alembic_parm_value()
 """
 
 xfrom_expression = r"""
-from hop.shelf_tools import alembic_transform_value
+from hop.hou.shelf_tools import alembic_transform_value
 return alembic_transform_value()
 """
 

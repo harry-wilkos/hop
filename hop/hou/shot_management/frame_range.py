@@ -1,11 +1,11 @@
 import copy
 from typing import TYPE_CHECKING
 
-from hop.interfaces import merge_shots
-from hop.util.hou_helpers import confirmation_dialog, error_dialog
+from hop.hou.interfaces import merge_shots
+from hop.hou.util import confirmation_dialog, error_dialog
 
 if TYPE_CHECKING:
-    from hop.shot_management.shot_class import Shot
+    from hop.hou.shot_management import Shot
 
 
 def find_overlapping_shots(

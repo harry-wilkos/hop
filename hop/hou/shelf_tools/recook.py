@@ -1,7 +1,8 @@
 try:
     import hou
 except ModuleNotFoundError:
-    from ..util.hou_helpers import import_hou
+    from hop.hou.util import import_hou
+
     hou = import_hou()
 
 

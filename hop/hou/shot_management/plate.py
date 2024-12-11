@@ -6,10 +6,10 @@ import clique
 import ffmpeg
 import OpenEXR
 
-from hop.util.hou_helpers import error_dialog, expand_path
+from hop.hou.util import error_dialog, expand_path
 
 if TYPE_CHECKING:
-    from hop.shot_management.shot_class import Shot
+    from hop.hou.shot_management import Shot
 
 
 def generate_back_plate(shot: "Shot") -> bool:

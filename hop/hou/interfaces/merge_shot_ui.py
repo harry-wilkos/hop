@@ -18,8 +18,9 @@ from PySide2.QtWidgets import (
     QWidget,
 )
 
-from ..util import pop_dict
-from .load_style import load_style
+from hop.hou.util import load_style
+from hop.util import pop_dict
+
 
 class DragItem(QListWidgetItem):
     def __init__(self, *args, **kwargs):
@@ -199,9 +200,10 @@ class ShotMergeUI(QDialog):
                         button.setCheckable(True)
                         exclusive_buttons.addButton(button)
                         button.toggled.connect(
-                            lambda checked, m=key, s=item, idx=count: self.record_selection(
-                                m, s, idx, checked
-                            )
+                            lambda checked,
+                            m=key,
+                            s=item,
+                            idx=count: self.record_selection(m, s, idx, checked)
                         )
                         shots_layout.addWidget(button)
 

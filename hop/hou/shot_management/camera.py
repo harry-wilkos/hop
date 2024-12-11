@@ -1,11 +1,9 @@
 from typing import TYPE_CHECKING
-from hop.util.hou_helpers import expand_path, confirmation_dialog, error_dialog
-from hop.util import alembic_helpers
+from hop.hou.util import expand_path, confirmation_dialog, error_dialog, alembic_helpers
 import os
 
 if TYPE_CHECKING:
-    from hop.shot_management import Shot
-
+    from hop.hou.shot_management import Shot
 
 def update_camera(shot: "Shot", cam: str) -> bool:
     if shot.shot_data is None:

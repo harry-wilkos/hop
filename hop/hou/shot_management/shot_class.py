@@ -4,16 +4,17 @@ from typing import Callable
 
 from pymongo.collection import Collection, ObjectId
 
-from hop.shot_management.camera import update_camera
-from hop.shot_management.frame_range import update_frame_range, update_shot_num
-from hop.shot_management.plate import generate_back_plate, update_plate
+from hop.hou.shot_management.camera import update_camera
+from hop.hou.shot_management.frame_range import update_frame_range, update_shot_num
+from hop.hou.shot_management.plate import generate_back_plate, update_plate
+from hop.hou.util.helpers import expand_path
 from hop.util import MultiProcess, copy_file, get_collection, move_folder
-from hop.util.hou_helpers import error_dialog
+from hop.hou.util import error_dialog
 
 try:
     import hou
 except ModuleNotFoundError:
-    from hop.util.hou_helpers import import_hou
+    from hop.hou.util import import_hou
 
     hou = import_hou()
 
@@ -34,7 +35,9 @@ def shot_delete(
             os.environ["HOP"], "shots", "active_shots", str(shot_id)
         )
         try:
-            move_folder(existing_shot_path, ["shots", "retired_shots"])
+            paths_to_move = expand_path(existing_shot_path)
+            if paths_to_move is not None:
+                move_folder(paths_to_move, ["shots", "retired_shots"])
         except Exception:
             return False
 
