@@ -54,5 +54,5 @@ def setup_lazy_imports(imports, module_globals=None, requirements_path=None):
 
 
 setup_lazy_imports({
-    ".": ("hou", "util")
+    ".": ("hou", "util", "nk")
 })
