@@ -1,6 +1,8 @@
 import copy
 from typing import TYPE_CHECKING
-
+from glob import glob
+import clique
+import os
 from hop.hou.interfaces import merge_shots
 from hop.hou.util import confirmation_dialog, error_dialog
 
@@ -187,6 +189,22 @@ def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
             return False
         if not shot_trim(shot, shots_to_trim):
             return False
+
+    back_plates = shot.shot_data["back_plate"].replace("$HOP", os.environ["HOP"])
+    pngs = sorted(glob(back_plates.replace("$F", "*")))
+
+    if len(pngs) < end_frame - start_frame:
+        error_dialog(
+            "Update Frame Range", "Not enough frames in plate for given frame range"
+        )
+        return False
+
+    back_plate_dir = os.path.dirname(pngs[0])
+    for count, back_plate in enumerate(pngs):
+        new_name = os.path.join(back_plate_dir, f"{start_frame + count:04d}.png")
+        os.rename(back_plate, new_name)
+
     shot.shot_data["start_frame"] = start_frame
     shot.shot_data["end_frame"] = end_frame
+
     return True

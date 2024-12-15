@@ -1,7 +1,7 @@
 requests
 pymongo
 PySide2
-numpy
+numpy<2
 clique
 ffmpeg-python
 OpenEXR

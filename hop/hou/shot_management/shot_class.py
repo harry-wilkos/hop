@@ -1,4 +1,5 @@
 import os
+from sys import exit
 from shutil import rmtree
 from typing import Callable
 
@@ -166,9 +167,10 @@ class Shot:
                     overall_progress.updateLongProgress(1 / 2)
                 else:
                     if self.shot_data:
-                        if shot_dir:
-                            rmtree(shot_dir)
+                        if not shot_dir:
+                            rmtree(shot_path)
                     error_dialog("Publish Shot", "Error Publishing Shot")
+                    exit(1)
 
         if self.shot_data is None:
             return self.shot_data
@@ -181,15 +183,19 @@ class Shot:
                 "Publishing Shot",
                 open_interrupt_dialog=True,
             ) as overall_progress:
-                shot_dir = os.makedirs(
-                    os.path.join(
-                        os.environ["HOP"],
-                        "shots",
-                        "active_shots",
-                        str(self.shot_data["_id"]),
-                    ),
-                    exist_ok=True,
+                shot_path = os.path.join(
+                    os.environ["HOP"],
+                    "shots",
+                    "active_shots",
+                    str(self.shot_data["_id"]),
                 )
+                shot_dir = True
+                if not os.path.exists(shot_path):
+                    os.makedirs(
+                        shot_path,
+                        exist_ok=True,
+                    )
+                    shot_dir = False
 
                 if self.rip_files:
                     perform_step(
