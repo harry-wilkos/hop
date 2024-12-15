@@ -1,10 +1,9 @@
-import os
+import nuke
 from hop.util import get_collection
 from PySide2.QtCore import QSize
 from PySide2.QtWidgets import (
     QButtonGroup,
     QDialog,
-    QApplication,
     QHBoxLayout,
     QPushButton,
     QVBoxLayout,
@@ -20,7 +19,7 @@ class ShotLoadUI(QDialog):
         self.make_buttons()
 
     def make_buttons(self):
-        shots = self.collection.find({})
+        shots = self.collection.find({}).sort("shot_number", 1)
 
         exclusive_buttons = QButtonGroup(self)
         exclusive_buttons.buttonPressed.connect(self.handle_pressed)
@@ -62,46 +61,51 @@ class ShotLoadUI(QDialog):
         if loaded_button is not None:
             loaded_button.click()
 
-    def sizeHint(self):
-        return QSize(self.size().width(), 100)
-
-    def makeUI(self):
-        return self
-
     def handle_pressed(self, button):
         if not button.isChecked():
-            shot_data = self.collection.find_one({"_id": button.id})
             self.node.knob("store_id").setValue(str(button.id))
+            shot_data = self.collection.find_one({"_id": button.id})
             if shot_data:
-                plate = shot_data["plate"]
-                self.node.knob("plate_path").setValue(
-                        os.path.expandvars(plate)
-                )
-                self.node.knob("start_frame").setValue(shot_data["start_frame"])
-                self.node.knob("end_frame").setValue(shot_data["end_frame"])
-                
+                self.node.knob("label").setValue(str(shot_data["shot_number"]))
+                self.node.knob("start").setValue(shot_data["start_frame"])
+                self.node.knob("end").setValue(shot_data["end_frame"])
+
+                with self.node.begin():
+                    read = nuke.toNode("Read1")
+
+                    first = 1001
+                    last = 1001 + shot_data["end_frame"] - shot_data["start_frame"]
+
+                    read.knob("offset").setValue(shot_data["start_frame"] - first)
+                    read.knob("frame").setValue("frame - offset")
+
+                    read.knob("first").setValue(first)
+                    read.knob("last").setValue(last)
+                    read.knob("origfirst").setValue(first)
+                    read.knob("origlast").setValue(last)
+
+                    read.knob("file").setValue(
+                        shot_data["plate"].replace("$HOP", "[getenv HOP]")
+                    )
+
+                    nuke.Root().knob("first_frame").setValue(shot_data["start_frame"])
+                    nuke.Root().knob("last_frame").setValue(shot_data["end_frame"])
+
         else:
-            self.node.knob("store_id").setValue("")
-            self.node.knob("plate_path").setValue("")
-            self.node.knob("start_frame").setValue(0)
-            self.node.knob("end_frame").setValue(0)
+            self.node.knob("store_id").setValue(None)
+            self.node.knob("label").setValue(None)
+
+            with self.node.begin():
+                read = nuke.toNode("Read1")
+                read.knob("file").setValue("")
+
         button.group().setExclusive(not button.isChecked())
 
     def handle_clicked(self, button):
         button.group().setExclusive(True)
 
+    def sizeHint(self):
+        return QSize(self.size().width(), 100)
 
-# def load_shot():
-#     app = QApplication.instance()
-#     created_app = False
-#     if not app:
-#         app = QApplication(sys.argv)
-#         created_app = True
-#     dialogue = ShotLoadUI()
-#     dialogue.exec_()
-#     if created_app:
-#         del app
-
-
-# if __name__ == "__main__":
-#     load_shot()
+    def makeUI(self):
+        return self

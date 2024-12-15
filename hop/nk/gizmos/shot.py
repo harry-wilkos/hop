@@ -1,4 +1,6 @@
+from pymongo.collection import ObjectId
 import nuke
+from hop.util import get_collection
 
 global shots
 shots = []
@@ -13,21 +15,36 @@ def recreate_shots():
     shots = _shots
 
 
-def reload_shots():
+def reload_shots(filename=None):
     for node in shots:
-        node["loadUI"].getObject()
-    pass
+        id = node.knob("store_id").value()
+        if id:
+            collection = get_collection("shots", "active_shots")
+            shot_data = collection.find_one({"_id": ObjectId(id)})
+            start = node.knob("start").value()
+            end = node.knob("end").value()
+            print("working!")
+            if shot_data and (
+                start != shot_data["start_frame"] or end != shot_data["end_frame"]
+            ):
+                print("way")
+    return filename
 
 
 def create_shot():
     node = nuke.createNode("Group")
+    node.setName("Shot")
 
     load = nuke.PyCustom_Knob(
         "loadUI",
-        "Load UI",
+        "Load Shot",
         "ShotLoadUI(nuke.thisNode()) if 'ShotLoadUI' in globals() else type('Dummy', (), {'makeUI': classmethod(lambda self: None)})",
     )
     node.addKnob(load)
+
+    reload = nuke.PyScript_Knob("reload", "Reload")
+    reload.setValue("shot.reload_shots()")
+    node.addKnob(reload)
 
     shot_tag = nuke.Boolean_Knob("HOP_Shot", None)
     shot_tag.setValue(True)
@@ -35,24 +52,26 @@ def create_shot():
     node.addKnob(shot_tag)
 
     store_shot_id = nuke.String_Knob("store_id", None)
+    store_shot_id.setVisible(False)
     node.addKnob(store_shot_id)
 
-    store_plate_path = nuke.File_Knob("plate_path", None)
-    node.addKnob(store_plate_path)
+    start = nuke.Int_Knob("start", None)
+    end = nuke.Int_Knob("end", None)
+    start.setVisible(False)
+    end.setVisible(False)
+    node.addKnob(start)
+    node.addKnob(end)
 
-    store_start_frame = nuke.Int_Knob("start_frame", None)
-    store_end_frame = nuke.Int_Knob("end_frame", None)
-    node.addKnob(store_start_frame)
-    node.addKnob(store_end_frame)
+    with node.begin():
+        read = nuke.createNode("Read")
+        read.hideControlPanel()
 
-    node.begin()
-    read = nuke.createNode("Read")
-    read.hideControlPanel()
-    read["file"].setValue("[value [topnode parent].plate_path]")
+        offset = nuke.Int_Knob("offset", None)
+        read.addKnob(offset)
 
-    out = nuke.createNode("Output")
-    out.hideControlPanel()
-    out.setInput(0, read)
-    node.end()
+        out = nuke.createNode("Output")
+        out.hideControlPanel()
+
+        out.setInput(0, read)
 
     shots.append(node)

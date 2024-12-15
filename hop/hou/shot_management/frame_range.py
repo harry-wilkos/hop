@@ -1,10 +1,9 @@
 import copy
 from typing import TYPE_CHECKING
 from glob import glob
-import clique
 import os
 from hop.hou.interfaces import merge_shots
-from hop.hou.util import confirmation_dialog, error_dialog
+from hop.hou.util import confirmation_dialog, error_dialog, alembic_helpers
 
 if TYPE_CHECKING:
     from hop.hou.shot_management import Shot
@@ -189,20 +188,34 @@ def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
             return False
         if not shot_trim(shot, shots_to_trim):
             return False
+    
+    if shot.shot_data["back_plate"]:
+        back_plates = shot.shot_data["back_plate"].replace("$HOP", os.environ["HOP"])
+        pngs = sorted(glob(back_plates.replace("$F", "*")))
+        if len(pngs) < end_frame - start_frame:
+            error_dialog(
+                "Update Frame Range", "Not enough frames in plate for given frame range"
+            )
+            return False
 
-    back_plates = shot.shot_data["back_plate"].replace("$HOP", os.environ["HOP"])
-    pngs = sorted(glob(back_plates.replace("$F", "*")))
+        back_plate_dir = os.path.dirname(pngs[0])
+        for count, back_plate in enumerate(pngs):
+            new_name = os.path.join(back_plate_dir, f"{start_frame + count:04d}.png")
+            os.rename(back_plate, new_name)
 
-    if len(pngs) < end_frame - start_frame:
-        error_dialog(
-            "Update Frame Range", "Not enough frames in plate for given frame range"
+    if shot.shot_data["cam"]:
+        alembic_info = alembic_helpers.frame_info(
+            shot.shot_data["cam"], int(os.environ["FPS"])
         )
-        return False
-
-    back_plate_dir = os.path.dirname(pngs[0])
-    for count, back_plate in enumerate(pngs):
-        new_name = os.path.join(back_plate_dir, f"{start_frame + count:04d}.png")
-        os.rename(back_plate, new_name)
+        if alembic_info and (
+            alembic_info[0] != shot.shot_data["start_frame"]
+            or alembic_info[1] != shot.shot_data["end_frame"]
+        ):
+            if not confirmation_dialog(
+                title="Update Camera",
+                text=f"The camera's frame range {alembic_info[0]} - {alembic_info[1]} doesn't match the input frame range",
+            ):
+                return False
 
     shot.shot_data["start_frame"] = start_frame
     shot.shot_data["end_frame"] = end_frame

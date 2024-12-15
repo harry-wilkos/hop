@@ -16,7 +16,7 @@ def generate_back_plate(shot: "Shot") -> bool:
     if shot.shot_data is None:
         return False
 
-    shot_plate = shot.shot_data["plate"].replace("[getenv HOP]", os.environ["HOP"])
+    shot_plate = shot.shot_data["plate"]
     plate_dir = expand_path(os.path.dirname(shot_plate))
     if plate_dir is None:
         return False
@@ -85,21 +85,13 @@ def update_plate(shot: "Shot", plate: str) -> bool:
 
     assembly = clique.assemble(exrs)[0][0]
     frames = sorted(assembly.indexes)
-
     if len(frames) < shot.shot_data["end_frame"] - shot.shot_data["start_frame"]:
         error_dialog("Update Plate", "Not enough frames in plate for given frame range")
         return False
-
-    if frames[0] != 1001:
-        error_dialog("Update Plate", "Plate doesn't start at 1001")
-        return False
-
     ripped_plate_path = ["shots", "active_shots", str(shot.shot_data["_id"]), "plate"]
     for index, file in enumerate(exrs):
         shot.rip_files.append((file, ripped_plate_path + [f"{frames[index]}"]))
 
-    shot.shot_data["plate"] = os.path.join(
-        "[getenv HOP]", *ripped_plate_path, "####.exr"
-    )
+    shot.shot_data["plate"] = os.path.join("$HOP", *ripped_plate_path, "####.exr")
     shot.new_plate = True
     return True
