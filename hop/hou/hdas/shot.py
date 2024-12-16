@@ -23,7 +23,7 @@ def load_frame_range(uievent) -> None:
 
 def load_shot_menu() -> list:
     shots = [int(-1), "Create New Shot..."]
-    for shot in collection.find({}):
+    for shot in collection.find({}).sort("shot_number", 1):
         shots.append(shot["shot_number"])
         shots.append(f"Shot {shot['shot_number']:02}")
     return shots

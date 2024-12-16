@@ -1,6 +1,6 @@
-from .api_helpers import get_collection, post, upload
+from hop.util.api_helpers import get_collection, post, upload
 
-from .helpers import (
+from hop.util.helpers import (
     copy_file,
     extract_matrix,
     matrix_to_euler,
@@ -8,7 +8,8 @@ from .helpers import (
     pop_dict,
     refresh_modules,
 )
-from .multi_process import MultiProcess
+from hop.util.multi_process import MultiProcess
+from hop.util.custom_dialogue import custom_dialogue
 
 __all__ = [
     "MultiProcess",
@@ -21,4 +22,5 @@ __all__ = [
     "post",
     "upload",
     "get_collection",
+    "custom_dialogue"
 ]

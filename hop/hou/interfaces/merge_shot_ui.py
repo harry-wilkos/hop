@@ -2,7 +2,7 @@ import sys
 import uuid
 from typing import Optional
 
-from PySide2.QtCore import QSize, Qt
+from PySide2.QtCore import Qt
 from PySide2.QtWidgets import (
     QApplication,
     QButtonGroup,
@@ -281,9 +281,6 @@ class ShotMergeUI(QDialog):
 
     def handle_clicked(self, button):
         button.group().setExclusive(True)
-
-    def sizeHint(self):
-        return QSize(self.size().width(), 100)
 
     def get_result(self):
         return self.results if self.exec_() == QDialog.Accepted else None

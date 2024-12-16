@@ -14,12 +14,10 @@ def setup_lazy_imports(imports, module_globals=None, requirements_path=None):
 
     # Infer requirements_path if not provided
     if requirements_path is None:
-        # Get the current directory where this file (__init__.py) is located
         current_dir = os.path.dirname(os.path.abspath(module_globals["__file__"]))
         project_root = os.path.dirname(current_dir)
         requirements_path = os.path.join(project_root, "requirements.txt")
 
-    # Flatten imports into a mapping of {attribute_name: (module_name, attribute_name)}
     lazy_import_map = {}
     for module_name, attrs in imports.items():
         if isinstance(attrs, str):  # Single attribute as string

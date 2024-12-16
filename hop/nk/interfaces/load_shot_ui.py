@@ -1,11 +1,13 @@
 import nuke
 from hop.util import get_collection
+from hop.nk.gizmos.shot import handle_change
 from PySide2.QtCore import QSize
 from PySide2.QtWidgets import (
     QButtonGroup,
     QDialog,
     QHBoxLayout,
     QPushButton,
+    QSizePolicy,
     QVBoxLayout,
 )
 
@@ -15,8 +17,13 @@ class ShotLoadUI(QDialog):
         super().__init__()
         self.node = node
         self.collection = get_collection("shots", "active_shots")
+        handle_change(self.node)
         self.main_layout = QVBoxLayout(self)
+        self.setup_ui()
+
+    def setup_ui(self):
         self.make_buttons()
+        self.make_reload()
 
     def make_buttons(self):
         shots = self.collection.find({}).sort("shot_number", 1)
@@ -34,11 +41,11 @@ class ShotLoadUI(QDialog):
 
         for shot in shots:
             button = QPushButton(f"Shot {shot['shot_number']}")
+            button.setCheckable(True)
+            exclusive_buttons.addButton(button)
             button.id = shot["_id"]
             if str(button.id) == loaded_shot:
                 loaded_button = button
-            button.setCheckable(True)
-            exclusive_buttons.addButton(button)
 
             button_min_width = button.minimumSizeHint().width()
             button_spacing = h_layout.spacing()
@@ -55,16 +62,33 @@ class ShotLoadUI(QDialog):
 
         for layout in layouts:
             main_button_layout.addLayout(layout)
-
         self.main_layout.addLayout(main_button_layout)
-
         if loaded_button is not None:
             loaded_button.click()
+
+    def make_reload(self):
+        reload_layout = QVBoxLayout()
+        self.reload = QPushButton("Reload")
+        self.reload.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.reload.clicked.connect(self.handle_reload)
+        reload_layout.addWidget(self.reload)
+        self.main_layout.addLayout(reload_layout)
+
+    def handle_reload(self):
+        self.node.removeKnob(self.node.knob("loadUI"))
+        handle_change(self.node)
+        load = nuke.PyCustom_Knob(
+            "loadUI",
+            "Load Shot",
+            "ShotLoadUI(nuke.thisNode()) if 'ShotLoadUI' in globals() else type('Dummy', (), {'makeUI': classmethod(lambda self: None)})",
+        )
+        self.node.addKnob(load)
 
     def handle_pressed(self, button):
         if not button.isChecked():
             self.node.knob("store_id").setValue(str(button.id))
             shot_data = self.collection.find_one({"_id": button.id})
+
             if shot_data:
                 self.node.knob("label").setValue(str(shot_data["shot_number"]))
                 self.node.knob("start").setValue(shot_data["start_frame"])
@@ -109,3 +133,4 @@ class ShotLoadUI(QDialog):
 
     def makeUI(self):
         return self
+
