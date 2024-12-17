@@ -4,6 +4,7 @@ from hop.nk.gizmos.shot import handle_change
 from PySide2.QtCore import QSize
 from PySide2.QtWidgets import (
     QButtonGroup,
+    QCheckBox,
     QDialog,
     QHBoxLayout,
     QPushButton,
@@ -36,7 +37,9 @@ class ShotLoadUI(QDialog):
         h_layout = QHBoxLayout()
         layouts = [h_layout]
         current_row_width = 0
-        loaded_shot = self.node["store_id"].value()
+        loaded_shot = (
+            self.node["store_id"].value() if not self.node["off_pipe"].value() else None
+        )
         loaded_button = None
 
         for shot in shots:
@@ -67,12 +70,27 @@ class ShotLoadUI(QDialog):
             loaded_button.click()
 
     def make_reload(self):
-        reload_layout = QVBoxLayout()
-        self.reload = QPushButton("Reload")
-        self.reload.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.reload.clicked.connect(self.handle_reload)
-        reload_layout.addWidget(self.reload)
+        reload_layout = QHBoxLayout()
+
+        reload = QPushButton("Reload")
+        reload.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        reload.clicked.connect(self.handle_reload)
+        reload_layout.addWidget(reload)
+
+        auto_alpha = QCheckBox("Auto Alpha")
+        reload_layout.addWidget(auto_alpha)
+        if self.node.knob("auto_alpha").value():
+            auto_alpha.setChecked(True)
+        auto_alpha.stateChanged.connect(self.handle_auto_alpha)
+
         self.main_layout.addLayout(reload_layout)
+
+    def handle_auto_alpha(self, state):
+        store = self.node.knob("auto_alpha")        
+        if state:
+            store.setValue(True)
+        else:
+            store.setValue(False)
 
     def handle_reload(self):
         self.node.removeKnob(self.node.knob("loadUI"))
@@ -133,4 +151,3 @@ class ShotLoadUI(QDialog):
 
     def makeUI(self):
         return self
-
