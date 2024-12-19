@@ -215,7 +215,7 @@ class ShotMergeUI(QDialog):
         layout = QVBoxLayout(container)
         container.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-        module_label = QLabel(key.title())
+        module_label = QLabel(key.replace("_", " ").title())
         module_label.setObjectName("bold")
         module_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(module_label)

@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING
 import clique
 import ffmpeg
 import OpenEXR
-
+import OpenImageIO as oiio
+from pathlib import Path
 from hop.hou.util import error_dialog, expand_path
 
 if TYPE_CHECKING:
@@ -78,9 +79,22 @@ def update_plate(shot: "Shot", plate: str) -> bool:
         return False
 
     file = OpenEXR.InputFile(exrs[0])
-    rational = file.header()["framesPerSecond"]
-    if rational.n // rational.d != int(os.environ["FPS"]):
+    header = file.header()
+    if header["framesPerSecond"].n // header["framesPerSecond"].d != int(
+        os.environ["FPS"]
+    ):
         error_dialog("Update Plate", f"Plate doesn't match {os.environ['FPS']} fps")
+        return False
+
+    resolution = (
+        header["dataWindow"].max.x - header["dataWindow"].min.x + 1,
+        header["dataWindow"].max.y - header["dataWindow"].min.y + 1,
+    )
+    target_res = os.environ["RES"].split()
+    if resolution[0] != int(target_res[0]) and resolution[1] != int(target_res[1]):
+        error_dialog(
+            "Update Plate", f"Plate doesn't match {target_res[0]} x {target_res[1]}"
+        )
         return False
 
     assembly = clique.assemble(exrs)[0][0]
@@ -94,4 +108,31 @@ def update_plate(shot: "Shot", plate: str) -> bool:
 
     shot.shot_data["plate"] = os.path.join("$HOP", *ripped_plate_path, "####.exr")
     shot.new_plate = True
+    update_st_map(shot, shot.shot_data["st_map"])
+    return True
+
+
+def update_st_map(shot: "Shot", map: str):
+    if shot.shot_data is None:
+        return False
+    path = expand_path(map)
+    if path is None:
+        error_dialog("Update ST-Map", "Invalid ST-Map")
+        return False
+    image = oiio.ImageInput.open(path)
+    width = image.spec().width
+    height = image.spec().height
+    image.close()
+
+    target_res = os.environ["RES"].split()
+    if width != int(target_res[0]) and height != int(target_res[1]):
+        error_dialog(
+            "Update ST-Map", f"ST-Map doesn't match {target_res[0]} x {target_res[1]}"
+        )
+        return False
+    ripped_map_path = ["shots", "active_shots", str(shot.shot_data["_id"])]
+    shot.rip_files.append((path, ripped_map_path + ["st_map"]))
+    shot.shot_data["st_map"] = os.path.join(
+        "$HOP", *ripped_map_path, "st_map" + Path(path).suffix
+    )
     return True

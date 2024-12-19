@@ -16,7 +16,9 @@ def find_overlapping_shots(
         return None
 
     shots_to_trim, shots_to_merge = [], []
-    shot_to_merge_data = {key: [] for key in ["cam", "plate", "lights", "assets"]}
+    shot_to_merge_data = {
+        key: [] for key in ["cam", "plate", "st_map", "lights", "assets"]
+    }
 
     for existing_shot in shot.collection.find({}):
         if str(existing_shot["_id"]) == str(shot.shot_data["_id"]):
@@ -188,7 +190,7 @@ def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
             return False
         if not shot_trim(shot, shots_to_trim):
             return False
-    
+
     if shot.shot_data["back_plate"]:
         back_plates = shot.shot_data["back_plate"].replace("$HOP", os.environ["HOP"])
         pngs = sorted(glob(back_plates.replace("$F", "*")))
@@ -203,7 +205,7 @@ def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
             new_name = os.path.join(back_plate_dir, f"{start_frame + count:04d}.png")
             os.rename(back_plate, new_name)
 
-    if shot.shot_data["cam"]:
+    if shot.shot_data["cam"] and not shot.cam_checked:
         alembic_info = alembic_helpers.frame_info(
             shot.shot_data["cam"], int(os.environ["FPS"])
         )
@@ -216,6 +218,7 @@ def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
                 text=f"The camera's frame range {alembic_info[0]} - {alembic_info[1]} doesn't match the input frame range",
             ):
                 return False
+            shot.cam_checked = True
 
     shot.shot_data["start_frame"] = start_frame
     shot.shot_data["end_frame"] = end_frame

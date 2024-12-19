@@ -1,6 +1,6 @@
 from hop.hou.shot_management import Shot
 from hop.util import get_collection
-from hop.hou.util.helpers import error_dialog, expand_path, confirmation_dialog
+from hop.hou.util.helpers import error_dialog, confirmation_dialog
 
 try:
     import hou
@@ -52,10 +52,11 @@ def publish(kwargs: dict) -> None:
     start_frame = node.evalParm("frame_rangex")
     end_frame = node.evalParm("frame_rangey")
     cam = node.evalParm("cam")
+    st_map = node.evalParm("st_map")
     plate = node.parm("plate").rawValue()
 
     if loaded_shot == -1:
-        shot = Shot(start_frame, end_frame, cam, plate)
+        shot = Shot(start_frame, end_frame, cam, plate, st_map)
     else:
         shot = Shot(shot_number=loaded_shot)
         if shot is None:
@@ -67,10 +68,12 @@ def publish(kwargs: dict) -> None:
                 or shot.shot_data["end_frame"] != end_frame
             ):
                 shot.update.frame_range(start_frame, end_frame)
-            if shot.shot_data is not None and expand_path(shot.shot_data["cam"]) != cam:
+            if shot.shot_data is not None and shot.shot_data["cam"] != cam:
                 shot.update.camera(cam)
             if shot.shot_data is not None and shot.shot_data["plate"] != plate:
                 shot.update.plate(plate)
+            if shot.shot_data is not None and shot.shot_data["st_map"] != st_map:
+                shot.update.st_map(st_map)
 
     shot.publish()
     if shot.shot_data is not None:

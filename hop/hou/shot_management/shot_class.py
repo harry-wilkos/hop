@@ -5,11 +5,11 @@ from typing import Callable
 
 from pymongo.collection import Collection, ObjectId
 
-from hop.hou.shot_management.camera import update_camera
+from hop.hou.shot_management.camera import update_camera 
 from hop.hou.shot_management.frame_range import update_frame_range, update_shot_num
-from hop.hou.shot_management.plate import generate_back_plate, update_plate
+from hop.hou.shot_management.plate import generate_back_plate, update_plate, update_st_map
 from hop.hou.util.helpers import expand_path
-from hop.util import MultiProcess, copy_file, get_collection, move_folder
+from hop.util import MultiProcess, copy_file, get_collection, move_folder 
 from hop.hou.util import error_dialog
 
 try:
@@ -97,17 +97,25 @@ class Shot:
                 self.shot.shot_data = None
             return self.shot
 
+        def st_map(self, map: str):
+            if map == "":
+                pass
+            elif self.shot.shot_data is None or not update_st_map(self.shot, map):
+                self.shot.shot_data = None
+            return self.shot
+
     def __init__(
         self,
         start_frame: int | None = None,
         end_frame: int | None = None,
         cam: str = "",
         plate: str = "",
+        st_map: str = "",
         shot_number: int | None = None,
     ):
         self.collection = get_collection("shots", "active_shots")
         self.delete_shots, self.rip_files = [], []
-        self.new_plate = False
+        self.new_plate, self.cam_checked = False, False
         self.update = self.Update(self)
 
         if shot_number is not None:
@@ -124,7 +132,7 @@ class Shot:
                 "end_frame": end_frame,
                 "plate": plate,
                 "back_plate": "",
-                "distortion_plate": "",
+                "st_map": st_map,
                 "cam": cam,
                 "cam_path": "",
                 "lights": "",
