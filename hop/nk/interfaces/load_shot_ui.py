@@ -1,4 +1,5 @@
 import nuke
+import os
 from hop.util import get_collection
 from hop.nk.gizmos.shot import handle_change
 from PySide2.QtCore import QSize
@@ -86,7 +87,7 @@ class ShotLoadUI(QDialog):
         self.main_layout.addLayout(reload_layout)
 
     def handle_auto_alpha(self, state):
-        store = self.node.knob("auto_alpha")        
+        store = self.node.knob("auto_alpha")
         if state:
             store.setValue(True)
         else:
@@ -111,6 +112,9 @@ class ShotLoadUI(QDialog):
                 self.node.knob("label").setValue(str(shot_data["shot_number"]))
                 self.node.knob("start").setValue(shot_data["start_frame"])
                 self.node.knob("end").setValue(shot_data["end_frame"])
+                self.node.knob("cam").setValue(
+                    shot_data["cam"].replace("$HOP", os.environ["HOP"])
+                )
 
                 with self.node.begin():
                     read = nuke.toNode("Read1")
@@ -127,19 +131,33 @@ class ShotLoadUI(QDialog):
                     read.knob("origlast").setValue(last)
 
                     read.knob("file").setValue(
-                        shot_data["plate"].replace("$HOP", "[getenv HOP]")
+                        shot_data["plate"].replace("$HOP", os.environ["HOP"])
+                    )
+
+                    st_map = nuke.toNode("Read2")
+                    st_map.knob("file").setValue(
+                        shot_data["st_map"].replace("$HOP", "[getenv HOP]")
                     )
 
                     nuke.Root().knob("first_frame").setValue(shot_data["start_frame"])
                     nuke.Root().knob("last_frame").setValue(shot_data["end_frame"])
+                dependents = self.node.dependent()
+                for out in dependents:
+                    reload = out.knob("reload")
+                    if reload:
+                        reload.execute()
+
 
         else:
             self.node.knob("store_id").setValue(None)
             self.node.knob("label").setValue(None)
+            self.node.knob("cam").setValue(None)
 
             with self.node.begin():
                 read = nuke.toNode("Read1")
                 read.knob("file").setValue("")
+                st_map = nuke.toNode("Read2")
+                st_map.knob("file").setValue("")
 
         button.group().setExclusive(not button.isChecked())
 

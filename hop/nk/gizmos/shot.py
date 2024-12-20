@@ -10,6 +10,10 @@ shots = []
 collection = get_collection("shots", "active_shots")
 
 
+def fix_paths(filename):
+    return re.sub(r"\$(\w+)", r"[getenv('\1')]", filename)
+
+
 # Adapted from https://www.andreageremia.it/tutorial_timeoffset.html
 def offset_frames_in_curve(curve_str, offset):
     def offset_replace(m):
@@ -168,12 +172,16 @@ def handle_change(node):
             node.knob("start").setValue(shot_data["start_frame"])
             node.knob("end").setValue(shot_data["end_frame"])
 
+    dependents = node.dependent()
+    for out in dependents:
+        reload = out.knob("reload")
+        if reload:
+            reload.execute()
 
 def reload_shots(filename=None):
     for node in shots:
         handle_change(node)
     return filename
-
 
 def create_shot():
     node = nuke.createNode("Group")
@@ -206,6 +214,10 @@ def create_shot():
     end.setVisible(False)
     node.addKnob(start)
     node.addKnob(end)
+    
+    cam = nuke.String_Knob("cam", None)
+    cam.setVisible(False)
+    node.addKnob(cam)
 
     auto_alpha = nuke.Boolean_Knob("auto_alpha", None)
     auto_alpha.setValue(True)
@@ -222,9 +234,30 @@ def create_shot():
         offset = nuke.Int_Knob("offset", None)
         read.addKnob(offset)
 
-        out = nuke.createNode("Output")
-        out.hideControlPanel()
+        nuke.Layer(
+            "cam_distortion",
+            [
+                "cam_distortion.red",
+                "cam_distortion.green",
+                "cam_distortion.blue",
+                "cam_distortion.alpha",
+            ],
+        )
 
-        out.setInput(0, read)
+        st_map = nuke.createNode("Read")
+        st_map.knob("raw").setValue(True)
+        st_map.hideControlPanel()
+
+        shuffle = nuke.createNode("Shuffle2")
+        shuffle.setInput(0, read)
+        shuffle.setInput(1, st_map)
+        shuffle.hideControlPanel()
+
+        shuffle.knob("fromInput1").setValue("A")
+        shuffle.knob("out1").setValue("cam_distortion")
+
+        out = nuke.createNode("Output")
+        out.setInput(0, shuffle)
+        out.hideControlPanel()
 
     shots.append(node)
