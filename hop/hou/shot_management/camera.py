@@ -14,15 +14,20 @@ def update_camera(shot: "Shot", cam: str) -> bool:
     if cam_file is None or cam_file.split(".")[-1] != "abc":
         error_dialog("Update Camera", "Invalid Camera")
         return False
-    
+
     alembic_info = alembic_helpers.frame_info(cam_file, int(os.environ["FPS"]))
-    if alembic_info and (
-        alembic_info[0] != shot.shot_data["start_frame"]
-        or alembic_info[1] != shot.shot_data["end_frame"]
-    ) and not shot.cam_checked:
+    if (
+        alembic_info
+        and (
+            alembic_info[0] != shot.shot_data["start_frame"] - shot.shot_data["padding"]
+            or alembic_info[1]
+            != shot.shot_data["end_frame"] + shot.shot_data["padding"]
+        )
+        and not shot.cam_checked
+    ):
         if not confirmation_dialog(
             title="Update Camera",
-            text=f"The camera's frame range {alembic_info[0]} - {alembic_info[1]} doesn't match the input frame range",
+            text=f"The camera's frame range {alembic_info[0]} - {alembic_info[1]} doesn't match the input frame range with padding",
         ):
             return False
         shot.cam_checked = True

@@ -122,7 +122,7 @@ class ShotLoadUI(QDialog):
                     first = 1001
                     last = 1001 + shot_data["end_frame"] - shot_data["start_frame"]
 
-                    read.knob("offset").setValue(shot_data["start_frame"] - first)
+                    read.knob("offset").setValue(shot_data["start_frame"] - first - shot_data["padding"])
                     read.knob("frame").setValue("frame - offset")
 
                     read.knob("first").setValue(first)
@@ -139,8 +139,8 @@ class ShotLoadUI(QDialog):
                         shot_data["st_map"].replace("$HOP", "[getenv HOP]")
                     )
 
-                    nuke.Root().knob("first_frame").setValue(shot_data["start_frame"])
-                    nuke.Root().knob("last_frame").setValue(shot_data["end_frame"])
+                    nuke.Root().knob("first_frame").setValue(shot_data["start_frame"] - shot_data["padding"])
+                    nuke.Root().knob("last_frame").setValue(shot_data["end_frame"] + shot_data["padding"])
                 dependents = self.node.dependent()
                 for out in dependents:
                     reload = out.knob("reload")

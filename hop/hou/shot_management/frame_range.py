@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from glob import glob
 import os
 from hop.hou.interfaces import merge_shots
-from hop.hou.util import confirmation_dialog, error_dialog, alembic_helpers
+from hop.hou.util import confirmation_dialog, error_dialog, alembic_helpers, expand_path
 
 if TYPE_CHECKING:
     from hop.hou.shot_management import Shot
@@ -194,30 +194,37 @@ def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
     if shot.shot_data["back_plate"]:
         back_plates = shot.shot_data["back_plate"].replace("$HOP", os.environ["HOP"])
         pngs = sorted(glob(back_plates.replace("$F", "*")))
-        if len(pngs) < end_frame - start_frame:
+        if len(pngs) < (end_frame - start_frame) + (2 * shot.shot_data["padding"]):
             error_dialog(
-                "Update Frame Range", "Not enough frames in plate for given frame range"
+                "Update Frame Range",
+                "Not enough frames in plate for given frame range and padding",
             )
             return False
 
         back_plate_dir = os.path.dirname(pngs[0])
         for count, back_plate in enumerate(pngs):
-            new_name = os.path.join(back_plate_dir, f"{start_frame + count:04d}.png")
+            new_name = os.path.join(
+                back_plate_dir,
+                f"{start_frame - shot.shot_data['padding'] + count:04d}.png",
+            )
             os.rename(back_plate, new_name)
 
     if shot.shot_data["cam"] and not shot.cam_checked:
-        alembic_info = alembic_helpers.frame_info(
-            shot.shot_data["cam"], int(os.environ["FPS"])
-        )
-        if alembic_info and (
-            alembic_info[0] != shot.shot_data["start_frame"]
-            or alembic_info[1] != shot.shot_data["end_frame"]
-        ):
-            if not confirmation_dialog(
-                title="Update Camera",
-                text=f"The camera's frame range {alembic_info[0]} - {alembic_info[1]} doesn't match the input frame range",
+        cam_file = expand_path(shot.shot_data["cam"])
+        if cam_file:
+            alembic_info = alembic_helpers.frame_info(
+                cam_file, int(os.environ["FPS"])
+            )
+            if alembic_info and (
+                alembic_info[0] != shot.shot_data["start_frame"] - shot.shot_data["padding"]
+                or alembic_info[1]
+                != shot.shot_data["end_frame"] + shot.shot_data["padding"]
             ):
-                return False
+                if not confirmation_dialog(
+                    title="Update Camera",
+                    text=f"The camera's frame range {alembic_info[0]} - {alembic_info[1]} doesn't match the input frame range with padding",
+                ):
+                    return False
             shot.cam_checked = True
 
     shot.shot_data["start_frame"] = start_frame

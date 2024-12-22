@@ -51,27 +51,34 @@ def publish(kwargs: dict) -> None:
     loaded_shot = node.evalParm("load_shot")
     start_frame = node.evalParm("frame_rangex")
     end_frame = node.evalParm("frame_rangey")
-    cam = node.evalParm("cam")
-    st_map = node.evalParm("st_map")
+    cam = node.parm("cam").rawValue()
+    st_map = node.parm("st_map").rawValue()
+    padding = node.evalParm("padding")
     plate = node.parm("plate").rawValue()
 
     if loaded_shot == -1:
-        shot = Shot(start_frame, end_frame, cam, plate, st_map)
+        shot = Shot(start_frame, end_frame, padding, cam, plate, st_map)
     else:
         shot = Shot(shot_number=loaded_shot)
         if shot is None:
             error_dialog("Publish Shot", "Cannot find shot")
             return
         else:
+            padding_check = False
             if shot.shot_data is not None and (
                 shot.shot_data["start_frame"] != start_frame
                 or shot.shot_data["end_frame"] != end_frame
             ):
                 shot.update.frame_range(start_frame, end_frame)
+                padding_check = True
             if shot.shot_data is not None and shot.shot_data["cam"] != cam:
                 shot.update.camera(cam)
+                padding_check = True
             if shot.shot_data is not None and shot.shot_data["plate"] != plate:
                 shot.update.plate(plate)
+                padding_check = True
+            if shot.shot_data is not None and not padding_check and shot.shot_data["padding"] != padding:
+                shot.update.padding(padding)
             if shot.shot_data is not None and shot.shot_data["st_map"] != st_map:
                 shot.update.st_map(st_map)
 

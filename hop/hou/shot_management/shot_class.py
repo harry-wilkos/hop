@@ -5,11 +5,16 @@ from typing import Callable
 
 from pymongo.collection import Collection, ObjectId
 
-from hop.hou.shot_management.camera import update_camera 
+from hop.hou.shot_management.camera import update_camera
 from hop.hou.shot_management.frame_range import update_frame_range, update_shot_num
-from hop.hou.shot_management.plate import generate_back_plate, update_plate, update_st_map
+from hop.hou.shot_management.plate import (
+    generate_back_plate,
+    update_plate,
+    update_st_map,
+    update_padding,
+)
 from hop.hou.util.helpers import expand_path
-from hop.util import MultiProcess, copy_file, get_collection, move_folder 
+from hop.util import MultiProcess, copy_file, get_collection, move_folder
 from hop.hou.util import error_dialog
 
 try:
@@ -78,7 +83,9 @@ class Shot:
 
         def frame_range(self, start_frame: int, end_frame: int):
             if self.shot.shot_data is None or not update_frame_range(
-                self.shot, start_frame, end_frame
+                self.shot,
+                start_frame,
+                end_frame,
             ):
                 self.shot.shot_data = None
             return self.shot
@@ -104,10 +111,16 @@ class Shot:
                 self.shot.shot_data = None
             return self.shot
 
+        def padding(self, padding: int):
+            if self.shot.shot_data is None or not update_padding(self.shot, padding):
+                self.shot.shot_data = None
+            return self.shot
+
     def __init__(
         self,
         start_frame: int | None = None,
         end_frame: int | None = None,
+        padding: int = 0,
         cam: str = "",
         plate: str = "",
         st_map: str = "",
@@ -130,6 +143,7 @@ class Shot:
                 "shot_number": None,
                 "start_frame": start_frame,
                 "end_frame": end_frame,
+                "padding": padding,
                 "plate": plate,
                 "back_plate": "",
                 "st_map": st_map,
@@ -140,7 +154,8 @@ class Shot:
             }
 
             self.update.frame_range(
-                self.shot_data["start_frame"], self.shot_data["end_frame"]
+                self.shot_data["start_frame"],
+                self.shot_data["end_frame"],
             )
             if self.shot_data is not None:
                 self.update.camera(self.shot_data["cam"])
@@ -204,7 +219,6 @@ class Shot:
                         exist_ok=True,
                     )
                     shot_dir = False
-
                 if self.rip_files:
                     perform_step(
                         lambda: MultiProcess(copy_file, self.rip_files)
@@ -212,7 +226,6 @@ class Shot:
                         .retrieve(),
                         "Copying Files",
                     )
-
                 if self.shot_data["plate"] and self.new_plate:
                     perform_step(generate_back_plate, "Generating Back Plate", self)
 
