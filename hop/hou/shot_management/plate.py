@@ -103,7 +103,7 @@ def update_padding(shot: "Shot", padding: int):
                     alembic_info
                     and (
                         alembic_info[0] != shot.shot_data["start_frame"] - padding
-                        or alembic_info[1] != shot.shot_data["end_frame"] + padding
+                        or alembic_info[1] < shot.shot_data["end_frame"] + padding
                     )
                     and not shot.cam_checked
                 ):

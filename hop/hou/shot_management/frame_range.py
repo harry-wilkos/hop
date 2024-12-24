@@ -218,7 +218,7 @@ def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
             if alembic_info and (
                 alembic_info[0] != shot.shot_data["start_frame"] - shot.shot_data["padding"]
                 or alembic_info[1]
-                != shot.shot_data["end_frame"] + shot.shot_data["padding"]
+                < shot.shot_data["end_frame"] + shot.shot_data["padding"]
             ):
                 if not confirmation_dialog(
                     title="Update Camera",

@@ -21,7 +21,7 @@ def update_camera(shot: "Shot", cam: str) -> bool:
         and (
             alembic_info[0] != shot.shot_data["start_frame"] - shot.shot_data["padding"]
             or alembic_info[1]
-            != shot.shot_data["end_frame"] + shot.shot_data["padding"]
+            < shot.shot_data["end_frame"] + shot.shot_data["padding"]
         )
         and not shot.cam_checked
     ):
