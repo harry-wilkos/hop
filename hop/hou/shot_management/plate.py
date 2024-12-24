@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 import clique
 import ffmpeg
+import subprocess
 import OpenEXR
 import OpenImageIO as oiio
 from pathlib import Path
@@ -45,8 +46,8 @@ def generate_back_plate(shot: "Shot") -> bool:
         .filter("scale", 1280, 720)
         .filter("format", "rgb24")
         .filter("curves", r="0.3/0 0.6/1", g="0.3/0 0.6/1", b="0.3/0 0.6/1")
-        .output(back_plate_path)
-        .run()
+        .output(back_plate_path, loglevel="quiet")
+        .run(quiet=True)
     )
     back_plates = sorted(glob(back_plate_path.replace("%04d", "*")))
     frame = shot.shot_data["start_frame"] - shot.shot_data["padding"]

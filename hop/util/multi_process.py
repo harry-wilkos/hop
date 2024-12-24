@@ -94,6 +94,7 @@ class MultiProcess:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env=env,
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
         )
         return self
 
@@ -175,4 +176,3 @@ if __name__ == "__main__":
     print("RESULTS")
     print(pickle.dumps(results).hex())
     sys.exit(0)
-
