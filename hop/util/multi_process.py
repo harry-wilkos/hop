@@ -1,3 +1,4 @@
+import tempfile
 from typing import Callable, Sequence, Union, Any
 import inspect
 import sys
@@ -22,6 +23,7 @@ class MultiProcess:
         self.module_path = self.get_module()
         self.function_name = function.__name__
         self.process = None
+        self.tempfile_path = None
 
     def get_module(self) -> str:
         module = inspect.getmodule(self.function)
@@ -74,13 +76,20 @@ class MultiProcess:
         env = os.environ.copy()
         env["PYTHONPATH"] = ":".join(sys.path)
 
+        # Write arguments to a temporary file
+        temp_file = tempfile.NamedTemporaryFile(delete=False)
+        self.tempfile_path = temp_file.name
+        with temp_file:
+            pickle.dump(self.args, temp_file)
+
+        # Pass the temp file path instead of serialized arguments
         self.process = subprocess.Popen(
             (
                 self.interpreter,
                 script_file,
                 self.module_path,
                 self.function_name,
-                pickle.dumps(self.args).hex(),
+                self.tempfile_path,
             ),
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -96,6 +105,12 @@ class MultiProcess:
             except subprocess.TimeoutExpired:
                 self.process.kill()
                 raise TimeoutError("Subprocess timed out.")
+            finally:
+                # Clean up the temporary file
+                if self.tempfile_path:
+                    os.unlink(self.tempfile_path)
+                    self.tempfile_path = None
+
             output = stdout.decode()
             if "ERROR" in output:
                 raise RuntimeError(output.split("ERROR", 1)[1].strip())
@@ -116,7 +131,7 @@ if __name__ == "__main__":
         print("ERROR: Incorrect arguments passed to subprocess")
         sys.exit(1)
 
-    module_path, function_name, args_hex = sys.argv[1:]
+    module_path, function_name, temp_file_path = sys.argv[1:]
     module_dir, module_file = os.path.split(module_path)
     module_name = os.path.splitext(module_file)[0]
 
@@ -135,11 +150,12 @@ if __name__ == "__main__":
         print(f"ERROR: Function {function_name} not found in module {module_name}")
         sys.exit(1)
 
-    # Deserialize arguments
+    # Load arguments from the temporary file
     try:
-        args = pickle.loads(bytes.fromhex(args_hex))
+        with open(temp_file_path, "rb") as temp_file:
+            args = pickle.load(temp_file)
     except Exception as e:
-        print(f"ERROR: Failed to deserialize arguments: {e}")
+        print(f"ERROR: Failed to load arguments from temporary file: {e}")
         sys.exit(1)
 
     # Execute function in parallel
@@ -159,3 +175,4 @@ if __name__ == "__main__":
     print("RESULTS")
     print(pickle.dumps(results).hex())
     sys.exit(0)
+

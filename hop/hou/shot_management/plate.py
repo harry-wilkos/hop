@@ -190,5 +190,6 @@ def update_plate(shot: "Shot", plate: str) -> bool:
 
     shot.shot_data["plate"] = os.path.join("$HOP", *ripped_plate_path, "####.exr")
     shot.new_plate = True
-    update_st_map(shot, shot.shot_data["st_map"])
+    if shot.shot_data["st_map"]:
+        update_st_map(shot, shot.shot_data["st_map"])
     return True

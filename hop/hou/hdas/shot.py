@@ -15,8 +15,10 @@ collection = get_collection("shots", "active_shots")
 def load_frame_range(uievent) -> None:
     node = uievent.selected.item
     if node.evalParm("load_shot") != -1:
+        padding = node.evalParm("padding")
         hou.playbar.setFrameRange(
-            node.evalParm("frame_rangex"), node.evalParm("frame_rangey")
+            node.evalParm("frame_rangex") - padding,
+            node.evalParm("frame_rangey") + padding,
         )
     return
 
@@ -77,7 +79,11 @@ def publish(kwargs: dict) -> None:
             if shot.shot_data is not None and shot.shot_data["plate"] != plate:
                 shot.update.plate(plate)
                 padding_check = True
-            if shot.shot_data is not None and not padding_check and shot.shot_data["padding"] != padding:
+            if (
+                shot.shot_data is not None
+                and not padding_check
+                and shot.shot_data["padding"] != padding
+            ):
                 shot.update.padding(padding)
             if shot.shot_data is not None and shot.shot_data["st_map"] != st_map:
                 shot.update.st_map(st_map)

@@ -221,7 +221,9 @@ class Shot:
                     shot_dir = False
                 if self.rip_files:
                     perform_step(
-                        lambda: MultiProcess(copy_file, self.rip_files)
+                        lambda: MultiProcess(
+                            copy_file, self.rip_files, interpreter=os.environ["PYTHON"]
+                        )
                         .execute()
                         .retrieve(),
                         "Copying Files",
