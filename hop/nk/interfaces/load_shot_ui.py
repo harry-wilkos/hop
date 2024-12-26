@@ -164,8 +164,5 @@ class ShotLoadUI(QDialog):
     def handle_clicked(self, button):
         button.group().setExclusive(True)
 
-    def sizeHint(self):
-        return QSize(self.size().width(), 100)
-
     def makeUI(self):
         return self
