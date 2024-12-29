@@ -205,7 +205,7 @@ def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
         for count, back_plate in enumerate(pngs):
             new_name = os.path.join(
                 back_plate_dir,
-                f"{start_frame - shot.shot_data['padding'] + count:04d}.png",
+                f"bp.{start_frame - shot.shot_data['padding'] + count:04d}.png",
             )
             os.rename(back_plate, new_name)
 

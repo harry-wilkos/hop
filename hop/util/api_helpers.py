@@ -37,3 +37,37 @@ def get_collection(
     else:
         collection = db[collection_name]
     return collection
+
+
+def find_shot(collection: Collection, start: int, end: int) -> dict:
+    return list(
+        collection.aggregate([
+            {
+                "$addFields": {
+                    "start_diff": {"$abs": {"$subtract": ["$start_frame", start]}},
+                    "end_diff": {"$abs": {"$subtract": ["$end_frame", end]}},
+                    "range_diff": {
+                        "$abs": {
+                            "$subtract": [
+                                {
+                                    "$subtract": [
+                                        "$end_frame",
+                                        "$start_frame",
+                                    ]
+                                },
+                                {"$subtract": [end, start]},
+                            ]
+                        }
+                    },
+                    "proximity_score": {
+                        "$add": [
+                            {"$abs": {"$subtract": ["$start_frame", start]}},
+                            {"$abs": {"$subtract": ["$end_frame", end]}},
+                        ]
+                    },
+                }
+            },
+            {"$sort": {"proximity_score": 1, "range_diff": 1}},
+            {"$limit": 1},
+        ])
+    )[0]

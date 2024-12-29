@@ -1,5 +1,26 @@
 import sys
 import importlib
+import os
+import maya.cmds as cmds
+
+
+def set_fps():
+    fps = int(os.environ["FPS"])
+    fps_mapping = {
+        15: "game",
+        24: "film",
+        25: "pal",
+        30: "ntsc",
+        48: "show",
+        60: "ntscf",
+    }
+    if fps in fps_mapping:
+        cmds.currentUnit(time=fps_mapping[fps])
+        cmds.playbackOptions(edit=True, playbackSpeed=0, maxPlaybackSpeed=1)
+    else:
+        raise ValueError(
+            f"Unsupported FPS: {fps}. Supported values are: {list(fps_mapping.keys())}"
+        )
 
 
 def find_pyside():

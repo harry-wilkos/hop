@@ -1,3 +1,3 @@
-from hop.my.util.find_pyside import find_pyside
+from hop.my.util.helpers import find_pyside, set_fps
 
-__all__ = ["find_pyside"]
+__all__ = ["find_pyside", "set_fps"]

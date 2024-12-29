@@ -1,4 +1,4 @@
-from hop.util.api_helpers import get_collection, post, upload
+from hop.util.api_helpers import get_collection, post, upload, find_shot
 
 from hop.util.helpers import (
     copy_file,
@@ -22,5 +22,6 @@ __all__ = [
     "post",
     "upload",
     "get_collection",
-    "custom_dialogue"
+    "custom_dialogue",
+    "find_shot",
 ]

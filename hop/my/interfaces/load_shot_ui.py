@@ -1,7 +1,7 @@
 import sys
 from hop.my.util import find_pyside
 from hop.util import get_collection
-
+import maya.cmds as cmds
 PySide = find_pyside()
 from PySide.QtCore import Qt
 from PySide.QtWidgets import (
@@ -14,13 +14,13 @@ from PySide.QtWidgets import (
 )
 
 
-
 class ShotLoadUI(QDialog):
     def __init__(self):
         super().__init__()
         self.collection = get_collection("shots", "active_shots")
         self.main_layout = QVBoxLayout(self)
         self.results = None
+        self.setWindowTitle("Select Shot")
         self.setup_ui()
 
     def setup_ui(self):
@@ -28,6 +28,10 @@ class ShotLoadUI(QDialog):
         self.create_finish_layout()
 
     def make_buttons(self):
+        shot_data = None
+        if cmds.attributeQuery("loadedShot", node="defaultRenderGlobals", exists=True):
+            shot_data = cmds.getAttr("defaultRenderGlobals.loadedShot")
+
         shots = self.collection.find({}).sort("shot_number", 1)
 
         exclusive_buttons = QButtonGroup(self)
@@ -61,6 +65,8 @@ class ShotLoadUI(QDialog):
                     checked, shot_data
                 )
             )
+            if str(shot["_id"]) == shot_data:
+                button.click()
 
         for layout in layouts:
             main_button_layout.addLayout(layout)

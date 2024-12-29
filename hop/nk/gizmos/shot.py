@@ -3,7 +3,7 @@ import nuke
 import nuke.rotopaint as rp
 import _curvelib
 import re
-from hop.util import get_collection, custom_dialogue
+from hop.util import get_collection, custom_dialogue, find_shot
 
 global shots
 shots = []
@@ -113,55 +113,7 @@ def handle_change(node):
                 node.knob("end").setValue(shot_data["end_frame"])
 
             elif result == 1:
-                new_data = list(
-                    collection.aggregate([
-                        {
-                            "$addFields": {
-                                "start_diff": {
-                                    "$abs": {"$subtract": ["$start_frame", start]}
-                                },
-                                "end_diff": {
-                                    "$abs": {"$subtract": ["$end_frame", end]}
-                                },
-                                "range_diff": {
-                                    "$abs": {
-                                        "$subtract": [
-                                            {
-                                                "$subtract": [
-                                                    "$end_frame",
-                                                    "$start_frame",
-                                                ]
-                                            },
-                                            {"$subtract": [end, start]},
-                                        ]
-                                    }
-                                },
-                                "proximity_score": {
-                                    "$add": [
-                                        {
-                                            "$abs": {
-                                                "$subtract": ["$start_frame", start]
-                                            }
-                                        },
-                                        {"$abs": {"$subtract": ["$end_frame", end]}},
-                                    ]
-                                },
-                            }
-                        },
-                        {"$sort": {"proximity_score": 1, "range_diff": 1}},
-                        {"$limit": 1},
-                        {
-                            "$project": {
-                                "_id": 1,
-                                "start_frame": 1,
-                                "end_frame": 1,
-                                "start_diff": 1,
-                                "end_diff": 1,
-                                "range_diff": 1,
-                            }
-                        },
-                    ])
-                )[0]
+                new_data = find_shot(collection, start, end) 
                 node.knob("store_id").setValue(str(new_data["_id"]))
 
             elif result == 2:

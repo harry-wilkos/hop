@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 import clique
 import ffmpeg
-import subprocess
 import OpenEXR
 import OpenImageIO as oiio
 from pathlib import Path
@@ -33,7 +32,7 @@ def generate_back_plate(shot: "Shot") -> bool:
         "active_shots",
         str(shot.shot_data["_id"]),
         "back_plate",
-        "%04d.png",
+        "bp.%04d.png",
     )
 
     os.makedirs(os.path.dirname(back_plate_path), exist_ok=True)
@@ -53,7 +52,7 @@ def generate_back_plate(shot: "Shot") -> bool:
     frame = shot.shot_data["start_frame"] - shot.shot_data["padding"]
     back_plate_dir = os.path.dirname(back_plate_path)
     for back_plate in back_plates:
-        new_name = os.path.join(back_plate_dir, f"{frame:04d}.png")
+        new_name = os.path.join(back_plate_dir, f"bp.{frame:04d}.png")
         os.rename(back_plate, new_name)
         frame += 1
 
