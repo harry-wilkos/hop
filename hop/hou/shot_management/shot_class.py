@@ -59,6 +59,9 @@ def shot_delete(
             shot_number_min = shot_data["shot_number"]
 
         if retire:
+            for key, value in shot_data.items():
+                if type(value) is str:
+                    shot_data[key] = value.replace("active_shots", "retired_shots")
             retired_shots_collection.insert_one(shot_data)
         shots_collection.delete_one({"_id": shot_id})
 

@@ -2,6 +2,16 @@ import sys
 import importlib
 import os
 import maya.cmds as cmds
+from contextlib import contextmanager
+
+
+@contextmanager
+def undo_chunk():
+    cmds.undoInfo(openChunk=True)
+    try:
+        yield
+    finally:
+        cmds.undoInfo(closeChunk=True)
 
 
 def set_fps():
@@ -43,3 +53,13 @@ def find_pyside():
         raise ModuleNotFoundError("No PySide module found.")
 
     return sys.modules["PySide"]
+
+
+def get_children(parent):
+    children = cmds.listRelatives(parent, children=True, fullPath=True) or []
+    all_children = []
+    for child in children:
+        all_children.append(child)
+        all_children.extend(get_children(child))
+    all_children.sort()
+    return all_children

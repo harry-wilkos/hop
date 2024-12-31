@@ -83,13 +83,27 @@ def handle_change(node):
         shot_number = node.knob("label").value()
 
         if not shot_data:
-            with node.begin():
-                file = nuke.toNode("Read1").knob("file")
-                value = file.value()
-                file.setValue(value.replace("active_shots", "retired_shots"))
+            result = custom_dialogue(
+                f"Reload Shot {shot_number}",
+                f"Shot {shot_number} has been deleted",
+                ["Adopt new shot", "Work off pipe"],
+                0,
+                [
+                    "Work on the new shot that (mostly) occupies this frame range",
+                    "Keep working as is (not reccomended)",
+                ],
+            )
+            if result == 0:
+                new_data = find_shot(collection, start, end)
+                node.knob("store_id").setValue(str(new_data["_id"]))
 
-            node.knob("off_pipe").setValue(True)
-            nuke.message(f"Shot {shot_number} has been deleted, you are now off pipe")
+            if result == 1:
+                with node.begin():
+                    file = nuke.toNode("Read1").knob("file")
+                    value = file.value()
+                    file.setValue(value.replace("active_shots", "retired_shots"))
+
+                node.knob("off_pipe").setValue(True)
 
         elif end <= shot_data["start_frame"] or start >= shot_data["end_frame"]:
             result = custom_dialogue(
@@ -113,7 +127,7 @@ def handle_change(node):
                 node.knob("end").setValue(shot_data["end_frame"])
 
             elif result == 1:
-                new_data = find_shot(collection, start, end) 
+                new_data = find_shot(collection, start, end)
                 node.knob("store_id").setValue(str(new_data["_id"]))
 
             elif result == 2:
@@ -130,10 +144,12 @@ def handle_change(node):
         if reload:
             reload.execute()
 
+
 def reload_shots(filename=None):
     for node in shots:
         handle_change(node)
     return filename
+
 
 def create_shot():
     node = nuke.createNode("Group")
@@ -166,7 +182,7 @@ def create_shot():
     end.setVisible(False)
     node.addKnob(start)
     node.addKnob(end)
-    
+
     cam = nuke.String_Knob("cam", None)
     cam.setVisible(False)
     node.addKnob(cam)
