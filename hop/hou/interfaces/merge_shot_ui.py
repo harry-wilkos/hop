@@ -206,6 +206,8 @@ class ShotMergeUI(QDialog):
                             idx=count: self.record_selection(m, s, idx, checked)
                         )
                         shots_layout.addWidget(button)
+                        if str(self.shots[count]) == "New Shot":
+                            button.click()
 
                 layout.addLayout(shots_layout)
                 self.main_layout.addWidget(container)

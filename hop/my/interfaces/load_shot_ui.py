@@ -47,6 +47,7 @@ class ShotLoadUI(QDialog):
             button = QPushButton(f"Shot {shot['shot_number']}")
             button.setCheckable(True)
             exclusive_buttons.addButton(button)
+            button.setToolTip(shot["description"])
 
             button_min_width = button.minimumSizeHint().width()
             button_spacing = h_layout.spacing()

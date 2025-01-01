@@ -119,6 +119,11 @@ class Shot:
                 self.shot.shot_data = None
             return self.shot
 
+        def description(self, description: str):
+            if self.shot.shot_data:
+                self.shot.shot_data["description"] = description
+            return self.shot
+
     def __init__(
         self,
         start_frame: int | None = None,
@@ -127,6 +132,7 @@ class Shot:
         cam: str = "",
         plate: str = "",
         st_map: str = "",
+        description: str = "",
         shot_number: int | None = None,
     ):
         self.collection = get_collection("shots", "active_shots")
@@ -152,6 +158,8 @@ class Shot:
                 "st_map": st_map,
                 "cam": cam,
                 "cam_path": "",
+                "geo_paths": "",
+                "description": description,
                 "lights": "",
                 "assets": [],
             }

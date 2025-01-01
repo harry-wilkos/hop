@@ -1,5 +1,6 @@
 import _alembic_hom_extensions as abc
 
+
 def find_cam_paths(path: str) -> list:
     cams = []
     h_path = ""
@@ -26,3 +27,18 @@ def frame_info(path: str, frame_rate: float | None = None) -> tuple:
     end_frame = int(end_time * frame_rate)
 
     return start_frame, end_frame, frame_rate
+
+
+def find_geo_paths(path: str) -> list:
+    geo = []
+    stack = [("", abc.alembicGetSceneHierarchy(path, "")[2])]
+    while stack:
+        parent_path, children = stack.pop()
+        for obj_name, obj_type, sub_children in children:
+            current_path = f"{parent_path}/{obj_name}"
+            if obj_type == "polymesh" and "camera" not in parent_path.lower():
+                geo.append(current_path)
+            if isinstance(sub_children, (list, tuple)) and sub_children:
+                stack.append((current_path, sub_children))
+
+    return geo

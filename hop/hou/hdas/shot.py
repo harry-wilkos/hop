@@ -16,10 +16,10 @@ def load_frame_range(uievent) -> None:
     node = uievent.selected.item
     if node.evalParm("load_shot") != -1:
         padding = node.evalParm("padding")
-        hou.playbar.setFrameRange(
-            node.evalParm("frame_rangex") - padding,
-            node.evalParm("frame_rangey") + padding,
-        )
+        start = node.evalParm("frame_rangex") - padding
+        end = node.evalParm("frame_rangey") + padding
+        hou.playbar.setFrameRange(start, end)
+        hou.playbar.setPlaybackRange(start, end)
     return
 
 
@@ -57,9 +57,10 @@ def publish(kwargs: dict) -> None:
     st_map = node.parm("st_map").rawValue()
     padding = node.evalParm("padding")
     plate = node.parm("plate").rawValue()
+    description = node.evalParm("description")
 
     if loaded_shot == -1:
-        shot = Shot(start_frame, end_frame, padding, cam, plate, st_map)
+        shot = Shot(start_frame, end_frame, padding, cam, plate, st_map, description)
     else:
         shot = Shot(shot_number=loaded_shot)
         if shot is None:
@@ -87,6 +88,11 @@ def publish(kwargs: dict) -> None:
                 shot.update.padding(padding)
             if shot.shot_data is not None and shot.shot_data["st_map"] != st_map:
                 shot.update.st_map(st_map)
+            if (
+                shot.shot_data is not None
+                and shot.shot_data["description"] != description
+            ):
+                shot.update.description(description)
 
     shot.publish()
     if shot.shot_data is not None:

@@ -48,6 +48,7 @@ class ShotLoadUI(QDialog):
             button.setCheckable(True)
             exclusive_buttons.addButton(button)
             button.id = shot["_id"]
+            button.setToolTip(shot["description"])
             if str(button.id) == loaded_shot:
                 loaded_button = button
 

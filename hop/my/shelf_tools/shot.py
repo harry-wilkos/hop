@@ -40,7 +40,7 @@ def handle_change():
                         create_shot(find_shot(collection, start_frame, end_frame))
                     if result == 1:
                         collection = get_collection("shots", "retired_shots")
-                        old_shot = collection.find_one({"_id":ObjectId(id)})
+                        old_shot = collection.find_one({"_id": ObjectId(id)})
                         create_shot(old_shot)
                         cmds.setAttr(
                             "defaultRenderGlobals.offPipe",
@@ -51,7 +51,6 @@ def handle_change():
                             "",
                             type="string",
                         )
-
 
                 elif (
                     end_frame <= shot["start_frame"] or start_frame >= shot["end_frame"]
@@ -144,6 +143,10 @@ def create_shot(shot: dict | None = None):
             if not cmds.pluginInfo("AbcImport", query=True, loaded=True):
                 cmds.loadPlugin("AbcImport")
             cmds.AbcImport(cam_file_path, mode="import", filterObjects=shot["cam_path"])
+            [
+                cmds.AbcImport(cam_file_path, mode="import", filterObjects=geo)
+                for geo in shot["geo_paths"]
+            ]
             start = shot["start_frame"] - shot["padding"]
             end = shot["end_frame"] + shot["padding"]
             cmds.playbackOptions(
@@ -154,6 +157,7 @@ def create_shot(shot: dict | None = None):
             )
             cmds.currentTime(start)
             cam_path = shot["cam_path"].split("/")
+            geo_path = [geo.replace("/", "|") for geo in shot["geo_paths"]]
             plate = cmds.imagePlane(
                 camera=shot["cam_path"].replace("/", "|"),
                 name="Plate",
@@ -161,8 +165,16 @@ def create_shot(shot: dict | None = None):
                 showInAllViews=False,
                 lookThrough=shot["cam_path"],
             )
+
             cmds.setAttr(f"{plate[1]}.useFrameExtension", 1)
             cmds.setAttr(f"{plate[1]}.ignoreColorSpaceFileRules", 1)
+            cmds.expression(
+                s=f"{plate[1]}.depth = {shot['cam_path'].replace('/', '|')}.farClipPlane;",
+                name="imagePlaneDepthExpression",
+                o="auto",
+                ae=True,
+                uc="all",
+            )
             cmds.setAttr(f"{plate[1]}.colorSpace", "Raw", type="string")
             cmds.setAttr(
                 f"{plate[1]}.frameCache",
@@ -172,10 +184,24 @@ def create_shot(shot: dict | None = None):
             cmds.setAttr(f"{plate[0]}.overrideDisplayType", 2)
             cmds.setAttr(f"{shot['cam_path'].replace('/', '|')}.overrideEnabled", 1)
             cmds.setAttr(f"{shot['cam_path'].replace('/', '|')}.overrideDisplayType", 1)
-            cmds.setAttr(f"{'|'.join(cam_path[:-2])}.hiddenInOutliner", True)
 
-            cmds.rename("|".join(cam_path[:-1]), "Camera")
-            shot_path = cmds.rename("|".join(cam_path[:-2]), "Shot")
+            if (
+                cmds.objExists("Proxy_Geo")
+                and cmds.nodeType("Proxy_Geo") == "displayLayer"
+            ):
+                cmds.editDisplayLayerMembers("Proxy_Geo", geo_path, noRecurse=True)
+            else:
+                layer = cmds.createDisplayLayer(
+                    geo_path, name="Proxy_Geo", noRecurse=True
+                )
+                cmds.setAttr(f"{layer}.displayType", 2)
+                cmds.setAttr(f"{layer}.color", 27)
+
+            shot_path = cmds.group(["|".join(cam_path[:2])] + geo_path, name="Shot")
+
+            cmds.setAttr(f"{shot_path}.hiddenInOutliner", True)
+
+            cmds.rename(f"|{shot_path}{'|'.join(cam_path[:-1])}", "Camera")
             cmds.rename(plate[1], "Plate")
             cmds.select(clear=True)
 
