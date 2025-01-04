@@ -1,5 +1,5 @@
 from pxr.Usd import Stage, Prim
-from pxr import UsdGeom
+from pxr import Sdf
 
 
 def expand_stage(stage: Stage, depth: int | None = None) -> Prim:
@@ -12,14 +12,59 @@ def expand_stage(stage: Stage, depth: int | None = None) -> Prim:
         queue.extend((child, current_depth + 1) for child in current_prim.GetChildren())
 
 
-def clean_stage(stage: Stage) -> None:
+def check_default(prim: Prim) -> bool:
+    for attr in prim.GetAttributes():
+        if attr.GetNumTimeSamples() != 0 or attr.GetConnections():
+            return False
+
+        resolved_value = attr.Get()
+        if attr.HasAuthoredValue():
+            if (
+                resolved_value
+                != attr.GetPrim()
+                .GetPrimDefinition()
+                .GetAttributeFallbackValue(attr.GetName())
+            ):
+                return False
+
+    for rel in prim.GetRelationships():
+        if rel.HasAuthoredTargets():
+            return False
+
+    return True
+
+
+def reparent_prim(prim_path: str, destionation_path: str, stage: Stage) -> None:
+    prim = Sdf.Path(prim_path)
+    destination = Sdf.Path(destionation_path)
+
+    layer = stage.GetEditTarget().GetLayer()
+    if not prim.IsAbsolutePath() or not destination.IsAbsolutePath():
+        raise ValueError("Source and destination primitive paths must be absolute.")
+    new_src_path = destination.AppendChild(prim.name)
+
+    with Sdf.ChangeBlock():
+        edit = Sdf.BatchNamespaceEdit()
+        edit.Add(prim, new_src_path)
+        if layer.CanApply(edit):
+            layer.Apply(edit)
+        else:
+            raise RuntimeError(f"Failed to apply reparenting edit to {prim_path}.")
+
+
+def clean_stage(stage: Stage, force: bool = False) -> None:
     all_prims = list(expand_stage(stage))
     all_prims.reverse()
     for prim in all_prims:
         if prim.IsPseudoRoot():
             continue
-        if prim.GetTypeName() in {"Xform", "Scope", ""}:
-            if not prim.GetChildren():
-                prim.GetStage().RemovePrim(prim.GetPath())
-            elif all(child.IsInstanceProxy() for child in prim.GetChildren()):
+        if check_default(prim):
+            children = prim.GetChildren()
+            if not force:
+                if not children or all(child.IsInstanceProxy() for child in children):
+                    prim.GetStage().RemovePrim(prim.GetPath())
+            else:
+                parent_path = prim.GetPath().GetParentPath()
+                for child in children:
+                    reparent_prim(child.GetPath(), parent_path, stage)
                 prim.GetStage().RemovePrim(prim.GetPath())
