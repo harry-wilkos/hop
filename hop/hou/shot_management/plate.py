@@ -182,7 +182,7 @@ def update_plate(shot: "Shot", plate: str) -> bool:
     if len(frames) < shot.shot_data["end_frame"] - shot.shot_data["start_frame"] + (
         shot.shot_data["padding"] * 2
     ):
-        error_dialog("Update Plate", "Not enough frames in plate for given frame range")
+        error_dialog("Update Plate", "Not enough frames in plate for given frame range with padding")
         return False
     ripped_plate_path = ["shots", "active_shots", str(shot.shot_data["_id"]), "plate"]
     for index, file in enumerate(exrs):

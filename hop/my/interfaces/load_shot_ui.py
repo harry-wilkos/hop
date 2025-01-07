@@ -54,7 +54,7 @@ class ShotLoadUI(QDialog):
             total_width_with_button = (
                 current_row_width + button_min_width + button_spacing
             )
-            if total_width_with_button > self.width():
+            if total_width_with_button > self.geometry().width()/2:
                 h_layout = QHBoxLayout()
                 layouts.append(h_layout)
                 current_row_width = 0

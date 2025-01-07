@@ -34,7 +34,6 @@ class MultiProcess:
         )
 
     def process_args(self, args: Sequence[Any]) -> list[Sequence[Any]]:
-        """Chunk and validate arguments against the function's signature."""
         function_signature = inspect.signature(self.function)
         required_num_args = sum(
             param.default == inspect.Parameter.empty
@@ -68,7 +67,6 @@ class MultiProcess:
         return chunks
 
     def execute(self) -> "MultiProcess":
-        """Launch a subprocess to execute the function with prepared arguments."""
         script_file = str(__file__)
         if not script_file.endswith(".py"):
             script_file += ".py"
@@ -99,7 +97,6 @@ class MultiProcess:
         return self
 
     def retrieve(self, timeout: float | None = None) -> Any:
-        """Retrieve and format the output from the subprocess with an optional timeout."""
         if self.process:
             try:
                 stdout = self.process.communicate(timeout=timeout)[0]

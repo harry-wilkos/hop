@@ -301,13 +301,5 @@ def merge_shots(modules=None, shots=None) -> Optional[dict]:
 
 
 if __name__ == "__main__":
-    selections = merge_shots(
-        {
-            "cam": ["camera1", "cam", "cam"],
-            "plate": ["back_plate.hdr", "plate", "plate"],
-            "lights": [None, "lights", "lights"],
-            "assets": [["harry"], ["robbie", "harry"], ["harry", "robbie"]],
-        },
-        ["New Shot", 1, 2],
-    )
+    selections = merge_shots({"cam": ["camera1", "cam", "cam"], "plate": ["back_plate.hdr", "plate", "plate"], "lights": [None, "lights", "lights"], "assets": [["Boar"], ["Mech", "Boar"], ["Ground", "Arm Replacement"]], }, ["New Shot", 1, 2], )
     print(selections)

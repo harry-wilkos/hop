@@ -200,23 +200,32 @@ def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
                 "Not enough frames in plate for given frame range and padding",
             )
             return False
-
         back_plate_dir = os.path.dirname(pngs[0])
-        for count, back_plate in enumerate(pngs):
+        temp_names = [
+            os.path.join(back_plate_dir, f"temp_bp.{i:04d}.png")
+            for i in range(len(pngs))
+        ]
+
+        for temp_name, back_plate in zip(temp_names, pngs):
+            os.rename(back_plate, temp_name)
+
+        for count, temp_name in enumerate(temp_names):
             new_name = os.path.join(
                 back_plate_dir,
                 f"bp.{start_frame - shot.shot_data['padding'] + count:04d}.png",
             )
-            os.rename(back_plate, new_name)
+            os.rename(temp_name, new_name)
+
+
+
 
     if shot.shot_data["cam"] and not shot.cam_checked:
         cam_file = expand_path(shot.shot_data["cam"])
         if cam_file:
-            alembic_info = alembic_helpers.frame_info(
-                cam_file, int(os.environ["FPS"])
-            )
+            alembic_info = alembic_helpers.frame_info(cam_file, int(os.environ["FPS"]))
             if alembic_info and (
-                alembic_info[0] != shot.shot_data["start_frame"] - shot.shot_data["padding"]
+                alembic_info[0]
+                != shot.shot_data["start_frame"] - shot.shot_data["padding"]
                 or alembic_info[1]
                 < shot.shot_data["end_frame"] + shot.shot_data["padding"]
             ):
