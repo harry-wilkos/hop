@@ -160,7 +160,6 @@ class Shot:
                 "cam_path": "",
                 "geo_paths": "",
                 "description": description,
-                "lights": "",
                 "assets": [],
             }
 
@@ -229,7 +228,9 @@ class Shot:
                         shot_path,
                         exist_ok=True,
                     )
+                    os.makedirs(os.path.join(shot_path, "usd"))
                     shot_dir = False
+
                 if self.rip_files:
                     perform_step(
                         lambda: MultiProcess(

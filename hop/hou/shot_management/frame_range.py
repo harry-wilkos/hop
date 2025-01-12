@@ -17,7 +17,7 @@ def find_overlapping_shots(
 
     shots_to_trim, shots_to_merge = [], []
     shot_to_merge_data = {
-        key: [] for key in ["cam", "plate", "st_map", "lights", "assets"]
+        key: [] for key in ["cam", "plate", "st_map", "assets"]
     }
 
     for existing_shot in shot.collection.find({}):

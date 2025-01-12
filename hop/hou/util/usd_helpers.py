@@ -1,6 +1,5 @@
 from pxr.Usd import Stage, Prim
 from pxr import Sdf
-import hou
 
 
 def expand_stage(stage: Stage, depth: int | None = None, start: str = "/") -> Prim:
@@ -79,3 +78,84 @@ def clean_stage(stage: Stage, force: bool = False) -> None:
                         stage.RemovePrim(child.GetPath())
                     else:
                         break
+
+
+def normalize_path(prim: Prim, path: str):
+    if path.startswith("@") and path.endswith("@"):
+        path = path[1:-1]
+    path = Sdf.ComputeAssetPathRelativeToLayer(prim.GetStage().GetRootLayer(), path)
+    return path
+
+
+def compare_scene(stage: Stage, file: str, time_check: bool = False) -> bool:
+    store = Stage.Open(file)
+
+    for prim in stage.Traverse():
+        if prim.GetName() == "HoudiniLayerInfo":
+            continue
+
+        st_prim = store.GetPrimAtPath(prim.GetPath())
+        if not st_prim:
+            return False
+
+        st_prim_relationships = {rel.GetName() for rel in st_prim.GetRelationships()}
+        for rel in prim.GetRelationships():
+            rel_name = rel.GetName()
+            if rel_name not in st_prim_relationships:
+                return False
+            st_prim_relationships.remove(rel_name)
+
+            st_rel = st_prim.GetRelationship(rel_name)
+            if rel.GetTargets() != st_rel.GetTargets():
+                return False
+
+        if st_prim_relationships:
+            return False
+
+        st_prim_attributes = {attr.GetName() for attr in st_prim.GetAttributes()}
+        for attr in prim.GetAttributes():
+            attr_name = attr.GetName()
+            if attr_name not in st_prim_attributes:
+                return False
+            st_prim_attributes.remove(attr_name)
+
+            st_attr = st_prim.GetAttribute(attr_name)
+            if not st_attr:
+                return False
+
+            st_time_samples = st_attr.GetTimeSamples()
+            attr_time_samples = attr.GetTimeSamples()
+
+            if st_time_samples and attr_time_samples:
+                samples = attr_time_samples
+                if time_check:
+                    samples = st_time_samples
+                    if st_time_samples != attr_time_samples:
+                        return False
+
+                for time in samples:
+                    st_value = st_attr.Get(time)
+                    attr_value = attr.Get(time)
+                    if type(st_value) is Sdf.AssetPath:
+                        st_value = st_value.resolvedPath
+                    if type(attr_value) is Sdf.AssetPath:
+                        attr_value = attr_value.resolvedPath
+
+                    if st_value != attr_value:
+                        return False
+            else:
+                st_default_value = st_attr.Get()
+                attr_default_value = attr.Get()
+
+                if type(st_default_value) is Sdf.AssetPath:
+                    st_default_value = st_default_value.resolvedPath
+                if type(attr_default_value) is Sdf.AssetPath:
+                    attr_default_value = attr_default_value.resolvedPath
+
+                if st_default_value != attr_default_value:
+                    return False
+
+        if st_prim_attributes:
+            return False
+
+    return True
