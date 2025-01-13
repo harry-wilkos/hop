@@ -147,8 +147,9 @@ class Shot:
             else:
                 raise LookupError("Cannot find shot")
         else:
+            id = ObjectId()
             self.shot_data = {
-                "_id": ObjectId(),
+                "_id": id,
                 "shot_number": None,
                 "start_frame": start_frame,
                 "end_frame": end_frame,
@@ -160,6 +161,7 @@ class Shot:
                 "cam_path": "",
                 "geo_paths": "",
                 "description": description,
+                "usd_output": os.path.join("$HOP", "shots", "active_shots", str(id), "usd"),
                 "assets": [],
             }
 
