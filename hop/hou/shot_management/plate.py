@@ -88,7 +88,7 @@ def update_padding(shot: "Shot", padding: int):
                 for count, back_plate in enumerate(pngs):
                     new_name = os.path.join(
                         back_plate_dir,
-                        f"{shot.shot_data['start_frame'] - padding + count:04d}.png",
+                        f"bp.{shot.shot_data['start_frame'] - padding + count:04d}.png",
                     )
                     os.rename(back_plate, new_name)
 

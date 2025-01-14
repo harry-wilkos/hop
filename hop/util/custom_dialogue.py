@@ -1,14 +1,31 @@
 import sys
-from PySide2.QtCore import Qt
-from PySide2.QtWidgets import (
-    QApplication,
-    QButtonGroup,
-    QDialog,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QVBoxLayout,
-)
+
+from hop.my.util.helpers import find_pyside
+try:
+    from PySide2.QtCore import Qt
+    from PySide2.QtWidgets import (
+        QApplication,
+        QButtonGroup,
+        QDialog,
+        QHBoxLayout,
+        QLabel,
+        QPushButton,
+        QVBoxLayout,
+    )
+except ModuleNotFoundError:
+    from hop.my.util import find_pyside
+    PySide = find_pyside()
+    from PySide.QtCore import Qt
+    from PySide.QtWidgets import (
+        QApplication,
+        QButtonGroup,
+        QDialog,
+        QHBoxLayout,
+        QLabel,
+        QPushButton,
+        QVBoxLayout,
+    )
+
 
 
 class CustomDialogueUI(QDialog):

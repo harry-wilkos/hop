@@ -193,7 +193,9 @@ def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
 
     if shot.shot_data["back_plate"]:
         back_plates = shot.shot_data["back_plate"].replace("$HOP", os.environ["HOP"])
+        print(back_plates)
         pngs = sorted(glob(back_plates.replace("$F", "*")))
+        print(len(pngs))
         if len(pngs) < (end_frame - start_frame) + (2 * shot.shot_data["padding"]):
             error_dialog(
                 "Update Frame Range",
