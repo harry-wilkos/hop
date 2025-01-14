@@ -17,7 +17,7 @@ def create_camera():
     reload = nuke.PyScript_Knob(
         "reload", "Reload", "from hop.nk.gizmos.camera import reload; reload()"
     )
-    group.knob("label").setValue("[value input.label]")
+    group.knob("label").setValue("")
     group.addKnob(reload)
     with group.begin():
         cam = nuke.createNode("Camera3")
