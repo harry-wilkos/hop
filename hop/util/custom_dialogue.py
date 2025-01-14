@@ -1,6 +1,5 @@
 import sys
 
-from hop.my.util.helpers import find_pyside
 try:
     from PySide2.QtCore import Qt
     from PySide2.QtWidgets import (
