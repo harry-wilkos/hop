@@ -132,12 +132,12 @@ class ShotLoadUI(QDialog):
                     read.knob("origlast").setValue(last)
 
                     read.knob("file").setValue(
-                        shot_data["plate"].replace("$HOP", os.environ["HOP"])
+                        shot_data["plate"].replace("$HOP", "[getenv HOP]").replace("\\", "\\\\")
                     )
 
                     st_map = nuke.toNode("Read2")
                     st_map.knob("file").setValue(
-                        shot_data["st_map"].replace("$HOP", "[getenv HOP]")
+                        shot_data["st_map"].replace("$HOP", "[getenv HOP]").replace("\\", "\\\\")
                     )
 
                     nuke.Root().knob("first_frame").setValue(shot_data["start_frame"] - shot_data["padding"])
