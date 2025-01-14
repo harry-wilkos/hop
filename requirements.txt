@@ -1,6 +1,5 @@
 requests
 pymongo
-PySide2
 numpy<2
 clique
 ffmpeg-python
