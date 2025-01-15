@@ -94,3 +94,7 @@ def clear_aov(kwargs: dict) -> None:
     for parm in find_aovs(kwargs):
         parm.set(0)
     kwargs["node"].parm("beauty").set(1)
+
+def farm_render(kwargs: dict) -> None:
+    export(kwargs)
+    print("not working yet")

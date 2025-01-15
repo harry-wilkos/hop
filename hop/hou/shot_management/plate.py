@@ -46,7 +46,7 @@ def generate_back_plate(shot: "Shot") -> bool:
         .filter("format", "rgb24")
         .filter("curves", r="0.3/0 0.6/1", g="0.3/0 0.6/1", b="0.3/0 0.6/1")
         .output(back_plate_path, loglevel="quiet")
-        .run(quiet=True)
+        .run(quiet=True, creationflags=0x08000000)
     )
     back_plates = sorted(glob(back_plate_path.replace("%04d", "*")))
     frame = shot.shot_data["start_frame"] - shot.shot_data["padding"]
