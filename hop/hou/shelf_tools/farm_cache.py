@@ -76,7 +76,7 @@ def farm_cache(accepted_paths: list = []):
                 mode="w",
                 encoding="utf-8",
                 suffix=".py",
-                dir=os.path.dirname(file.path()),
+                dir=os.path.dirname(os.path.normpath(os.environ["HOP_TEMP"])),
             )
             python_file.write(f"hou.node('{cache}').parm('execute').pressButton()")
             python_file.close()
@@ -100,3 +100,4 @@ def farm_cache(accepted_paths: list = []):
                 result = CallDeadlineCommand([job_file.name, plugin_file.name])
             stored_args.extend(["job", job_file.name, plugin_file.name])
         result = CallDeadlineCommand(["submitmultiplejobs", "dependent", *stored_args])
+        print(result)
