@@ -124,12 +124,12 @@ def expand_path(path: str, create_path: bool = False) -> str | None:
     return None
 
 
-def confirmation_dialog(title: str, text: str, details: str | None = None) -> bool:
+def confirmation_dialog(title: str, text: str, details: str | None = None, default_choice: int = 1) -> bool:
     confirm = hou.ui.displayMessage(
         text=text,
         buttons=["OK", "Cancel"],
-        severity=hou.severityType.Warning,
-        default_choice=1,
+        severity=hou.severityType.ImportantMessage,
+        default_choice=default_choice,
         close_choice=1,
         title=title,
         details=details,
