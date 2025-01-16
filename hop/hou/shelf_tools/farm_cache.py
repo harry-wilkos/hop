@@ -65,11 +65,11 @@ def farm_cache(accepted_paths: list = []):
                 return
 
         job_name = (
-            hou.ui.readInput("Job name", title="Farm Cache")
+            hou.ui.readInput("Job name", title="Farm Cache")[1]
             or file.basename().split(".")[0]
         )
 
-        stored_args = "-SubmitMultipleJobs\n -Dependent\n"
+        stored_args = []
         for cache in cache_paths:
             python_file = TemporaryFile(
                 delete=False,
@@ -78,7 +78,7 @@ def farm_cache(accepted_paths: list = []):
                 suffix=".py",
                 dir=os.path.dirname(file.path()),
             )
-            python_file.write(f"hou.node({cache}).parm('execute').pressButton()")
+            python_file.write(f"hou.node('{cache}').parm('execute').pressButton()")
             python_file.close()
 
             job_file = TemporaryFile(
@@ -86,7 +86,7 @@ def farm_cache(accepted_paths: list = []):
             )
             job_file.write("Plugin=UHFarmCache\n")
             job_file.write(f"Name={job_name}\n")
-            job_file.write("Comment=test cache\n")
+            job_file.write(f"Comment={cache}\n")
             job_file.close()
 
             plugin_file = TemporaryFile(
@@ -97,8 +97,6 @@ def farm_cache(accepted_paths: list = []):
             plugin_file.close()
 
             if len(cache_paths) == 1:
-                CallDeadlineCommand([job_file.name, plugin_file.name])
-                return
-            stored_args += f"-Job\n \\{job_file.name}\n, \\{plugin_file.name}\n"
-
-        print(CallDeadlineCommand(stored_args))
+                result = CallDeadlineCommand([job_file.name, plugin_file.name])
+            stored_args.extend(["job", job_file.name, plugin_file.name])
+        result = CallDeadlineCommand(["submitmultiplejobs", "dependent", *stored_args])
