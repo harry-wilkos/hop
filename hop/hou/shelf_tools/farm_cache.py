@@ -98,6 +98,6 @@ def farm_cache(accepted_paths: list = []):
 
             if len(cache_paths) == 1:
                 result = CallDeadlineCommand([job_file.name, plugin_file.name])
+                return
             stored_args.extend(["job", job_file.name, plugin_file.name])
         result = CallDeadlineCommand(["submitmultiplejobs", "dependent", *stored_args])
-        print(result)
