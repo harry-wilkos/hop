@@ -76,7 +76,7 @@ def farm_cache(accepted_paths: list = []):
                 mode="w",
                 encoding="utf-8",
                 suffix=".py",
-                dir=os.path.dirname(os.path.normpath(os.environ["HOP_TEMP"])),
+                dir=os.path.normpath(os.environ["HOP_TEMP"]),
             )
             python_file.write(f"hou.node('{cache}').parm('execute').pressButton()")
             python_file.close()
