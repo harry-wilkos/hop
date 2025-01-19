@@ -87,6 +87,7 @@ def farm_cache(accepted_paths: list = []):
             job_file.write("Plugin=UHFarmCache\n")
             job_file.write(f"Name={job_name}\n")
             job_file.write(f"Comment={cache}\n")
+            job_file.write("IncludeEnvironment=True\n")
             job_file.close()
 
             plugin_file = TemporaryFile(
