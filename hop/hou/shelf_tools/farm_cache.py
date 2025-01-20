@@ -92,6 +92,7 @@ def farm_cache(accepted_paths: list = []):
             job_file.write(f"Name={job_name}\n")
             job_file.write(f"Comment={cache}\n")
             for var in set_env([
+                "TWELVEFOLD_ROOT",
                 "PYTHON",
                 "PYTHONPATH",
                 "HOUDINI_USER_PREF_DIR",
@@ -103,7 +104,7 @@ def farm_cache(accepted_paths: list = []):
                 "HOP",
                 "HOP_TEMP",
             ]):
-                job_file.write(f"{var}\n")
+                job_file.write(var)
             job_file.close()
 
             plugin_file = TemporaryFile(
