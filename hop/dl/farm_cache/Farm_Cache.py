@@ -68,4 +68,3 @@ class Farm_Cache(DeadlinePlugin):
         self.FailRender(
             f"Error: Renderer node not found: {error_message}. Please verify the node path."
         )
-

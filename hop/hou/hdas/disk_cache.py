@@ -38,6 +38,11 @@ def open_path(kwargs):
     if dir:
         hou.ui.showInFileBrowser(dir)
 
+def reload(kwargs):
+    node = kwargs["node"]
+    node.node("Load_Switch").cook(force=True)
+    node.node("Reload").cook(force=True)
+
 
 def delete_cache(kwargs):
     node = kwargs["node"]
@@ -46,11 +51,11 @@ def delete_cache(kwargs):
     path = f"{savepath}/V{version}"
     if os.path.exists(path):
         rmtree(f"{savepath}/V{version}")
-    node.node("Load_Switch").cook(force=True)
-
+    reload(kwargs)
 
 def local(kwargs):
     node = kwargs["node"]
     node.node("OUT").parm("execute").pressButton()
-    node.node("Load_Switch").cook(force=True)
-    node.node("Reload").cook(force=True)
+    reload(kwargs)
+
+
