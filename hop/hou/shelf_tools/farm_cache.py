@@ -24,6 +24,7 @@ def farm_cache(accepted_paths: list = []):
         for var in [
             "SIDEFXLABS",
             "HH",
+            "HOUDINI_OTLSCAN_PATH",
         ]
         if var in os.environ
     ] + accepted_paths
