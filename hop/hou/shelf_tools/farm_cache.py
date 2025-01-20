@@ -2,6 +2,7 @@ import os
 import hou
 import itertools
 from hop.hou.util import error_dialog, confirmation_dialog
+from hop.dl.util import set_env
 from tempfile import TemporaryFile
 from CallDeadlineCommand import CallDeadlineCommand
 
@@ -20,7 +21,10 @@ def check_node(node, accepted_paths: list) -> bool:
 def farm_cache(accepted_paths: list = []):
     accepter_vars = [
         os.environ[var].split(os.pathsep)
-        for var in ["SIDEFXLABS", "HH"]
+        for var in [
+            "SIDEFXLABS",
+            "HH",
+        ]
         if var in os.environ
     ] + accepted_paths
 
@@ -87,7 +91,18 @@ def farm_cache(accepted_paths: list = []):
             job_file.write("Plugin=UHFarmCache\n")
             job_file.write(f"Name={job_name}\n")
             job_file.write(f"Comment={cache}\n")
-            job_file.write("IncludeEnvironment=True\n")
+            for var in set_env([
+                "PYTHON",
+                "HOUDINI_USER_PREF_DIR",
+                "OCIO",
+                "MONGO_ADDRESS",
+                "API_ADDRESS",
+                "FPS",
+                "RES",
+                "HOP",
+                "HOP_TEMP",
+            ]):
+                job_file.write(var)
             job_file.close()
 
             plugin_file = TemporaryFile(
