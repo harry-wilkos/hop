@@ -17,6 +17,7 @@ def create_job(
     stepping: int,
     chunk: int,
     plugin: str,
+    path: str,
     pool: str,
     batch_name: str | None,
 ):
@@ -31,6 +32,7 @@ def create_job(
     job_file.write(f"Frames={start}-{end}:{stepping}\n")
     job_file.write(f"ChunkSize={chunk}\n")
     job_file.write(f"Pool={pool}\n")
+    job_file.write(f"CustomPluginDirectory={path}")
     for var in set_env([
         "TWELVEFOLD_ROOT",
         "PYTHON",
@@ -39,7 +41,8 @@ def create_job(
         "MAYA_APP_DIR",
         "XBMLANGPATH",
         "MARI_USER_PATH",
-        "MAYA_PLUG_IN_PATHHOUDINI_USER_PREF_DIR",
+        "MAYA_PLUG_IN_PATH",
+        "HOUDINI_USER_PREF_DIR",
         "OCIO",
         "MONGO_ADDRESS",
         "API_ADDRESS",

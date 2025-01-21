@@ -2,7 +2,7 @@ from hop.hou.util import expand_path, confirmation_dialog
 from shutil import rmtree
 import os
 import hou
-from hop.dl import create_job, call_deadline
+from hop.dl import create_job, call_deadline, plugins
 from tempfile import NamedTemporaryFile
 
 
@@ -95,7 +95,7 @@ def farm(kwargs):
     job_name = job_name or file.basename().split(".")[0]
 
     job = create_job(
-        job_name, node.path(), start, end, step, chunk, "farm_cache", "sim", None
+        job_name, node.path(), start, end, step, chunk, "farm_cache", plugins.__file__, "sim", None
     )
     plugin = NamedTemporaryFile(
         delete=False, mode="w", encoding="utf-16", suffix=".job"
@@ -104,4 +104,5 @@ def farm(kwargs):
     plugin.write(f"simulation={bool(sim)}\n")
     plugin.write(f"node_path={geo_rop}\n")
     plugin.close()
-    call_deadline([job, plugin.name])
+    print(call_deadline([job, plugin.name]))
+    print(job_name, node.path(), start, end, step, chunk, "farm_cache", plugins.__file__, "sim", None)
