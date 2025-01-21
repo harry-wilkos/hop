@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from Deadline.Plugins import DeadlinePlugin
+from Deadline.Plugins import DeadlinePlugin, PluginType
 import os
 
 
@@ -19,53 +19,39 @@ class Farm_Cache(DeadlinePlugin):
         self.RenderArgumentCallback += self.get_args
 
     def init_process(self):
+        self.PluginType = PluginType.Simple
         self.StdoutHandling = True
-        self.SingleFramesOnly = not self.GetBooleanConfigEntry("simulation")
-
-        self.stdout_handler = self.AddStdoutHandlerCallback(r"ALF_PROGRESS (\d+)%")
-        self.stdout_handler.HandleCallback += self.handle_progress
-
-        self.error_handler_renderer = self.AddStdoutHandlerCallback(
-            r"Couldn't find renderer: (.*)"
+        self.AddStdoutHandlerCallback(r"ALF_PROGRESS (\d+)%").HandleCallback += (
+            lambda: self.SetProgress(int(self.GetRegexMatch(1)))
         )
-        self.error_handler_renderer.HandleCallback += self.handle_renderer_error
+        self.AddStdoutHandlerCallback("WARNING:.*").HandleCallback += (
+            lambda: self.LogWarning(self.GetRegexMatch(0))
+        )
+        self.AddStdoutHandlerCallback("ERROR:(.*)").HandleCallback += (
+            lambda: self.FailRender("Detected an error: " + self.GetRegexMatch(1))
+        )
 
     def get_executable(self):
-        executable_path = os.path.normpath(self.GetConfigEntry("hbatch"))
-        if not executable_path or not os.path.exists(executable_path):
-            self.FailRender(f"Executable not found: {executable_path}")
-        return executable_path
+        self.SingleFramesOnly = not self.GetBooleanPluginInfoEntry("simulation")
+        return self.GetConfigEntry("hbatch")
 
     def get_args(self):
         hip_path = self.GetPluginInfoEntry("hip_file")
         node = self.GetPluginInfoEntry("node_path")
+        start_frame = self.GetStartFrame()
+        end_frame = self.GetEndFrame()
 
         if not hip_path or not os.path.exists(hip_path):
             self.FailRender(f"Hip file path is invalid or does not exist: {hip_path}")
 
-        return f"{hip_path} -c 'render -Va -f {self.GetStartFrame()} {self.GetEndFrame()} {node}; quit'"
+        return f'-c "render -Va -f {start_frame} {end_frame} {node}; quit" {hip_path}'
 
     def clean_up(self):
         handlers = [
             "InitializeProcessCallback",
             "RenderExecutableCallback",
             "RenderArgumentCallback",
-            "stdout_handler",
-            "error_handler_renderer",
         ]
         for handler in handlers:
             if hasattr(self, handler):
                 delattr(self, handler)
-
-    def handle_progress(self):
-        match = self.GetRegexMatch(1)
-        if match:
-            progress = int(match)
-            self.SetProgress(progress)
-            self.LogInfo(f"Cache progress: {progress}%")
-
-    def handle_renderer_error(self):
-        error_message = self.GetRegexMatch(1)
-        self.FailRender(
-            f"Error: Renderer node not found: {error_message}. Please verify the node path."
-        )

@@ -1,18 +1,14 @@
 [hip_file]
 Type=filename
 Label=HIP File
-Category=Farm Cache
-Index=0
 Description=The HIP file that contains the cache node
-Filter =HIP File (*.hip*)
+Filter=HIP File (*.hip*)
 Required=True
 DisableIfBlank=True
 
 [simulation]
 Type=boolean
 Label=Simulation
-Category=Farm Cache
-Index=0
 Description=Whether the cache is simulated
 Default=False
 Required=True
@@ -21,8 +17,7 @@ DisableIfBlank=True
 [node_path]
 Type=string
 Label=Node Path
-Category=Farm Cache
-Index=0
 Description=The path to the geometry ROP
 Required=True
 DisableIfBlank=True
+

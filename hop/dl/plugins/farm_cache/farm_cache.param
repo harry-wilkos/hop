@@ -1,14 +1,15 @@
 [About]
 Type=label
 Label=About
-Category=About Plugin
-CategoryOrder=-1
 Default=A plugin to cache the HOP Disk Cache HDA
 Description=Not configurable
 
+
 [hbatch]
-Type=filename
-Label=HBatch
-Category=Farm Cache
+Type=multilinemultifilename
+Label=Hython Path
+Description=The path to the hbatch executable file used for rendering. Enter alternative paths on separate lines.
 Default=C:\Program Files\Side Effects Software\Houdini 20.0.653\bin\hbatch.exe
-Description=The path to the HBatch executable
+Required=True
+DisableIfBlank=True
+

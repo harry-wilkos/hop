@@ -2,7 +2,7 @@ from hop.hou.util import expand_path, confirmation_dialog
 from shutil import rmtree
 import os
 import hou
-from hop.dl import create_job, call_deadline, plugins
+from hop.dl import create_job, call_deadline
 from tempfile import NamedTemporaryFile
 
 
@@ -69,7 +69,7 @@ def farm(kwargs):
     end = node.evalParm("frame_rangey")
     step = node.evalParm("frame_rangez")
     sim = node.evalParm("simulation")
-    chunk = 1 if sim else 1 + end - start
+    chunk = 1 + end - start if sim else 1
     geo_rop = node.node("OUT").path()
     file = hou.hipFile
 
@@ -82,6 +82,7 @@ def farm(kwargs):
             file.save()
         else:
             return
+
     job_enter, job_name = hou.ui.readInput(
         "Job name",
         ("OK", "Cancel"),
@@ -93,10 +94,10 @@ def farm(kwargs):
     if job_enter:
         return
     job_name = job_name or file.basename().split(".")[0]
-
     job = create_job(
-        job_name, node.path(), start, end, step, chunk, "farm_cache", plugins.__file__, "sim", None
+        job_name, node.path(), start, end, step, chunk, "farm_cache", "sim", None
     )
+
     plugin = NamedTemporaryFile(
         delete=False, mode="w", encoding="utf-16", suffix=".job"
     )
@@ -104,5 +105,5 @@ def farm(kwargs):
     plugin.write(f"simulation={bool(sim)}\n")
     plugin.write(f"node_path={geo_rop}\n")
     plugin.close()
-    print(call_deadline([job, plugin.name]))
-    print(job_name, node.path(), start, end, step, chunk, "farm_cache", plugins.__file__, "sim", None)
+
+    call_deadline([job, plugin.name])
