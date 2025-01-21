@@ -1,7 +1,9 @@
-from hop.hou.util import expand_path
+from hop.hou.util import expand_path, confirmation_dialog
 from shutil import rmtree
 import os
 import hou
+from hop.dl import create_job, call_deadline
+from tempfile import NamedTemporaryFile
 
 
 def version_up(kwargs):
@@ -38,6 +40,7 @@ def open_path(kwargs):
     if dir:
         hou.ui.showInFileBrowser(dir)
 
+
 def reload(kwargs):
     node = kwargs["node"]
     node.node("Load_Switch").cook(force=True)
@@ -53,9 +56,52 @@ def delete_cache(kwargs):
         rmtree(f"{savepath}/V{version}")
     reload(kwargs)
 
+
 def local(kwargs):
     node = kwargs["node"]
     node.node("OUT").parm("execute").pressButton()
     reload(kwargs)
 
 
+def farm(kwargs):
+    node = kwargs["node"]
+    start = node.evalParm("frame_rangex")
+    end = node.evalParm("frame_rangey")
+    step = node.evalParm("frame_rangez")
+    sim = node.evalParm("simulation")
+    chunk = 1 if sim else 1 + end - start
+    geo_rop = node.node("OUT").path()
+    file = hou.hipFile
+
+    if file.hasUnsavedChanges():
+        if confirmation_dialog(
+            "Disk Cache",
+            "The scene must be saved before submission",
+            default_choice=0,
+        ):
+            file.save()
+        else:
+            return
+    job_enter, job_name = hou.ui.readInput(
+        "Job name",
+        ("OK", "Cancel"),
+        title="Farm Cache",
+        default_choice=0,
+        close_choice=1,
+        initial_contents=node.evalParm("job_name"),
+    )
+    if job_enter:
+        return
+    job_name = job_name or file.basename().split(".")[0]
+
+    job = create_job(
+        job_name, node.path(), start, end, step, chunk, "farm_cache", "sim", None
+    )
+    plugin = NamedTemporaryFile(
+        delete=False, mode="w", encoding="utf-16", suffix=".job"
+    )
+    plugin.write(f"hip_file={file.path()}\n")
+    plugin.write(f"simulation={bool(sim)}\n")
+    plugin.write(f"node_path={geo_rop}\n")
+    plugin.close()
+    call_deadline([job, plugin.name])

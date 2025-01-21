@@ -2,9 +2,8 @@ import os
 import hou
 import itertools
 from hop.hou.util import error_dialog, confirmation_dialog
-from hop.dl.util import set_env
+from hop.dl import set_env, call_deadline
 from tempfile import TemporaryFile
-from CallDeadlineCommand import CallDeadlineCommand
 
 
 def check_node(node, accepted_paths: list) -> bool:
@@ -116,7 +115,7 @@ def farm_cache(accepted_paths: list = []):
             plugin_file.close()
 
             if len(cache_paths) == 1:
-                result = CallDeadlineCommand([job_file.name, plugin_file.name])
+                call_deadline([job_file.name, plugin_file.name])
                 return
             stored_args.extend(["job", job_file.name, plugin_file.name])
-        result = CallDeadlineCommand(["submitmultiplejobs", "dependent", *stored_args])
+        call_deadline(["submitmultiplejobs", "dependent", *stored_args])
