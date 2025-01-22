@@ -24,9 +24,6 @@ class Farm_Cache(DeadlinePlugin):
         self.AddStdoutHandlerCallback(r"ALF_PROGRESS (\d+)%").HandleCallback += (
             lambda: self.SetProgress(int(self.GetRegexMatch(1)))
         )
-        self.AddStdoutHandlerCallback("WARNING:.*").HandleCallback += (
-            lambda: self.LogWarning(self.GetRegexMatch(0))
-        )
         self.AddStdoutHandlerCallback("ERROR:(.*)").HandleCallback += (
             lambda: self.FailRender("Detected an error: " + self.GetRegexMatch(1))
         )

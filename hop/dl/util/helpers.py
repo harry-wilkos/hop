@@ -31,7 +31,9 @@ def create_job(
     job_file.write(f"Frames={start}-{end}:{stepping}\n")
     job_file.write(f"ChunkSize={chunk}\n")
     job_file.write(f"Pool={pool}\n")
-    job_file.write(f"CustomPluginDirectory={os.environ['DEADLINE_CUSTOM_PATH']}")        
+    job_file.write(
+        f"CustomPluginDirectory={os.path.join(os.environ['DEADLINE_CUSTOM_PATH'], 'plugins')}\n"
+    )
     for var in set_env([
         "TWELVEFOLD_ROOT",
         "PYTHON",
@@ -48,7 +50,6 @@ def create_job(
         "FPS",
         "RES",
         "HOP",
-        "DEADLINE_CUSTOM_PATH",
     ]):
         job_file.write(var)
     job_file.close()
