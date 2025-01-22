@@ -23,14 +23,20 @@ def version_down(kwargs):
 
 def frame_range(kwargs):
     node = kwargs["node"]
-    start = int(kwargs["script_value0"])
-    end = int(kwargs["script_value1"])
-    step = int(kwargs["script_value2"])
-
-    if step < 1:
+    start = int(float(kwargs["script_value0"]))
+    end = int(float(kwargs["script_value1"]))
+    step = float(kwargs["script_value2"])
+    node.parm("frame_rangex").set(start)
+   
+    if step <= 0:
         node.parm("frame_rangez").set(1)
+    elif step > 1:
+        node.parm("frame_rangez").set(int(step))
+
     if end <= start:
         node.parm("frame_rangey").set(start + 1)
+    else:
+        node.parm("frame_rangey").set(end)
 
 
 def open_path(kwargs):
