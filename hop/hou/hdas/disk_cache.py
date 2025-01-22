@@ -2,7 +2,7 @@ from hop.hou.util import expand_path, confirmation_dialog
 from shutil import rmtree
 import os
 import hou
-from hop.dl import create_job, call_deadline
+from hop.dl import create_job, call_deadline, submit_decode
 from tempfile import NamedTemporaryFile
 
 
@@ -27,7 +27,7 @@ def frame_range(kwargs):
     end = int(float(kwargs["script_value1"]))
     step = float(kwargs["script_value2"])
     node.parm("frame_rangex").set(start)
-   
+
     if step <= 0:
         node.parm("frame_rangez").set(1)
     elif step > 1:
@@ -42,9 +42,11 @@ def frame_range(kwargs):
 def open_path(kwargs):
     node = kwargs["node"]
 
-    dir = expand_path(node.evalParm("savepath"))
+    dir = node.evalParm("geopath")
     if dir:
-        hou.ui.showInFileBrowser(dir)
+        path = os.path.dirname(dir)
+        if os.path.exists(path):
+            hou.ui.showInFileBrowser(path)
 
 
 def reload(kwargs):
@@ -71,9 +73,10 @@ def local(kwargs):
 
 def farm(kwargs):
     node = kwargs["node"]
-    start = node.evalParm("frame_rangex")
-    end = node.evalParm("frame_rangey")
-    step = node.evalParm("frame_rangez")
+    start = int(node.evalParm("frame_rangex"))
+    end = int(node.evalParm("frame_rangey"))
+    float_step = node.evalParm("frame_rangez")
+    step = int(float_step) if int(float_step) >= 1 else 1
     sim = node.evalParm("simulation")
     chunk = 1 + end - start if sim else 1
     geo_rop = node.node("OUT").path()
@@ -99,7 +102,11 @@ def farm(kwargs):
     )
     if job_enter:
         return
-    job_name = job_name or file.basename().split(".")[0]
+    if job_name:
+        node.parm("job_name").set(job_name)
+    else:
+        job_name = file.basename().split(".")[0]
+
     job = create_job(
         job_name, node.path(), start, end, step, chunk, "farm_cache", "sim", None
     )
@@ -110,6 +117,20 @@ def farm(kwargs):
     plugin.write(f"hip_file={file.path()}\n")
     plugin.write(f"simulation={bool(sim)}\n")
     plugin.write(f"node_path={geo_rop}\n")
+    if float_step <= 1:
+        plugin.write(f"substep={float_step}\n")
+    else:
+        plugin.write("substep=1\n")
     plugin.close()
 
-    call_deadline([job, plugin.name])
+    deadline_return = submit_decode(str(call_deadline([job, plugin.name])))
+    if deadline_return:
+        node.parm("job_id").set(deadline_return)
+
+
+def cancel(kwargs):
+    node = kwargs["node"]
+    id = node.evalParm("job_id")
+    if id:
+        call_deadline(["SuspendJob", id])
+    node.parm("job_id").set("")

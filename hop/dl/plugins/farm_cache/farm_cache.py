@@ -38,6 +38,10 @@ class Farm_Cache(DeadlinePlugin):
         start_frame = self.GetStartFrame()
         end_frame = self.GetEndFrame()
 
+        if not self.GetBooleanPluginInfoEntry("simulation"):
+            substep = self.GetFloatPluginInfoEntry("substep")
+            end_frame += 1 - substep
+
         if not hip_path or not os.path.exists(hip_path):
             self.FailRender(f"Hip file path is invalid or does not exist: {hip_path}")
 
@@ -52,3 +56,4 @@ class Farm_Cache(DeadlinePlugin):
         for handler in handlers:
             if hasattr(self, handler):
                 delattr(self, handler)
+

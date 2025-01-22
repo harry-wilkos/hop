@@ -1,4 +1,3 @@
-from hop.dl.util import set_env, create_job, call_deadline 
-from hop.dl import plugins
+from hop.dl.util import set_env, create_job, call_deadline, submit_decode
 
-__all__ = ["set_env", "create_job", "call_deadline", "plugins"]
+__all__ = ["set_env", "create_job", "call_deadline", "submit_decode"]

@@ -1,60 +1,23 @@
-import os
 import hou
-import itertools
-from hop.hou.util import error_dialog, confirmation_dialog
-from hop.dl import set_env, call_deadline
-from tempfile import TemporaryFile
+from hop.hou.util import confirmation_dialog
+from hop.dl import create_job, submit_decode, call_deadline
+from tempfile import NamedTemporaryFile
+import os
 
 
-def check_node(node, accepted_paths: list) -> bool:
-    definition = node.type().definition()
-    if definition:
-        library_path = os.path.normpath(definition.libraryFilePath())
-        if library_path and not any(
-            library_path.startswith(accept) for accept in accepted_paths
-        ):
-            return False
-    return True
-
-
-def farm_cache(accepted_paths: list = []):
-    accepter_vars = [
-        os.environ[var].split(os.pathsep)
-        for var in [
-            "SIDEFXLABS",
-            "HH",
-            "HOUDINI_OTLSCAN_PATH",
-        ]
-        if var in os.environ
-    ] + accepted_paths
-
-    accepted_paths = [
-        os.path.normpath(path) for path in itertools.chain.from_iterable(accepter_vars)
-    ]
-
+def farm_cache():
     selected_nodes = hou.selectedNodes()
     cache_nodes = []
-    unique_nodes = []
+    disk_cache_dict = {}
     for node in selected_nodes:
-        if node.parm("execute"):
+        if "Disk_Cache" in node.type().name():
             cache_nodes.append(node)
-            inputs = list(node.inputAncestors())
-            while inputs:
-                for input in inputs:
-                    inputs.pop(0)
-                    inputs.extend(input.inputs())
-                    if input not in unique_nodes:
-                        unique_nodes.append(input)
+            disk_cache_dict[node] = True
+        elif node.parm("execute"):
+            cache_nodes.append(node)
+            disk_cache_dict[node] = False
 
-    for check in unique_nodes:
-        if not check_node(check, accepted_paths):
-            error_dialog(
-                "Farm Cache",
-                f"{check} is not a node available to the farm in {accepted_paths[-1]}",
-            )
-            return
-
-    cache_paths = [node.path() for node in hou.sortedNodes(tuple(cache_nodes))]
+    cache_nodes = [node for node in hou.sortedNodes(tuple(cache_nodes))]
 
     if cache_nodes:
         file = hou.hipFile
@@ -68,54 +31,106 @@ def farm_cache(accepted_paths: list = []):
             else:
                 return
 
-        job_name = (
-            hou.ui.readInput("Job name", title="Farm Cache")[1]
-            or file.basename().split(".")[0]
+        job_enter, init_job_name = hou.ui.readInput(
+            "Job name",
+            ("OK", "Cancel"),
+            title="Farm Cache",
+            default_choice=0,
+            close_choice=1,
         )
 
+        if job_enter:
+            return
+        if init_job_name:
+            job_name = init_job_name
+        else:
+            job_name = file.basename().split(".")[0]
+
+        batch = None
+        if len(cache_nodes) == 1:
+            batch = job_name
+        
         stored_args = []
-        for cache in cache_paths:
-            python_file = TemporaryFile(
-                delete=False,
-                mode="w",
-                encoding="utf-8",
-                suffix=".py",
-                dir=os.path.normpath(os.environ["HOP_TEMP"]),
-            )
-            python_file.write(f"hou.node('{cache}').parm('execute').pressButton()")
-            python_file.close()
+        for node in cache_nodes:
+            if disk_cache_dict[node]:
+                node.parm("job_name").set(init_job_name)
+                start = int(node.evalParm("frame_rangex"))
+                end = int(node.evalParm("frame_rangey"))
+                float_step = node.evalParm("frame_rangez")
+                step = int(float_step) if int(float_step) >= 1 else 1
+                sim = node.evalParm("simulation")
+                chunk = 1 + end - start if sim else 1
+                geo_rop = node.node("OUT").path()
 
-            job_file = TemporaryFile(
-                delete=False, mode="w", encoding="utf-16", suffix=".job"
-            )
-            job_file.write("Plugin=UHFarmCache\n")
-            job_file.write(f"Name={job_name}\n")
-            job_file.write(f"Comment={cache}\n")
-            for var in set_env([
-                "TWELVEFOLD_ROOT",
-                "PYTHON",
-                "PYTHONPATH",
-                "HOUDINI_USER_PREF_DIR",
-                "OCIO",
-                "MONGO_ADDRESS",
-                "API_ADDRESS",
-                "FPS",
-                "RES",
-                "HOP",
-                "HOP_TEMP",
-            ]):
-                job_file.write(var)
-            job_file.close()
+                job = create_job(
+                    job_name,
+                    node.path(),
+                    start,
+                    end,
+                    step,
+                    chunk,
+                    "farm_cache",
+                    "sim",
+                    batch,
+                )
 
-            plugin_file = TemporaryFile(
-                delete=False, mode="w", encoding="utf-16", suffix=".job"
-            )
-            plugin_file.write(f"SceneFile={file.path()}\n")
-            plugin_file.write(f"cacheMeFile={python_file.name}\n")
-            plugin_file.close()
+                plugin = NamedTemporaryFile(
+                    delete=False, mode="w", encoding="utf-16", suffix=".job"
+                )
+                plugin.write(f"hip_file={file.path()}\n")
+                plugin.write(f"simulation={bool(sim)}\n")
+                plugin.write(f"node_path={geo_rop}\n")
+                if float_step <= 1:
+                    plugin.write(f"substep={float_step}\n")
+                else:
+                    plugin.write("substep=1\n")
+                plugin.close()
 
-            if len(cache_paths) == 1:
-                call_deadline([job_file.name, plugin_file.name])
-                return
-            stored_args.extend(["job", job_file.name, plugin_file.name])
+                if not batch:
+                    deadline_return = submit_decode(
+                        str(call_deadline([job, plugin.name]))
+                    )
+                    if deadline_return:
+                        node.parm("job_id").set(deadline_return)
+                    return
+                stored_args.extend(["job", job, plugin.name])
+
+            else:
+                python_file = NamedTemporaryFile(
+                    delete=False,
+                    mode="w",
+                    encoding="utf-8",
+                    suffix=".py",
+                    dir=os.path.normpath(os.environ["HOP_TEMP"]),
+                )
+                python_file.write(
+                    f"hou.node('{node.path()}').parm('execute').pressButton()"
+                )
+                python_file.close()
+
+                current = hou.frame()
+                job = create_job(
+                    job_name,
+                    node.path(),
+                    current,
+                    current,
+                    1,
+                    1,
+                    "UHFarmCache",
+                    "sim",
+                    batch,
+                )
+
+                plugin = NamedTemporaryFile(
+                    delete=False, mode="w", encoding="utf-16", suffix=".job"
+                )
+                plugin.write(f"SceneFile={file.path()}\n")
+                plugin.write(f"cacheMeFile={python_file.name}\n")
+                plugin.close()
+                if not batch:
+                    call_deadline([job, plugin.name])
+                    return
+                stored_args.extend(["job", job, plugin.name])
+
         call_deadline(["submitmultiplejobs", "dependent", *stored_args])
+

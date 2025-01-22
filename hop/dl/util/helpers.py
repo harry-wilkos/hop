@@ -2,12 +2,18 @@ import os
 import subprocess
 import sys
 from tempfile import NamedTemporaryFile
+import re
 
 
 def set_env(vars: list):
     for index, var in enumerate(vars):
         yield f"EnvironmentKeyValue{index}={var}={os.environ[var]}\n"
 
+def submit_decode(command:str) -> str | None:
+    match = re.search(r"JobID=([a-f0-9]+)", command)
+    if match:
+        return match.group(1)
+    return match
 
 def create_job(
     name: str,
@@ -105,3 +111,4 @@ def call_deadline(arguments, hideWindow=True, readStdout=True):
     if sys.version_info[0] > 2 and type(output) is bytes:
         output = output.decode()
     return output
+
