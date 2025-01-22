@@ -1,4 +1,4 @@
-from hop.hou.util import expand_path, confirmation_dialog
+from hop.hou.util import confirmation_dialog
 from shutil import rmtree
 import os
 import hou
@@ -126,11 +126,13 @@ def farm(kwargs):
     deadline_return = submit_decode(str(call_deadline([job, plugin.name])))
     if deadline_return:
         node.parm("job_id").set(deadline_return)
+        hou.ui.displayMessage(f"{node.path()} submitted to the farm", title= "Disk Cache")
 
 
 def cancel(kwargs):
     node = kwargs["node"]
     id = node.evalParm("job_id")
     if id:
-        call_deadline(["SuspendJob", id])
+        call_deadline(["FailJob", id])
+        hou.ui.displayMessage("Job cancelled", title= "Disk Cache")
     node.parm("job_id").set("")

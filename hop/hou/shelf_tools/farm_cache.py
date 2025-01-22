@@ -3,6 +3,8 @@ from hop.hou.util import confirmation_dialog
 from hop.dl import create_job, submit_decode, call_deadline
 from tempfile import NamedTemporaryFile
 import os
+import random
+import string
 
 
 def farm_cache():
@@ -47,9 +49,9 @@ def farm_cache():
             job_name = file.basename().split(".")[0]
 
         batch = None
-        if len(cache_nodes) == 1:
-            batch = job_name
-        
+        if len(cache_nodes) != 1:
+            batch = f"{job_name} ({''.join(random.choices(string.ascii_letters + string.digits, k=4))})"
+
         stored_args = []
         for node in cache_nodes:
             if disk_cache_dict[node]:
@@ -92,6 +94,9 @@ def farm_cache():
                     )
                     if deadline_return:
                         node.parm("job_id").set(deadline_return)
+                        hou.ui.displayMessage(
+                            f"{node.path()} submitted to the farm", title="Farm Cache"
+                        )
                     return
                 stored_args.extend(["job", job, plugin.name])
 
@@ -108,7 +113,7 @@ def farm_cache():
                 )
                 python_file.close()
 
-                current = hou.frame()
+                current = int(hou.frame())
                 job = create_job(
                     job_name,
                     node.path(),
@@ -129,8 +134,9 @@ def farm_cache():
                 plugin.close()
                 if not batch:
                     call_deadline([job, plugin.name])
+                    hou.ui.displayMessage(f"{node.path()} submitted to the farm", title="Farm Cache")
                     return
                 stored_args.extend(["job", job, plugin.name])
 
         call_deadline(["submitmultiplejobs", "dependent", *stored_args])
-
+        hou.ui.displayMessage(f"{len(cache_nodes)} nodes submitted to the farm", title="Farm Cache")
