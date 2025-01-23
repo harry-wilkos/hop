@@ -7,6 +7,7 @@ from hop.util.api_helpers import post
 
 
 def backup(start_folder: str, ignore_folders: list = []):
+    print("test")
     collection = get_collection("backups", "files")
     ignore_paths = [
         os.path.abspath(os.path.join(start_folder, ignore)) for ignore in ignore_folders
