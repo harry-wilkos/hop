@@ -41,7 +41,7 @@ def backup(start_folder: str, ignore_folders: list = []):
                     file_parts.pop(0)
                 file_parts.insert(0, "external_drive")
                 print("upload", {"location": file_parts, "uuid": False}, path)
-                # post("upload", {"location": file_parts, "uuid": False}, path)
+                post("upload", {"location": file_parts, "uuid": False}, path)
 
 
 if __name__ == "__main__":
