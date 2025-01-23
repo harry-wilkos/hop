@@ -7,7 +7,6 @@ from hop.util.api_helpers import post
 
 
 def backup(start_folder: str, ignore_folders: list = []):
-    print("test")
     collection = get_collection("backups", "files")
     ignore_paths = [
         os.path.abspath(os.path.join(start_folder, ignore)) for ignore in ignore_folders
@@ -42,7 +41,7 @@ def backup(start_folder: str, ignore_folders: list = []):
                     file_parts.pop(0)
                 file_parts.insert(0, "external_drive")
                 print("upload", {"location": file_parts, "uuid": False}, path)
-                post("upload", {"location": file_parts, "uuid": False}, path)
+                # post("upload", {"location": file_parts, "uuid": False}, path)
 
 
 if __name__ == "__main__":
