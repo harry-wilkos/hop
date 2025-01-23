@@ -58,9 +58,9 @@ async def send(request: Request, file: UploadFile | None = None):
 @app.post("/upload")
 async def upload(request: Request, file: UploadFile):
     form = await request.form()
-    location = json.loads(form.get("location"))
-    uuid = form.get("uuid")
-    print(location, uuid)
+    # location = json.loads(form.get("location"))
+    # uuid = form.get("uuid")
+    # print(location, uuid)
     return "test"
     # return os.environ["API_ADDRESS"] + upload_file(file, location, uuid)
 
