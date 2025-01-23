@@ -2,32 +2,27 @@ import os
 import requests
 from pymongo import MongoClient
 from pymongo.collection import Collection
+import json
+from pathlib import Path
 
 
-def upload(
-    filepath: str, location: list, api_address: str = "API_ADDRESS", uuid: bool = False
-) -> dict:
-    path = ""
-    for i in location:
-        path = os.path.join(path, i)
-    url = f"{os.environ[api_address]}/upload"
-    with open(filepath, "rb") as file:
-        files = {"file": (file.name, file, "application/octet-stream")}
-        resp = requests.post(url, files=files, data={"location": path, "uuid": uuid})
+def post(method: str, data: dict, file_path: str | None = None):
+    url = f"{os.environ['API_ADDRESS']}/{method}"
+    if not file_path:
+        resp = requests.post(url, data=data)
+    else:
+        with open(os.path.normpath(file_path), "rb") as file:
+            files = {"file": (file.name, file, "application/octet-stream")}
+            resp = requests.post(
+                url,
+                files=files,
+                data=data | {"source_path": json.dumps(list(Path(file_path).parts))},
+            )
     return resp.json()
 
 
-def post(method: str, data: dict, api_address: str = "API_ADDRESS") -> dict:
-    url = f"{os.environ[api_address]}/{method}"
-    headers = {"Content-Type": "application/json"}
-    resp = requests.post(url, headers=headers, json=data)
-    return resp.json()
-
-
-def get_collection(
-    database_name: str, collection_name: str, mongo_address: str = "MONGO_ADDRESS"
-) -> Collection:
-    client = MongoClient(os.environ[mongo_address])
+def get_collection(database_name: str, collection_name: str) -> Collection:
+    client = MongoClient(os.environ["MONGO_ADDRESS"])
     if database_name in client.list_database_names():
         db = client.get_database(database_name)
     else:

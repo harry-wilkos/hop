@@ -1,0 +1,6 @@
+discord.py
+fastapi
+uvicorn
+aiohttp
+audioop-lts
+python-multipart

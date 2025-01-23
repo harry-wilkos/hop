@@ -9,8 +9,6 @@ except ImportError:
 
     hou = import_hou()
 
-collection = get_collection("shots", "active_shots")
-
 
 def load_frame_range(uievent) -> None:
     node = uievent.selected.item
@@ -24,6 +22,7 @@ def load_frame_range(uievent) -> None:
 
 
 def load_shot_menu() -> list:
+    collection = get_collection("shots", "active_shots")
     shots = [int(-1), "Create New Shot..."]
     for shot in collection.find({}).sort("shot_number", 1):
         shots.append(shot["shot_number"])
@@ -33,6 +32,7 @@ def load_shot_menu() -> list:
 
 def load(kwargs: dict) -> None:
     node = kwargs["node"]
+    collection = get_collection("shots", "active_shots")
     shot = collection.find_one({"shot_number": node.evalParm("load_shot")})
     if shot:
         shot["frame_rangex"] = shot["start_frame"]
