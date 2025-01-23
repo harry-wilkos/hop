@@ -35,7 +35,10 @@ app.mount("/static_files", StaticFiles(directory="static_files"), name="static_f
 @app.post("/discord")
 async def send(request: Request, file: UploadFile | None = None):
     form = await request.form()
-    message = str(form.get("message"))
+    message_str = form.get("message")
+    if type(message_str) is not str:
+        return None
+    message = str(json.loads(message_str))
     store_message = message
     file_location = None
     if file:
@@ -60,18 +63,22 @@ async def upload(request: Request, file: UploadFile):
     form = await request.form()
     location_str = form.get("location")
     uuid_str = form.get("uuid")
-    if type(location_str) is str and type(uuid_str) is str:
-        location = json.loads(location_str)
-        uuid = json.loads(uuid_str)
-        return os.environ["API_ADDRESS"] + upload_file(file, location, uuid)
-    return None
+    if type(location_str) is not str or type(uuid_str) is not str:
+        return 
+    location = list(json.loads(location_str))
+    uuid = bool(json.loads(uuid_str))
+    return os.environ["API_ADDRESS"] + upload_file(file, location, uuid)
 
 
 @app.post("/delete")
 async def delete(request: Request):
-    file = await request.json()
-    delete_path = ""
-    for i in file:
+    form = await request.form()
+    location_str = form.get("location")
+    if type(location_str) is not str:
+        return None
+    file = json.loads(location_str)
+    delete_path = file[0]
+    for i in file[1:]:
         delete_path = os.path.join(delete_path, i)
     if os.path.exists(delete_path):
         os.remove(delete_path)
