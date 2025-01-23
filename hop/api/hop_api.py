@@ -59,7 +59,7 @@ async def send(request: Request, file: UploadFile | None = None):
 async def upload(request: Request, file: UploadFile):
     form = await request.form()
     location = json.loads(form.get("location"))
-    uuid = bool(form.get("uuid"))
+    uuid = form.get("uuid")
     print(location, type(location), uuid, type(uuid))
     return "test"
     # return os.environ["API_ADDRESS"] + upload_file(file, location, uuid)
