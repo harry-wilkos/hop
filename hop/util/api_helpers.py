@@ -8,6 +8,9 @@ from pathlib import Path
 
 def post(method: str, data: dict, file_path: str | None = None):
     url = f"{os.environ['API_ADDRESS']}/{method}"
+    for key, value in data.items():
+        data[key] = json.dumps(value)
+
     if not file_path:
         resp = requests.post(url, data=data)
     else:

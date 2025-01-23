@@ -4,7 +4,7 @@ from pathlib import Path
 from sys import argv
 from datetime import datetime
 from hop.util.api_helpers import post
-
+import json
 
 def backup(start_folder: str, ignore_folders: list = []):
     collection = get_collection("backups", "files")
