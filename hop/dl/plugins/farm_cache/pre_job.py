@@ -2,7 +2,8 @@ import os
 import subprocess
 
 
-def __main__(deadlinePlugin):
+def __main__(*args):
+    deadlinePlugin = args[0]
     job = deadlinePlugin.GetJob()
 
     env = os.environ.copy()

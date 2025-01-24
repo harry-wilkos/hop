@@ -3,6 +3,8 @@ import subprocess
 import sys
 from tempfile import NamedTemporaryFile
 import re
+from pathlib import Path
+
 
 def set_env(vars: list):
     for index, var in enumerate(vars):
@@ -26,8 +28,8 @@ def create_job(
     plugin: str,
     pool: str,
     batch_name: str | None = None,
-    pre_script: str | None = None,
-    post_script: str | None = None,
+    pre_script: bool = False,
+    post_script: bool = False,
 ):
     job_file = NamedTemporaryFile(
         delete=False, mode="w", encoding="utf-16", suffix=".job"
@@ -43,11 +45,19 @@ def create_job(
     job_file.write(
         f"CustomPluginDirectory={os.path.join(os.environ['DEADLINE_CUSTOM_PATH'], 'plugins')}\n"
     )
+    scripts_path = os.path.join(
+        str(Path(__file__).parents[2]),
+        "dl",
+        "plugins",
+        plugin,
+    )
+
     if pre_script:
-        job_file.write(f"PreJobScript={pre_script}\n")
+        job_file.write(f"PreJobScript={os.path.join(scripts_path, 'pre_job.py')}\n")
 
     if post_script:
-        job_file.write(f"PostJobScript={post_script}\n")
+        job_file.write(f"PostJobScript={os.path.join(scripts_path, 'post_job.py')}\n")
+
     for var in set_env([
         "TWELVEFOLD_ROOT",
         "PYTHON",
