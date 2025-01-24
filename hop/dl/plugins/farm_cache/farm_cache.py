@@ -14,6 +14,7 @@ def CleanupDeadlinePlugin(deadlinePlugin):
 class Farm_Cache(DeadlinePlugin):
     def __init__(self):
         super().__init__()
+        self.discord = True
         self.InitializeProcessCallback += self.init_process
         self.RenderExecutableCallback += self.get_executable
         self.RenderArgumentCallback += self.get_args

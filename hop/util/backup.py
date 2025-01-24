@@ -2,7 +2,6 @@ from argparse import ArgumentParser
 from hop.util import get_collection
 import os
 from pathlib import Path
-from sys import argv
 from datetime import datetime
 from hop.util.api_helpers import post
 

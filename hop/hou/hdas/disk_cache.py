@@ -1,4 +1,5 @@
 from hop.hou.util import confirmation_dialog
+from hop.util import post
 from shutil import rmtree
 import os
 import hou
@@ -67,8 +68,37 @@ def delete_cache(kwargs):
 
 def local(kwargs):
     node = kwargs["node"]
-    node.node("OUT").parm("execute").pressButton()
-    reload(kwargs)
+    discord = node.evalParm("discord")
+    file = str(hou.hipFile.basename()).replace(".hipnc", "").replace(".hip", "")
+    if discord:
+        post(
+            "discord",
+            {
+                "message": f":green_circle: **{node.path()}** in **{file}** started caching :green_circle:"
+            },
+        )
+
+    with hou.InterruptableOperation("Disk Cache") as operation:
+        try:
+            node.node("OUT").parm("execute").pressButton()
+            reload(kwargs)
+        except hou.OperationFailed:
+            if discord:
+                post(
+                    "discord",
+                    {
+                        "message": f":red_circle: **{node.path()}** in **{file}** failed caching :red_circle:"
+                    },
+                )
+            return
+
+    if discord:
+        post(
+            "discord",
+            {
+                "message": f":checkered_flag: **{node.path()}** in **{file}** finished caching :checkered_flag:"
+            },
+        )
 
 
 def farm(kwargs):
@@ -126,7 +156,9 @@ def farm(kwargs):
     deadline_return = submit_decode(str(call_deadline([job, plugin.name])))
     if deadline_return:
         node.parm("job_id").set(deadline_return)
-        hou.ui.displayMessage(f"{node.path()} submitted to the farm", title= "Disk Cache")
+        hou.ui.displayMessage(
+            f"{node.path()} submitted to the farm", title="Disk Cache"
+        )
 
 
 def cancel(kwargs):
@@ -134,5 +166,5 @@ def cancel(kwargs):
     id = node.evalParm("job_id")
     if id:
         call_deadline(["FailJob", id])
-        hou.ui.displayMessage("Job cancelled", title= "Disk Cache")
+        hou.ui.displayMessage("Job cancelled", title="Disk Cache")
     node.parm("job_id").set("")
