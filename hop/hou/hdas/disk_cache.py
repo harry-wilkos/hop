@@ -5,6 +5,7 @@ import os
 import hou
 from hop.dl import create_job, call_deadline, submit_decode
 from tempfile import NamedTemporaryFile
+from pathlib import Path
 
 
 def version_up(kwargs):
@@ -78,7 +79,7 @@ def local(kwargs):
             },
         )
 
-    with hou.InterruptableOperation("Disk Cache") as operation:
+    with hou.InterruptableOperation("Disk Cache"):
         try:
             node.node("OUT").parm("execute").pressButton()
             reload(kwargs)
@@ -138,7 +139,22 @@ def farm(kwargs):
         job_name = file.basename().split(".")[0]
 
     job = create_job(
-        job_name, node.path(), start, end, step, chunk, "farm_cache", "sim", None
+        job_name,
+        node.path(),
+        start,
+        end,
+        step,
+        chunk,
+        "farm_cache",
+        "sim",
+        None,
+        os.path.join(
+            str(Path(__file__).parents[2]),
+            "dl",
+            "plugins",
+            "farm_cache",
+            "pre_job.py",
+        ),
     )
 
     plugin = NamedTemporaryFile(

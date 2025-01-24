@@ -4,16 +4,17 @@ import sys
 from tempfile import NamedTemporaryFile
 import re
 
-
 def set_env(vars: list):
     for index, var in enumerate(vars):
         yield f"EnvironmentKeyValue{index}={var}={os.environ[var]}\n"
 
-def submit_decode(command:str) -> str | None:
+
+def submit_decode(command: str) -> str | None:
     match = re.search(r"JobID=([a-f0-9]+)", command)
     if match:
         return match.group(1)
     return match
+
 
 def create_job(
     name: str,
@@ -24,7 +25,9 @@ def create_job(
     chunk: int,
     plugin: str,
     pool: str,
-    batch_name: str | None,
+    batch_name: str | None = None,
+    pre_script: str | None = None,
+    post_script: str | None = None,
 ):
     job_file = NamedTemporaryFile(
         delete=False, mode="w", encoding="utf-16", suffix=".job"
@@ -40,6 +43,11 @@ def create_job(
     job_file.write(
         f"CustomPluginDirectory={os.path.join(os.environ['DEADLINE_CUSTOM_PATH'], 'plugins')}\n"
     )
+    if pre_script:
+        job_file.write(f"PreJobScript={pre_script}\n")
+
+    if post_script:
+        job_file.write(f"PostJobScript={post_script}\n")
     for var in set_env([
         "TWELVEFOLD_ROOT",
         "PYTHON",
@@ -111,4 +119,3 @@ def call_deadline(arguments, hideWindow=True, readStdout=True):
     if sys.version_info[0] > 2 and type(output) is bytes:
         output = output.decode()
     return output
-
