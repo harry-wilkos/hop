@@ -52,7 +52,7 @@ def backup(
                 file_parts.insert(0, "backup")
                 if delete:
                     post("delete", {"location": file_parts})
-                post("upload", {"location": file_parts, "uuid": False}, path)
+                post("upload", {"location": file_parts[:-1], "uuid": False}, path)
 
                 if doc is None:
                     collection.insert_one({
