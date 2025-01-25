@@ -1,6 +1,6 @@
 import os
 import subprocess
-from hop.util import file_name
+from hop.dl.util import file_name
 
 
 def __main__(*args):

@@ -18,6 +18,12 @@ def submit_decode(command: str) -> str | None:
     return match
 
 
+def file_name(path: str):
+    name = os.path.basename(path)
+    index = name.index(".")
+    return name[:index]
+
+
 def create_job(
     name: str,
     comment: str,
