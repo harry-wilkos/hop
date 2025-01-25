@@ -1,9 +1,9 @@
 from hop.hou.util import confirmation_dialog
-from hop.util import post, file_name
+from hop.util import post 
 from shutil import rmtree
 import os
 import hou
-from hop.dl import create_job, call_deadline, submit_decode
+from hop.dl import create_job, call_deadline, submit_decode, file_name
 from tempfile import NamedTemporaryFile
 
 
