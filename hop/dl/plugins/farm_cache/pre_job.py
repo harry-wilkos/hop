@@ -1,5 +1,4 @@
 import os
-import subprocess
 from hop.dl.util import file_name, discord
 
 

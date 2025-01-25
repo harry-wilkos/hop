@@ -2,6 +2,7 @@
 from Deadline.Plugins import DeadlinePlugin, PluginType
 import os
 from hop.dl.util import discord
+from hop.dl.util.helpers import file_name
 
 
 def GetDeadlinePlugin():
@@ -47,9 +48,10 @@ class Farm_Cache(DeadlinePlugin):
         return f'-c "render -Va -f {start_frame} {end_frame} {node}; quit" {hip_path}'
 
     def handle_error(self):
-        hip_path = self.GetPluginInfoEntry("hip_file")
-        node = self.GetPluginInfoEntry("node_path")
-        discord(self, "test")
+        file = file_name(self.GetPluginInfoEntry("hip_file"))
+        node = os.path.dirname(self.GetPluginInfoEntry("node_path"))
+        discord(self, f":red_circle: **{node}** in **{file}** failed caching :red_circle:")
+        discord(self, self.GetRegexMatch(1))
         self.FailRender("Detected an error: " + self.GetRegexMatch(1))
 
     def clean_up(self):

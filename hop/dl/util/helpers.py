@@ -93,7 +93,7 @@ def discord(deadlinePlugin, message: str, file_path: str | None = None):
     for key in env_keys:
         env[key] = job.GetJobEnvironmentKeyValue(key)
 
-    script = f"from hop.util import post; post('discord', {{'message': {message}}}, {file_path})"
+    script = f"from hop.util import post; post('discord', {{'message': '{message}'}}, {file_path})"
     cmd = [os.environ["PYTHON"], "-c", script]
 
     deadlinePlugin.LogInfo(f"Subprocess Command: {cmd}")
