@@ -1,17 +1,21 @@
 import os
 import subprocess
+from hop.util import file_name
 
 
 def __main__(*args):
     deadlinePlugin = args[0]
-    job = deadlinePlugin.GetJob()
 
+    job = deadlinePlugin.GetJob()
     env = os.environ.copy()
     env_keys = job.GetJobEnvironmentKeys()
     for key in env_keys:
         env[key] = job.GetJobEnvironmentKeyValue(key)
 
-    script = "from hop.util import post; post('discord', {'message': 'test'})"
+    file = file_name(deadlinePlugin.GetPluginInfoEntry("hip_file"))
+    node = deadlinePlugin.GetPluginInfoEntry("node")
+
+    script = f"from hop.util import post; post('discord', {{'message': ':green_circle: **{node}** in **{file}** started caching :green_circle:'}})"
     cmd = [os.environ["PYTHON"], "-c", script]
 
     deadlinePlugin.LogInfo(f"Subprocess Command: {cmd}")

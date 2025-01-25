@@ -1,5 +1,5 @@
 from hop.hou.util import confirmation_dialog
-from hop.util import post
+from hop.util import post, file_name
 from shutil import rmtree
 import os
 import hou
@@ -69,7 +69,7 @@ def delete_cache(kwargs):
 def local(kwargs):
     node = kwargs["node"]
     discord = node.evalParm("discord")
-    file = str(hou.hipFile.basename()).replace(".hipnc", "").replace(".hip", "")
+    file = file_name(hou.hipFile.path())
     if discord:
         post(
             "discord",
