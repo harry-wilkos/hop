@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from Deadline.Plugins import DeadlinePlugin, PluginType
 import os
+from hop.dl.util import discord
 
 
 def GetDeadlinePlugin():
@@ -24,9 +25,7 @@ class Farm_Cache(DeadlinePlugin):
         self.AddStdoutHandlerCallback(r"ALF_PROGRESS (\d+)%").HandleCallback += (
             lambda: self.SetProgress(int(self.GetRegexMatch(1)))
         )
-        self.AddStdoutHandlerCallback("ERROR:(.*)").HandleCallback += (
-            lambda: self.FailRender("Detected an error: " + self.GetRegexMatch(1))
-        )
+        self.AddStdoutHandlerCallback("ERROR:(.*)").HandleCallback += self.handle_error
 
     def get_executable(self):
         self.SingleFramesOnly = not self.GetBooleanPluginInfoEntry("simulation")
@@ -47,6 +46,12 @@ class Farm_Cache(DeadlinePlugin):
 
         return f'-c "render -Va -f {start_frame} {end_frame} {node}; quit" {hip_path}'
 
+    def handle_error(self):
+        hip_path = self.GetPluginInfoEntry("hip_file")
+        node = self.GetPluginInfoEntry("node_path")
+        discord(self, "test")
+        self.FailRender("Detected an error: " + self.GetRegexMatch(1))
+
     def clean_up(self):
         handlers = [
             "InitializeProcessCallback",
@@ -57,3 +62,5 @@ class Farm_Cache(DeadlinePlugin):
             if hasattr(self, handler):
                 delattr(self, handler)
 
+        for stdoutHandler in self.StdoutHandlers:
+            del stdoutHandler.HandleCallback
