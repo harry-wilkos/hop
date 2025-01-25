@@ -87,7 +87,7 @@ def local(kwargs):
                 post(
                     "discord",
                     {
-                        "message": f":red_circle: **{node.path()}** in **{file}** failed caching :red_circle:"
+                        "message": f":orange_circle: **{node.path()}** in **{file}** failed caching :orange_circle:"
                     },
                 )
             return
