@@ -16,7 +16,7 @@ def __main__(*args):
     node = os.path.dirname(deadlinePlugin.GetPluginInfoEntry("node_path"))
 
 
-    script = f"from hop.util import post; post('discord', {{'message': ':green_circle: **{node}** in **{file}** started caching :green_circle:'}})"
+    script = f"from hop.util import post; post('discord', {{'message': ':checkered_flag: **{node}** in **{file}** finished caching :checkered_flag:'}})"
     cmd = [os.environ["PYTHON"], "-c", script]
 
     deadlinePlugin.LogInfo(f"Subprocess Command: {cmd}")

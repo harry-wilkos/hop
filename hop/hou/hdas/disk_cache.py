@@ -138,8 +138,7 @@ def farm(kwargs):
         job_name = file.basename().split(".")[0]
 
     job = create_job(
-        job_name, node.path(), start, end, step, chunk, "farm_cache", "sim", None, True
-    )
+        job_name, node.path(), start, end, step, chunk, "farm_cache", "sim", None, True, True)
 
     plugin = NamedTemporaryFile(
         delete=False, mode="w", encoding="utf-16", suffix=".job"
