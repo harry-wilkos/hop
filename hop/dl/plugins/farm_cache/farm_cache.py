@@ -26,7 +26,7 @@ class Farm_Cache(DeadlinePlugin):
         self.AddStdoutHandlerCallback(r"ALF_PROGRESS (\d+)%").HandleCallback += (
             lambda: self.SetProgress(int(self.GetRegexMatch(1)))
         )
-        self.AddStdoutHandlerCallback("ERROR:(.*)").HandleCallback += self.handle_error
+        self.AddStdoutHandlerCallback("(?i)Error:(.*)").HandleCallback += self.handle_error
 
     def get_executable(self):
         self.SingleFramesOnly = not self.GetBooleanPluginInfoEntry("simulation")
@@ -48,11 +48,11 @@ class Farm_Cache(DeadlinePlugin):
         return f'-c "render -Va -f {start_frame} {end_frame} {node}; quit" {hip_path}'
 
     def handle_error(self):
-        self.FailRender("Detected an error: " + self.GetRegexMatch(1))
         file = file_name(self.GetPluginInfoEntry("hip_file"))
         node = os.path.dirname(self.GetPluginInfoEntry("node_path"))
         discord(self, f":red_circle: **{node}** in **{file}** failed caching :red_circle:")
-        discord(self, f":exclamation: {self.GetRegexMatch(1)} :exclamation:")
+        discord(self, f":exclamation: {self.GetRegexMatch(1).strip()} :exclamation:")
+        self.FailRender("Detected an error: " + self.GetRegexMatch(1))
 
     def clean_up(self):
         handlers = [

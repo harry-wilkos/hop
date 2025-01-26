@@ -51,6 +51,8 @@ def create_job(
     job_file.write(
         f"CustomPluginDirectory={os.path.join(os.environ['DEADLINE_CUSTOM_PATH'], 'plugins')}\n"
     )
+    job_file.write("OverrideJobFailureDetection=True\n")
+    job_file.write("OverrideTaskFailureDetection=True\n")    
     job_file.write("FailureDetectionJobErrors=1\n")
     job_file.write("FailureDetectionTaskErrors=1\n")
     scripts_path = os.path.join(
