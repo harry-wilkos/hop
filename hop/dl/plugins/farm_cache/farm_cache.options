@@ -27,4 +27,10 @@ Description=The substep value betwen 0 and 1 to perform
 Default=1
 Required=True
 
+[discord]
+Type=boolean
+Label=Discord Notifications
+Description=Whether to send farm errors to discord
+Default=False
+Required=True
 

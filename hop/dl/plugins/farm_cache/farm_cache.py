@@ -4,7 +4,6 @@ import os
 from hop.dl.util import discord
 from hop.dl.util.helpers import file_name
 
-
 def GetDeadlinePlugin():
     return Farm_Cache()
 
@@ -16,6 +15,7 @@ def CleanupDeadlinePlugin(deadlinePlugin):
 class Farm_Cache(DeadlinePlugin):
     def __init__(self):
         super().__init__()
+        self.fail = False
         self.InitializeProcessCallback += self.init_process
         self.RenderExecutableCallback += self.get_executable
         self.RenderArgumentCallback += self.get_args
@@ -26,7 +26,7 @@ class Farm_Cache(DeadlinePlugin):
         self.AddStdoutHandlerCallback(r"ALF_PROGRESS (\d+)%").HandleCallback += (
             lambda: self.SetProgress(int(self.GetRegexMatch(1)))
         )
-        self.AddStdoutHandlerCallback("(?i)Error:(.*)").HandleCallback += self.handle_error
+        self.AddStdoutHandlerCallback(r"(?i)(?<=Error:)(.|\n)*").HandleCallback += self.handle_error
 
     def get_executable(self):
         self.SingleFramesOnly = not self.GetBooleanPluginInfoEntry("simulation")
@@ -50,9 +50,12 @@ class Farm_Cache(DeadlinePlugin):
     def handle_error(self):
         file = file_name(self.GetPluginInfoEntry("hip_file"))
         node = os.path.dirname(self.GetPluginInfoEntry("node_path"))
-        discord(self, f":red_circle: **{node}** in **{file}** failed caching :red_circle:")
-        discord(self, f":exclamation: {self.GetRegexMatch(1).strip()} :exclamation:")
-        self.FailRender("Detected an error: " + self.GetRegexMatch(1))
+        if self.GetBooleanPluginInfoEntry("simulation"):
+            if not self.fail:
+                discord(self, f":red_circle: **{node}** in **{file}** failed caching :red_circle:")
+                self.fail = True
+            discord(self, f":exclamation: {self.GetRegexMatch(0).strip()} :exclamation:")
+        self.FailRender("Detected an error: " + self.GetRegexMatch(0).strip())
 
     def clean_up(self):
         handlers = [
@@ -66,3 +69,4 @@ class Farm_Cache(DeadlinePlugin):
 
         for stdoutHandler in self.StdoutHandlers:
             del stdoutHandler.HandleCallback
+

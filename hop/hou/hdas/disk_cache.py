@@ -111,6 +111,7 @@ def farm(kwargs):
     chunk = 1 + end - start if sim else 1
     geo_rop = node.node("OUT").path()
     file = hou.hipFile
+    discord = bool(node.evalParm("discord"))
 
     if file.hasUnsavedChanges():
         if confirmation_dialog(
@@ -138,7 +139,7 @@ def farm(kwargs):
         job_name = file.basename().split(".")[0]
 
     job = create_job(
-        job_name, node.path(), start, end, step, chunk, "farm_cache", "sim", None, True, True)
+        job_name, node.path(), start, end, step, chunk, "farm_cache", "sim", None, discord, discord)
 
     plugin = NamedTemporaryFile(
         delete=False, mode="w", encoding="utf-16", suffix=".job"
@@ -146,6 +147,7 @@ def farm(kwargs):
     plugin.write(f"hip_file={file.path()}\n")
     plugin.write(f"simulation={bool(sim)}\n")
     plugin.write(f"node_path={geo_rop}\n")
+    plugin.write(f"discord={discord}\n")
     if float_step <= 1:
         plugin.write(f"substep={float_step}\n")
     else:
