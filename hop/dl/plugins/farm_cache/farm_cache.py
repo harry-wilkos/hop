@@ -52,7 +52,7 @@ class Farm_Cache(DeadlinePlugin):
 
     def handle_error(self):
         node = os.path.dirname(self.GetPluginInfoEntry("node_path"))
-        name = self.GetJob().JobName()
+        name = self.GetJob().JobName
         if self.GetBooleanPluginInfoEntry("discord"):
             if not self.fail:
                 discord(
