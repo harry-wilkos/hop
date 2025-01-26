@@ -14,7 +14,7 @@ from hop.hou.shot_management.plate import (
     update_padding,
 )
 from hop.hou.util.helpers import expand_path
-from hop.util import MultiProcess, copy_file, get_collection, move_folder
+from hop.util import MultiProcess, copy_file, get_collection, move_folder, post
 from hop.hou.util import error_dialog
 
 try:
@@ -161,7 +161,9 @@ class Shot:
                 "cam_path": "",
                 "geo_paths": "",
                 "description": description,
-                "usd_output": os.path.join("$HOP", "shots", "active_shots", str(id), "usd"),
+                "usd_output": os.path.join(
+                    "$HOP", "shots", "active_shots", str(id), "usd"
+                ),
                 "assets": [],
             }
 
@@ -256,9 +258,21 @@ class Shot:
                 if self.shot_data["shot_number"] is None:
                     perform_step(update_shot_num, "Updating Shot Numbers", self)
                     self.collection.insert_one(self.shot_data)
+                    post(
+                        "discord",
+                        {
+                            "message": f":camera_with_flash: A new shot {self.shot_data['shot_number']} was published at {self.shot_data['start_frame']} - {self.shot_data['end_frame']} :camera_with_flash:"
+                        },
+                    )
                 else:
                     self.collection.update_one(
                         {"_id": self.shot_data["_id"]}, {"$set": self.shot_data}
+                    )
+                    post(
+                        "discord",
+                        {
+                            "message": f":camera: Shot {self.shot_data['shot_number']} was updated at {self.shot_data['start_frame']} - {self.shot_data['end_frame']} :camera:"
+                        },
                     )
 
                 hou.ui.displayMessage(

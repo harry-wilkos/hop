@@ -1,5 +1,5 @@
 import os
-from hop.dl.util import file_name, discord
+from hop.dl import discord
 
 
 def __main__(*args):

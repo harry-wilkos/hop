@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 from Deadline.Plugins import DeadlinePlugin, PluginType
 import os
-from hop.dl.util import discord
-from hop.dl.util.helpers import file_name
+from hop.dl import discord
 
 
 def GetDeadlinePlugin():
