@@ -63,6 +63,7 @@ def farm_cache():
                 sim = node.evalParm("simulation")
                 chunk = 1 + end - start if sim else 1
                 geo_rop = node.node("OUT").path()
+                discord = bool(node.evalParm("discord"))
 
                 job = create_job(
                     job_name,
@@ -74,6 +75,8 @@ def farm_cache():
                     "farm_cache",
                     "sim",
                     batch,
+                    discord,
+                    discord
                 )
 
                 plugin = NamedTemporaryFile(
@@ -82,6 +85,7 @@ def farm_cache():
                 plugin.write(f"hip_file={file.path()}\n")
                 plugin.write(f"simulation={bool(sim)}\n")
                 plugin.write(f"node_path={geo_rop}\n")
+                plugin.write(f"discord={discord}\n")                
                 if float_step <= 1:
                     plugin.write(f"substep={float_step}\n")
                 else:

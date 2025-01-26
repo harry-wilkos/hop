@@ -4,6 +4,7 @@ import os
 from hop.dl.util import discord
 from hop.dl.util.helpers import file_name
 
+
 def GetDeadlinePlugin():
     return Farm_Cache()
 
@@ -26,7 +27,9 @@ class Farm_Cache(DeadlinePlugin):
         self.AddStdoutHandlerCallback(r"ALF_PROGRESS (\d+)%").HandleCallback += (
             lambda: self.SetProgress(int(self.GetRegexMatch(1)))
         )
-        self.AddStdoutHandlerCallback(r"(?i)(?<=Error:)(.|\n)*").HandleCallback += self.handle_error
+        self.AddStdoutHandlerCallback(
+            r"(?i)(?<=Error:)(.|\n)*"
+        ).HandleCallback += self.handle_error
 
     def get_executable(self):
         self.SingleFramesOnly = not self.GetBooleanPluginInfoEntry("simulation")
@@ -48,13 +51,18 @@ class Farm_Cache(DeadlinePlugin):
         return f'-c "render -Va -f {start_frame} {end_frame} {node}; quit" {hip_path}'
 
     def handle_error(self):
-        file = file_name(self.GetPluginInfoEntry("hip_file"))
         node = os.path.dirname(self.GetPluginInfoEntry("node_path"))
-        if self.GetBooleanPluginInfoEntry("simulation"):
+        name = self.GetJob().JobName()
+        if self.GetBooleanPluginInfoEntry("discord"):
             if not self.fail:
-                discord(self, f":red_circle: **{node}** in **{file}** failed caching :red_circle:")
+                discord(
+                    self,
+                    f":red_circle: **{node}** in **{name}** failed caching :red_circle:",
+                )
                 self.fail = True
-            discord(self, f":exclamation: {self.GetRegexMatch(0).strip()} :exclamation:")
+            discord(
+                self, f":exclamation: {self.GetRegexMatch(0).strip()} :exclamation:"
+            )
         self.FailRender("Detected an error: " + self.GetRegexMatch(0).strip())
 
     def clean_up(self):
@@ -69,4 +77,3 @@ class Farm_Cache(DeadlinePlugin):
 
         for stdoutHandler in self.StdoutHandlers:
             del stdoutHandler.HandleCallback
-
