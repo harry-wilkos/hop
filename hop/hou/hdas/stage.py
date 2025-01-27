@@ -48,12 +48,14 @@ def export(kwargs: dict) -> None:
     node.node("Export_USD").parm("execute").pressButton()
     node.parm("rendering").set(0)
 
+
 def mplay(kwargs: dict) -> None:
     node = kwargs["node"]
     if node.evalParm("mplay"):
         node.parm("husk_args").set("--mplay-monitor - --mplay-session `@filename`")
     else:
         node.parm("husk_args").set("")
+
 
 def local_render(kwargs: dict) -> None:
     node = kwargs["node"]
@@ -95,6 +97,13 @@ def clear_aov(kwargs: dict) -> None:
         parm.set(0)
     kwargs["node"].parm("beauty").set(1)
 
+
 def farm_render(kwargs: dict) -> None:
     export(kwargs)
     print("not working yet")
+
+
+def farm_cancel(kwargs: dict) -> None:
+    pass
+    print("not working yet")
+
