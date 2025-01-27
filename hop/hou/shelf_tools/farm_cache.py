@@ -56,9 +56,9 @@ def farm_cache():
         for node in cache_nodes:
             if disk_cache_dict[node]:
                 node.parm("job_name").set(init_job_name)
-                start = int(node.evalParm("frame_rangex"))
-                end = int(node.evalParm("frame_rangey"))
-                float_step = node.evalParm("frame_rangez")
+                start = int(node.evalParm("store_framesx"))
+                end = int(node.evalParm("store_framesy"))
+                float_step = node.evalParm("store_framesz")
                 step = int(float_step) if int(float_step) >= 1 else 1
                 sim = node.evalParm("simulation")
                 chunk = 1 + end - start if sim else 1
