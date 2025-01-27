@@ -25,7 +25,7 @@ def backup(
             continue
 
         for file in walk[2]:
-            path = os.path.abspath(os.path.join(folder, file))
+            path = os.path.abspath(os.path.join(folder, file)).replace("\\", "\\\\")
             if any(
                 path == ignore or path.startswith(ignore) for ignore in ignore_paths
             ):
