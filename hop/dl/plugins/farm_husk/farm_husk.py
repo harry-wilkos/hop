@@ -30,7 +30,7 @@ class Farm_Cache(DeadlinePlugin):
     def get_args(self):
         start_frame = self.GetStartFrame()
         file = self.GetPluginInfoEntry("usd_file")
-        return f"-v7 --make-output-path -f {start_frame} {file}"
+        return f"-V7 --make-output-path -f {start_frame} {file}"
 
     def handle_error(self):
         pass

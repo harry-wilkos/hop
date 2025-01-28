@@ -129,7 +129,17 @@ def farm_render(kwargs: dict) -> None:
     for file in usds:
         comment = os.path.basename(file).split(".")[0]
         job = create_job(
-            job_name, f"{comment} holdout", start, end, 1, 1, "farm_husk", "main", batch
+            job_name,
+            f"{comment} holdout",
+            start,
+            end,
+            1,
+            1,
+            "farm_husk",
+            "main",
+            batch,
+            True,
+            True,
         )
         plugin = NamedTemporaryFile(
             delete=False, mode="w", encoding="utf-16", suffix=".job"
