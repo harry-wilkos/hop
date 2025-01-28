@@ -129,7 +129,7 @@ def farm_render(kwargs: dict) -> None:
     stored_args = []
     for file in usds:
         comment = os.path.basename(file).split(".")[0]
-        comment = f"Holdout {int(comment)}" if comment != "deep" else comment
+        comment = f"Holdout {int(comment)}" if comment != "Deep" else comment
         job = create_job(
             job_name,
             comment,
@@ -155,7 +155,7 @@ def farm_render(kwargs: dict) -> None:
             hou.ui.displayMessage(f"{job_name} submitted to the farm", title="Shot")
             return
         stored_args.extend(["job", job, plugin.name])
-        deadline_return = submit_decode(str(call_deadline(["submitmultiplejobs", "dependent", *stored_args])))
+        deadline_return = submit_decode(str(call_deadline(["submitmultiplejobs", *stored_args])))
         if deadline_return:
             node.parm("farm_id").set(deadline_return)
         hou.ui.displayMessage(f"{job_name} submitted to the farm", title="Shot")
