@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from Deadline.Plugins import DeadlinePlugin, PluginType
-import os
 from hop.dl import discord
 
 
@@ -30,7 +29,8 @@ class Farm_Cache(DeadlinePlugin):
 
     def get_args(self):
         start_frame = self.GetStartFrame()
-        return f"-v7 --make-output-path -f {start_frame}"
+        file = self.GetPluginInfoEntry("usd_file")
+        return f"-v7 --make-output-path -f {start_frame} {file}"
 
     def handle_error(self):
         pass
