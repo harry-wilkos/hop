@@ -129,7 +129,7 @@ def farm_render(kwargs: dict) -> None:
     stored_args = []
     for file in usds:
         comment = os.path.basename(file).split(".")[0]
-        comment = f"{int(comment)} holdout" if comment != "deep" else comment
+        comment = f"Holdout {int(comment)}" if comment != "deep" else comment
         job = create_job(
             job_name,
             comment,
