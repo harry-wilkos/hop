@@ -76,6 +76,7 @@ def shot_delete(
                 {"_id": ahead_shot["_id"]},
                 {"$set": {"shot_number": new_shot_number}},
             )
+
     return True
 
 
@@ -164,6 +165,10 @@ class Shot:
                 "usd_output": os.path.join(
                     "$HOP", "shots", "active_shots", str(id), "usd"
                 ),
+                "renders": os.path.join(
+                    "$HOP", "shots", "active_shots", str(id), "renders"
+                ),
+
                 "assets": [],
             }
 
@@ -233,6 +238,7 @@ class Shot:
                         exist_ok=True,
                     )
                     os.makedirs(os.path.join(shot_path, "usd"))
+                    os.makedirs(os.path.join(shot_path, "renders"))
                     shot_dir = False
 
                 if self.rip_files:

@@ -1,0 +1,8 @@
+[usd_file]
+Type=filename
+Label=USD File
+Description=The usd file to render
+Filter=HIP File (*.usd*)
+Required=True
+DisableIfBlank=True
+

@@ -23,6 +23,7 @@ class Farm_Cache(DeadlinePlugin):
     def init_process(self):
         self.PluginType = PluginType.Simple
         self.StdoutHandling = True
+        self.SingleFramesOnly = not self.GetBooleanPluginInfoEntry("simulation")
         self.AddStdoutHandlerCallback(r"ALF_PROGRESS (\d+)%").HandleCallback += (
             lambda: self.SetProgress(int(self.GetRegexMatch(1)))
         )
@@ -31,7 +32,6 @@ class Farm_Cache(DeadlinePlugin):
         ).HandleCallback += self.handle_error
 
     def get_executable(self):
-        self.SingleFramesOnly = not self.GetBooleanPluginInfoEntry("simulation")
         return self.GetConfigEntry("hbatch")
 
     def get_args(self):

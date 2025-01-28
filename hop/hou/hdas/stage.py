@@ -1,8 +1,15 @@
-from hop.hou.util.usd_helpers import compare_scene
-from hop.hou.util import error_dialog
 import os
-import hou
+import random
+import string
+from glob import glob
 from pathlib import Path
+from tempfile import NamedTemporaryFile
+
+import hou
+
+from hop.dl import create_job, call_deadline
+from hop.hou.util import error_dialog
+from hop.hou.util.usd_helpers import compare_scene
 
 
 def export(kwargs: dict) -> None:
@@ -45,6 +52,8 @@ def export(kwargs: dict) -> None:
     else:
         node.parm("Export_Assets").pressButton()
 
+    for file in glob(os.path.join(node.evalParm("usd_output"), "Passes", "*")):
+        os.remove(file)
     node.node("Export_USD").parm("execute").pressButton()
     node.parm("rendering").set(0)
 
@@ -100,10 +109,42 @@ def clear_aov(kwargs: dict) -> None:
 
 def farm_render(kwargs: dict) -> None:
     export(kwargs)
-    print("not working yet")
+
+    node = kwargs["node"]
+    job_name = f"Shot {node.evalParm('load_shot')}"
+    if node.evalParm("evaluation_type") == 0:
+        start, end = node.evalParm("current_frame")
+    else:
+        start = node.evalParm("frame_range2x")
+        end = node.evalParm("frame_range2y")
+
+    usds = glob(os.path.join(node.evalParm("usd_output"), "Passes", "*"))
+    batch = (
+        f"{job_name} ({''.join(random.choices(string.ascii_letters + string.digits, k=4))})"
+        if len(usds) > 1
+        else None
+    )
+
+    stored_args = []
+    for file in usds:
+        comment = os.path.basename(file).split(".")[0]
+        job = create_job(
+            job_name, f"{comment} holdout", start, end, 1, 1, "farm_husk", "main", batch
+        )
+        plugin = NamedTemporaryFile(
+            delete=False, mode="w", encoding="utf-16", suffix=".job"
+        )
+        plugin.write(f"usd_file={file}\n")
+        plugin.close()
+        if not batch:
+            call_deadline([job, plugin.name])
+            hou.ui.displayMessage(f"{job_name} submitted to the farm", title="Shot")
+            return
+        stored_args.extend(["job", job, plugin.name])
+        call_deadline(["submitmultiplejobs", "dependent", *stored_args])
+        hou.ui.displayMessage(f"{job_name} submitted to the farm", title="Shot")
 
 
 def farm_cancel(kwargs: dict) -> None:
     pass
     print("not working yet")
-

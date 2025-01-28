@@ -1,0 +1,17 @@
+[About]
+Type=label
+Label=About
+Default=A plugin to cache 
+Description=Not configurable
+
+
+[husk]
+Type=multilinemultifilename
+Label=Hython Path
+Description=The path to the hbatch executable file used for rendering. Enter alternative paths on separate lines.
+Default=C:\Program Files\Side Effects Software\Houdini 20.0.653\bin\husk.exe
+Required=True
+DisableIfBlank=True
+
+
+
