@@ -161,14 +161,14 @@ class Shot:
                 "cam": cam,
                 "cam_path": "",
                 "geo_paths": "",
-                "description": description,
+                "description": description.capitalize(),
                 "usd_output": os.path.join(
                     "$HOP", "shots", "active_shots", str(id), "usd"
                 ),
-                "render_output": os.path.join(
+                "render_base": os.path.join(
                     "$HOP", "shots", "active_shots", str(id), "renders"
                 ),
-                "render_versions": {},
+                "render_versions": [],
                 "assets": [],
             }
 
@@ -260,14 +260,15 @@ class Shot:
                         self.delete_shots,
                         self.collection,
                     )
-
+                description = self.shot_data["description"]
+                description = f": {description}" if description else ""
                 if self.shot_data["shot_number"] is None:
                     perform_step(update_shot_num, "Updating Shot Numbers", self)
                     self.collection.insert_one(self.shot_data)
                     post(
                         "discord",
                         {
-                            "message": f":camera_with_flash: A new shot {self.shot_data['shot_number']} was published at {self.shot_data['start_frame']} - {self.shot_data['end_frame']} :camera_with_flash:"
+                            "message": f":camera_with_flash: A new **Shot {self.shot_data['shot_number']}** was published at **{self.shot_data['start_frame']} - {self.shot_data['end_frame']}{description}** :camera_with_flash:"
                         },
                     )
                 else:
@@ -277,7 +278,7 @@ class Shot:
                     post(
                         "discord",
                         {
-                            "message": f":camera: Shot {self.shot_data['shot_number']} was updated at {self.shot_data['start_frame']} - {self.shot_data['end_frame']} :camera:"
+                            "message": f":camera: **Shot {self.shot_data['shot_number']}** was updated at *{self.shot_data['start_frame']} - {self.shot_data['end_frame']}{description}** :camera:"
                         },
                     )
 

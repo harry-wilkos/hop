@@ -129,9 +129,10 @@ def farm_render(kwargs: dict) -> None:
     stored_args = []
     for file in usds:
         comment = os.path.basename(file).split(".")[0]
+        comment = f"{int(comment)} holdout" if comment != "deep" else comment
         job = create_job(
             job_name,
-            f"{comment} holdout",
+            comment,
             start,
             end,
             1,
@@ -165,12 +166,13 @@ def farm_cancel(kwargs: dict) -> None:
     id = node.evalParm("farm_id")
     if id:
         call_deadline(["FailJob", id])
-        job_name = re.search("Name:(.+)", str(call_deadline(["GetJobDetails", id])))
-        if job_name:
+        details = str(call_deadline(["GetJobDetails", id]))
+        shot = re.search("Name:(.+)", details)
+        if shot:
             post(
                 "discord",
                 {
-                    "message": f":orange_circle: **{node.path()}** in **{job_name.group()}** was cancelled :orange_circle:"
+                    "message": f":orange_circle: **{shot.group()}**'s render was cancelled :orange_circle:"
                 },
             )
         hou.ui.displayMessage("Render cancelled", title="Shot")
