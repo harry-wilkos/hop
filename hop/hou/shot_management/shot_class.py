@@ -165,7 +165,7 @@ class Shot:
                 "usd_output": os.path.join(
                     "$HOP", "shots", "active_shots", str(id), "usd"
                 ),
-                "renders": os.path.join(
+                "render_output": os.path.join(
                     "$HOP", "shots", "active_shots", str(id), "renders"
                 ),
 

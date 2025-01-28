@@ -112,7 +112,7 @@ def farm_render(kwargs: dict) -> None:
 
     node = kwargs["node"]
     job_name = f"Shot {node.evalParm('load_shot')}"
-    if node.evalParm("evaluation_type") == 0:
+    if node.evalParm("evaluaton_type") == 0:
         start, end = node.evalParm("current_frame")
     else:
         start = node.evalParm("frame_range2x")
