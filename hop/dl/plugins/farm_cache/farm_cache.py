@@ -45,6 +45,15 @@ class Farm_Cache(DeadlinePlugin):
             end_frame += 1 - substep
 
         if not hip_path or not os.path.exists(hip_path):
+            name = self.GetJob().JobName
+            discord(
+                self,
+                f":red_circle: **{node}** in **{name}** failed caching :red_circle:",
+            )
+            discord(
+                self,
+                f":exclamation: Hip file path is invalid or does not exist: {hip_path} :exclamation:",
+            )
             self.FailRender(f"Hip file path is invalid or does not exist: {hip_path}")
 
         return f'-c "render -Va -f {start_frame} {end_frame} {node}; quit" {hip_path}'

@@ -4,10 +4,11 @@ import string
 from glob import glob
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-
+import re
 import hou
 
-from hop.dl import create_job, call_deadline
+from hop.util import post
+from hop.dl import create_job, call_deadline, submit_decode
 from hop.hou.util import error_dialog
 from hop.hou.util.usd_helpers import compare_scene
 
@@ -147,14 +148,31 @@ def farm_render(kwargs: dict) -> None:
         plugin.write(f"usd_file={file}\n")
         plugin.close()
         if not batch:
-            call_deadline([job, plugin.name])
+            deadline_return = submit_decode(str(call_deadline([job, plugin.name])))
+            if deadline_return:
+                node.parm("farm_id").set(deadline_return)
             hou.ui.displayMessage(f"{job_name} submitted to the farm", title="Shot")
             return
         stored_args.extend(["job", job, plugin.name])
-        call_deadline(["submitmultiplejobs", "dependent", *stored_args])
+        deadline_return = submit_decode(str(call_deadline(["submitmultiplejobs", "dependent", *stored_args])))
+        if deadline_return:
+            node.parm("farm_id").set(deadline_return)
         hou.ui.displayMessage(f"{job_name} submitted to the farm", title="Shot")
 
 
 def farm_cancel(kwargs: dict) -> None:
-    pass
-    print("not working yet")
+    node = kwargs["node"]
+    id = node.evalParm("farm_id")
+    if id:
+        call_deadline(["FailJob", id])
+        job_name = re.search("Name:(.+)", str(call_deadline(["GetJobDetails", id])))
+        if job_name:
+            post(
+                "discord",
+                {
+                    "message": f":orange_circle: **{node.path()}** in **{job_name.group()}** was cancelled :orange_circle:"
+                },
+            )
+        hou.ui.displayMessage("Render cancelled", title="Shot")
+    node.parm("job_id").set("")
+

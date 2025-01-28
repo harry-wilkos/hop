@@ -1,10 +1,11 @@
 from hop.hou.util import confirmation_dialog
-from hop.util import post 
+from hop.util import post
 from shutil import rmtree
 import os
 import hou
 from hop.dl import create_job, call_deadline, submit_decode, file_name
 from tempfile import NamedTemporaryFile
+import re
 
 
 def version_up(kwargs):
@@ -87,7 +88,7 @@ def local(kwargs):
                 post(
                     "discord",
                     {
-                        "message": f":red_circle: **{node.path()}** in **{file}** failed caching :red_circle:"
+                        "message": f":orange_circle: **{node.path()}** in **{file}** was cancelled :orange_circle:"
                     },
                 )
             return
@@ -139,7 +140,18 @@ def farm(kwargs):
         job_name = file.basename().split(".")[0]
 
     job = create_job(
-        job_name, node.path(), start, end, step, chunk, "farm_cache", "sim", None, discord, discord)
+        job_name,
+        node.path(),
+        start,
+        end,
+        step,
+        chunk,
+        "farm_cache",
+        "sim",
+        None,
+        discord,
+        discord,
+    )
 
     plugin = NamedTemporaryFile(
         delete=False, mode="w", encoding="utf-16", suffix=".job"
@@ -167,5 +179,15 @@ def cancel(kwargs):
     id = node.evalParm("job_id")
     if id:
         call_deadline(["FailJob", id])
+        discord = bool(node.evalParm("discord"))
+        if discord:
+            job_name = re.search("Name:(.+)", str(call_deadline(["GetJobDetails", id])))
+            if job_name:
+                post(
+                    "discord",
+                    {
+                        "message": f":orange_circle: **{node.path()}** in **{job_name.group()}** was cancelled :orange_circle:"
+                    },
+                )
         hou.ui.displayMessage("Job cancelled", title="Disk Cache")
     node.parm("job_id").set("")

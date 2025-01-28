@@ -168,7 +168,7 @@ class Shot:
                 "render_output": os.path.join(
                     "$HOP", "shots", "active_shots", str(id), "renders"
                 ),
-
+                "render_versions": {},
                 "assets": [],
             }
 
