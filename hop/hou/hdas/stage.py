@@ -11,13 +11,14 @@ from hop.util import post
 from hop.dl import create_job, call_deadline, submit_decode
 from hop.hou.util import error_dialog
 from hop.hou.util.usd_helpers import compare_scene
+from hop.hou.hdas.shot import load
 
 
-def export(kwargs: dict) -> None:
+def export(kwargs: dict) -> bool:
     node = kwargs["node"]
     if node.evalParm("load_shot") < 0:
         error_dialog("Export USD's", "No shot selected")
-        return
+        return False
 
     node.parm("current_frame").set(hou.frame())
     node.parm("rendering").set(1)
@@ -54,9 +55,11 @@ def export(kwargs: dict) -> None:
         node.parm("Export_Assets").pressButton()
 
     for file in glob(os.path.join(node.evalParm("usd_output"), "Passes", "*")):
-        os.remove(file)
+        if "Deep" not in os.path.basename(file):
+            os.remove(file)
     node.node("Export_USD").parm("execute").pressButton()
     node.parm("rendering").set(0)
+    return True
 
 
 def mplay(kwargs: dict) -> None:
@@ -109,8 +112,9 @@ def clear_aov(kwargs: dict) -> None:
 
 
 def farm_render(kwargs: dict) -> None:
-    export(kwargs)
-
+    load(kwargs)
+    if not export(kwargs):
+        return 
     node = kwargs["node"]
     job_name = f"Shot {node.evalParm('load_shot')}"
     if node.evalParm("evaluaton_type") == 0:
@@ -155,9 +159,10 @@ def farm_render(kwargs: dict) -> None:
             hou.ui.displayMessage(f"{job_name} submitted to the farm", title="Shot")
             return
         stored_args.extend(["job", job, plugin.name])
-    deadline_return = submit_decode(
-        str(call_deadline(["submitmultiplejobs", "dependent", *stored_args]))
-    )
+    deadline = str(call_deadline(["submitmultiplejobs", *stored_args]))
+    print(deadline)
+    deadline_return = submit_decode(deadline)
+
     if deadline_return:
         node.parm("farm_id").set(deadline_return)
     hou.ui.displayMessage(f"{job_name} submitted to the farm", title="Shot")

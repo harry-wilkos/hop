@@ -38,6 +38,7 @@ def load(kwargs: dict) -> None:
         shot["frame_rangex"] = shot["start_frame"]
         shot["frame_rangey"] = shot["end_frame"]
         hou.setFrame(shot["start_frame"])
+        node.parm("render_version").set(len(shot["render_versions"]) + 1)
         for key, value in shot.items():
             parm = node.parm(key)
             if parm:
