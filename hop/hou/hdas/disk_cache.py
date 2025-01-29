@@ -166,7 +166,7 @@ def farm(kwargs):
         plugin.write("substep=1\n")
     plugin.close()
 
-    deadline_return = submit_decode(str(call_deadline([job, plugin.name])))
+    deadline_return = submit_decode(str(call_deadline([job, plugin.name])))[0]
     if deadline_return:
         node.parm("job_id").set(deadline_return)
         hou.ui.displayMessage(

@@ -159,22 +159,22 @@ def farm_render(kwargs: dict) -> None:
             hou.ui.displayMessage(f"{job_name} submitted to the farm", title="Shot")
             return
         stored_args.extend(["job", job, plugin.name])
-    deadline = str(call_deadline(["submitmultiplejobs", *stored_args]))
-    print(deadline)
-    deadline_return = submit_decode(deadline)
+    deadline_return = submit_decode(str(call_deadline(["submitmultiplejobs", *stored_args])))
 
     if deadline_return:
-        node.parm("farm_id").set(deadline_return)
+        node.parm("farm_id").set(" ".join(deadline_return))
     hou.ui.displayMessage(f"{job_name} submitted to the farm", title="Shot")
 
 
 def farm_cancel(kwargs: dict) -> None:
     node = kwargs["node"]
-    id = node.evalParm("farm_id")
-    if id:
-        call_deadline(["FailJob", id])
-        details = str(call_deadline(["GetJobDetails", id]))
-        shot = re.search(r"Name:\s*(.+)", details)
+    ids = node.evalParm("farm_id").split(" ")
+    if ids:
+        shot = ""
+        for id in ids: 
+            call_deadline(["FailJob", id])
+            details = str(call_deadline(["GetJobDetails", id]))
+            shot = re.search(r"Name:\s*(.+)", details)
         if shot:
             post(
                 "discord",

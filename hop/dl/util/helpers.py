@@ -11,12 +11,8 @@ def set_env(vars: list):
         yield f"EnvironmentKeyValue{index}={var}={os.environ[var]}\n"
 
 
-def submit_decode(command: str) -> str | None:
-    match = re.search(r"JobID=([a-f0-9]+)", command)
-    if match:
-        return match.group(1)
-    return match
-
+def submit_decode(command: str) -> list:
+    return re.findall(r"JobID=([a-f0-9]+)", command)
 
 def file_name(path: str):
     name = os.path.basename(path)
