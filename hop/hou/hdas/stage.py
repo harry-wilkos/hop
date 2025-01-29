@@ -123,14 +123,19 @@ def farm_render(kwargs: dict) -> None:
         start = node.evalParm("frame_range2x")
         end = node.evalParm("frame_range2y")
 
+    deep = True if node.evalParm("dcm") and node.evalParm("render_deep") else False
     usds = glob(os.path.join(node.evalParm("usd_output"), "Passes", "*"))
-    uuid = ''.join(random.choices(string.ascii_letters + string.digits, k=4))
+    uuid = "".join(random.choices(string.ascii_letters + string.digits, k=4))
     batch = f"{job_name} ({uuid})"
     output = node.evalParm("render_output")
     stored_args = []
     for file in usds:
-        comment = os.path.basename(file).split(".")[0]
-        comment = f"Holdout {int(comment)}" if comment != "Deep" else comment
+        count = os.path.basename(file).split(".")[0]
+        if (
+            parm := node.parm(f"render_holdout{int(count)}")
+        ) is None or not parm.eval():
+            continue
+        comment = f"Holdout {int(count)}" if count != "Deep" else count
         job = create_job(
             job_name,
             comment,
@@ -166,7 +171,7 @@ def farm_render(kwargs: dict) -> None:
         batch,
         True,
         True,
-        deadline_return,
+        deadline_return[:-1] if deep else deadline_return,
     )
     post_plugin = NamedTemporaryFile(
         delete=False, mode="w", encoding="utf-16", suffix=".job"
@@ -178,7 +183,8 @@ def farm_render(kwargs: dict) -> None:
         if (basename := os.path.basename(file).split(".")[0]) != "Deep"
     ]
     post_plugin.write(f"exrs={';'.join(exrs)}\n")
-    post_plugin.write(f"output={os.path.join(os.environ['HOP_TEMP'], uuid)}\n")   
+    post_plugin.write(f"output={os.path.join(os.environ['HOP_TEMP'], uuid)}\n")
+    post_plugin.write(f"back_plate={node.evalParm('back_plate')}\n")
     post_plugin.close()
     deadline_return.append(call_deadline([post_job, post_plugin.name]))
 

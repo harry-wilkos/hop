@@ -13,3 +13,8 @@ Description=The output folder
 Required=True
 DisableIfBlank=True
 
+[back_plate]
+Type=filename
+Label=Back-plate
+Description=The back-plate file to composite
+Filter=HIP File (*.png)

@@ -38,18 +38,22 @@ class Farm_Cache(DeadlinePlugin):
         )
 
     def get_args(self):
-        start_frame = self.GetStartFrame()
+        start_frame = int(f"{self.GetStartFrame():04d}")
+        run = self.GetPluginInfoEntry("back_plate").replace("$F", start_frame)
         exrs = [
             os.path.join(path, f"{start_frame}.exr")
             for path in self.GetPluginInfoEntry("exrs").split(";")
         ]
 
-        self.LogInfo(str(exrs))
-        self.LogInfo(self.GetPluginInfoEntry("exrs"))
+        for count, exr in enumerate(exrs):
+            exr = rf" \( {exr} -gamma 2.2 -resize 1280x720 \) "
+            if not count and not run:
+                run += exr
+                continue
+            run += f"{exr} -compose Over -composite"
 
-        run = f"{' '.join(exrs)} -compose Over -composite" if len(exrs) > 1 else exrs[0]
         output = os.path.join(self.GetPluginInfoEntry("output"), f"{start_frame}.png")
-        return f"magick {run} -monitor -gama 2.2 -resize 1280x720 {output}"
+        return f"{run} -gamma 2.2 -resize 1280x720 {output}"
 
     def clean_up(self):
         handlers = [
