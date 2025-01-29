@@ -175,11 +175,12 @@ def farm_render(kwargs: dict) -> None:
     exrs = [
         os.path.join(output, basename)
         for file in usds
-        if (basename := os.path.basename(file).split(".")[0]) == "Deep"
+        if (basename := os.path.basename(file).split(".")[0]) != "Deep"
     ]
     post_plugin.write(f"exrs={';'.join(exrs)}\n")
     post_plugin.write(f"output={os.path.join(os.environ['HOP_TEMP'], uuid)}\n")   
     post_plugin.close()
+    deadline_return.append(call_deadline([post_job, post_plugin.name]))
 
     if deadline_return:
         node.parm("farm_id").set(" ".join(deadline_return))
