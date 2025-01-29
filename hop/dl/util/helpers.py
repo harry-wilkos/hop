@@ -32,6 +32,7 @@ def create_job(
     batch_name: str | None = None,
     pre_script: bool = False,
     post_script: bool = False,
+    job_dependencies: list = [],
 ):
     job_file = NamedTemporaryFile(
         delete=False, mode="w", encoding="utf-16", suffix=".job"
@@ -57,6 +58,8 @@ def create_job(
         "plugins",
         plugin,
     )
+    if job_dependencies:
+        job_file.write(f"JobDependencies={','.join(job_dependencies)}\n")
 
     if pre_script:
         job_file.write(f"PreJobScript={os.path.join(scripts_path, 'pre_job.py')}\n")
@@ -80,6 +83,7 @@ def create_job(
         "FPS",
         "RES",
         "HOP",
+        "PATH"
     ]):
         job_file.write(var)
     job_file.close()

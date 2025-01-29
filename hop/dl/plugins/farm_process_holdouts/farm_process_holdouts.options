@@ -1,0 +1,15 @@
+[exrs]
+Type=filename
+Label=EXR Files
+Description=The EXR files to composite
+Filter=HIP File (*.exr)
+Required=True
+DisableIfBlank=True
+
+[output]
+Type=filenameSave
+Label=Output
+Description=The output folder
+Required=True
+DisableIfBlank=True
+

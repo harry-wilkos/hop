@@ -114,7 +114,7 @@ def clear_aov(kwargs: dict) -> None:
 def farm_render(kwargs: dict) -> None:
     load(kwargs)
     if not export(kwargs):
-        return 
+        return
     node = kwargs["node"]
     job_name = f"Shot {node.evalParm('load_shot')}"
     if node.evalParm("evaluaton_type") == 0:
@@ -124,12 +124,9 @@ def farm_render(kwargs: dict) -> None:
         end = node.evalParm("frame_range2y")
 
     usds = glob(os.path.join(node.evalParm("usd_output"), "Passes", "*"))
-    batch = (
-        f"{job_name} ({''.join(random.choices(string.ascii_letters + string.digits, k=4))})"
-        if len(usds) > 1
-        else None
-    )
-
+    uuid = ''.join(random.choices(string.ascii_letters + string.digits, k=4))
+    batch = f"{job_name} ({uuid})"
+    output = node.evalParm("render_output")
     stored_args = []
     for file in usds:
         comment = os.path.basename(file).split(".")[0]
@@ -152,14 +149,37 @@ def farm_render(kwargs: dict) -> None:
         )
         plugin.write(f"usd_file={file}\n")
         plugin.close()
-        if not batch:
-            deadline_return = submit_decode(str(call_deadline([job, plugin.name])))
-            if deadline_return:
-                node.parm("farm_id").set(deadline_return)
-            hou.ui.displayMessage(f"{job_name} submitted to the farm", title="Shot")
-            return
         stored_args.extend(["job", job, plugin.name])
-    deadline_return = submit_decode(str(call_deadline(["submitmultiplejobs", *stored_args])))
+
+    deadline_return = submit_decode(
+        str(call_deadline(["submitmultiplejobs", *stored_args]))
+    )
+    post_job = create_job(
+        job_name,
+        "Preview generation",
+        start,
+        end,
+        1,
+        1,
+        "farm_process_holdouts",
+        "main",
+        batch,
+        True,
+        True,
+        deadline_return,
+    )
+    post_plugin = NamedTemporaryFile(
+        delete=False, mode="w", encoding="utf-16", suffix=".job"
+    )
+
+    exrs = [
+        os.path.join(output, basename)
+        for file in usds
+        if (basename := os.path.basename(file).split(".")[0]) == "Deep"
+    ]
+    post_plugin.write(f"exrs={';'.join(exrs)}\n")
+    post_plugin.write(f"output={os.path.join(os.environ['HOP_TEMP'], uuid)}\n")   
+    post_plugin.close()
 
     if deadline_return:
         node.parm("farm_id").set(" ".join(deadline_return))
@@ -171,7 +191,7 @@ def farm_cancel(kwargs: dict) -> None:
     ids = node.evalParm("farm_id").split(" ")
     if ids:
         shot = ""
-        for id in ids: 
+        for id in ids:
             call_deadline(["FailJob", id])
             details = str(call_deadline(["GetJobDetails", id]))
             shot = re.search(r"Name:\s*(.+)", details)

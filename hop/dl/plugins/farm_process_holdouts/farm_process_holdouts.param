@@ -1,0 +1,5 @@
+[About]
+Type=label
+Label=About
+Default=A plugin to cache 
+Description=Not configurable
