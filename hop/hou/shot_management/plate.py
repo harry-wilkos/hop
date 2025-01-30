@@ -5,9 +5,9 @@ from typing import TYPE_CHECKING
 import clique
 import OpenEXR
 import OpenImageIO as oiio
-import PyOpenColorIO as ocio
 from pathlib import Path
 from hop.hou.util import error_dialog, expand_path, alembic_helpers, confirmation_dialog
+from hop.util import convert_exr
 
 if TYPE_CHECKING:
     from hop.hou.shot_management import Shot
@@ -33,25 +33,14 @@ def generate_back_plate(shot: "Shot") -> bool:
     )
     os.makedirs(back_plate_path, exist_ok=True)
     frame = shot.shot_data["start_frame"] - shot.shot_data["padding"]
-
-    config = ocio.GetCurrentConfig()
-    input = config.getColorSpace(os.environ["CAM"])
-    output = config.getColorSpace(os.environ["VIEW"])
-    processor = config.getProcessor(input, output).processor.getDefaultCPUProcessor()
     for exr in exrs:
-        with oiio.ImageInput.open(exr) as img:
-            spec = img.spec()
-            nchannels = spec.nchannels
-            pixels = img.read_image(0, 0, 0, nchannels, "float")
-            convert = processor.applyRGBA(pixels)
-            oiio.ImageOutput.create(
-                os.path.join(back_plate_path, f"bp.{frame:04d}.png")
-            ).write_image(convert)
+        if not convert_exr(exr, os.path.join(back_plate_path, f"bp.{frame:04d}.png")):
+            return False
         frame += 1
 
-    shot.shot_data["back_plate"] = os.path.join(
-        back_plate_path, f"bp.{frame:04d}.png"
-    ).replace(os.environ["HOP"], "$HOP")
+    shot.shot_data["back_plate"] = os.path.join(back_plate_path, "bp.$F.png").replace(
+        os.environ["HOP"], "$HOP"
+    )
     return True
 
 
