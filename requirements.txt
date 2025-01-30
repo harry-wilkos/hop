@@ -4,3 +4,4 @@ numpy<2
 clique
 ffmpeg-python
 OpenEXR
+opencolorio

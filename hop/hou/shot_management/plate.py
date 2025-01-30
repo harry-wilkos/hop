@@ -3,9 +3,9 @@ from glob import glob
 from typing import TYPE_CHECKING
 
 import clique
-import ffmpeg
 import OpenEXR
 import OpenImageIO as oiio
+import PyOpenColorIO as ocio
 from pathlib import Path
 from hop.hou.util import error_dialog, expand_path, alembic_helpers, confirmation_dialog
 
@@ -24,41 +24,34 @@ def generate_back_plate(shot: "Shot") -> bool:
 
     plate = os.path.join(plate_dir, os.path.basename(shot_plate))
     exrs = sorted(glob(plate.replace("####", "*")))
-    assembly = clique.assemble(exrs)[0][0]
-    frames = sorted(assembly.indexes)
     back_plate_path = os.path.join(
         os.environ["HOP"],
         "shots",
         "active_shots",
         str(shot.shot_data["_id"]),
         "back_plate",
-        "bp.%04d.png",
     )
-
-    os.makedirs(os.path.dirname(back_plate_path), exist_ok=True)
-    (
-        ffmpeg.input(
-            plate.replace("####", "%04d"),
-            framerate=os.environ["FPS"],
-            start_number=frames[0],
-        )
-        .filter("scale", 1280, 720)
-        .filter("format", "rgb24")
-        .filter("curves", r="0.3/0 0.6/1", g="0.3/0 0.6/1", b="0.3/0 0.6/1")
-        .output(back_plate_path, loglevel="quiet")
-        .run(quiet=True)
-    )
-    back_plates = sorted(glob(back_plate_path.replace("%04d", "*")))
+    os.makedirs(back_plate_path, exist_ok=True)
     frame = shot.shot_data["start_frame"] - shot.shot_data["padding"]
-    back_plate_dir = os.path.dirname(back_plate_path)
-    for back_plate in back_plates:
-        new_name = os.path.join(back_plate_dir, f"bp.{frame:04d}.png")
-        os.rename(back_plate, new_name)
+
+    config = ocio.GetCurrentConfig()
+    input = config.getColorSpace(os.environ["CAM"])
+    output = config.getColorSpace(os.environ["VIEW"])
+    processor = config.getProcessor(input, output).processor.getDefaultCPUProcessor()
+    for exr in exrs:
+        with oiio.ImageInput.open(exr) as img:
+            spec = img.spec()
+            nchannels = spec.nchannels
+            pixels = img.read_image(0, 0, 0, nchannels, "float")
+            convert = processor.applyRGBA(pixels)
+            oiio.ImageOutput.create(
+                os.path.join(back_plate_path, f"bp.{frame:04d}.png")
+            ).write_image(convert)
         frame += 1
 
-    shot.shot_data["back_plate"] = back_plate_path.replace("%04d", "$F").replace(
-        os.environ["HOP"], "$HOP"
-    )
+    shot.shot_data["back_plate"] = os.path.join(
+        back_plate_path, f"bp.{frame:04d}.png"
+    ).replace(os.environ["HOP"], "$HOP")
     return True
 
 
@@ -182,7 +175,10 @@ def update_plate(shot: "Shot", plate: str) -> bool:
     if len(frames) < shot.shot_data["end_frame"] - shot.shot_data["start_frame"] + (
         shot.shot_data["padding"] * 2
     ):
-        error_dialog("Update Plate", "Not enough frames in plate for given frame range with padding")
+        error_dialog(
+            "Update Plate",
+            "Not enough frames in plate for given frame range with padding",
+        )
         return False
     ripped_plate_path = ["shots", "active_shots", str(shot.shot_data["_id"]), "plate"]
     for index, file in enumerate(exrs):

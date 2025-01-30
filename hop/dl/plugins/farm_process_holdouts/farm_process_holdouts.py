@@ -41,6 +41,7 @@ class Farm_Cache(DeadlinePlugin):
     def get_args(self):
         start_frame = f"{self.GetStartFrame():04d}"
         run = self.GetPluginInfoEntry("back_plate").replace("$F", start_frame)
+        output_path = self.GetPluginInfoEntry("output")
         exrs = [
             os.path.join(path, f"{start_frame}.exr")
             for path in self.GetPluginInfoEntry("exrs").split(";")
@@ -53,9 +54,7 @@ class Farm_Cache(DeadlinePlugin):
                 continue
             run += f"{exr} -compose Over -composite"
 
-        output = os.path.normpath(
-            os.path.join(self.GetPluginInfoEntry("output"), f"{start_frame}.png")
-        )
+        output = os.path.normpath(os.path.join(output_path, f"{start_frame}.png"))
         return f"{run} -gamma 2.2 -resize 1280x720 {output}"
 
     def clean_up(self):
@@ -70,4 +69,3 @@ class Farm_Cache(DeadlinePlugin):
 
         for stdoutHandler in self.StdoutHandlers:
             del stdoutHandler.HandleCallback
-
