@@ -124,6 +124,7 @@ def farm_render(kwargs: dict) -> None:
         end = node.evalParm("frame_range2y")
 
     deep = True if node.evalParm("dcm") and node.evalParm("render_deep") else False
+    print(deep)
     usds = glob(os.path.join(node.evalParm("usd_output"), "Passes", "*"))
     uuid = "".join(random.choices(string.ascii_letters + string.digits, k=4))
     batch = f"{job_name} ({uuid})"
@@ -134,6 +135,8 @@ def farm_render(kwargs: dict) -> None:
         if count != "Deep" and ((
             parm := node.parm(f"render_holdout{int(count)}")
         ) is None or not parm.eval()):
+            continue
+        elif count == "Deep" and not deep:
             continue
         comment = f"Holdout {int(count)}" if count != "Deep" else count
         job = create_job(
