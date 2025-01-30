@@ -2,7 +2,6 @@
 from Deadline.Plugins import DeadlinePlugin, PluginType
 import os
 from shutil import which
-from tempfile import NamedTemporaryFile
 
 
 def GetDeadlinePlugin():
@@ -55,7 +54,7 @@ class Farm_Cache(DeadlinePlugin):
             run += f"{exr} -compose Over -composite"
 
         output = os.path.normpath(os.path.join(output_path, f"{start_frame}.png"))
-        return f"{run} -gamma 2.2 -resize 1280x720 {output}"
+        return f"{run} -resize 1280x720 {output}"
 
     def clean_up(self):
         handlers = [

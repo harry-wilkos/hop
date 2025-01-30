@@ -124,7 +124,6 @@ def farm_render(kwargs: dict) -> None:
         end = node.evalParm("frame_range2y")
 
     deep = True if node.evalParm("dcm") and node.evalParm("render_deep") else False
-    print(deep)
     usds = glob(os.path.join(node.evalParm("usd_output"), "Passes", "*"))
     uuid = "".join(random.choices(string.ascii_letters + string.digits, k=4))
     batch = f"{job_name} ({uuid})"
@@ -132,9 +131,10 @@ def farm_render(kwargs: dict) -> None:
     stored_args = []
     for file in usds:
         count = os.path.basename(file).split(".")[0]
-        if count != "Deep" and ((
-            parm := node.parm(f"render_holdout{int(count)}")
-        ) is None or not parm.eval()):
+        if count != "Deep" and (
+            (parm := node.parm(f"render_holdout{int(count)}")) is None
+            or not parm.eval()
+        ):
             continue
         elif count == "Deep" and not deep:
             continue
@@ -189,7 +189,9 @@ def farm_render(kwargs: dict) -> None:
     post_plugin.write(f"output={os.path.join(os.environ['HOP_TEMP'], uuid)}\n")
     post_plugin.write(f"back_plate={node.evalParm('back_plate')}\n")
     post_plugin.close()
-    deadline_return.append(call_deadline([post_job, post_plugin.name]))
+    deadline_return.append(
+        submit_decode(str(call_deadline([post_job, post_plugin.name])))
+    )
 
     if deadline_return:
         node.parm("farm_id").set(" ".join(deadline_return))
