@@ -156,6 +156,9 @@ def farm_render(kwargs: dict) -> None:
             delete=False, mode="w", encoding="utf-16", suffix=".job"
         )
         plugin.write(f"usd_file={file}\n")
+        plugin.write(
+            f"output={os.path.join(output, os.path.basename(file).split('.')[0])}\n"
+        )
         plugin.close()
         stored_args.extend(["job", job, plugin.name])
 
@@ -190,7 +193,7 @@ def farm_render(kwargs: dict) -> None:
     post_plugin.write(f"back_plate={node.evalParm('back_plate')}\n")
     post_plugin.close()
     deadline_return.append(
-        submit_decode(str(call_deadline([post_job, post_plugin.name])))
+        submit_decode(str(call_deadline([post_job, post_plugin.name])))[0]
     )
 
     if deadline_return:
