@@ -13,6 +13,7 @@ from discord import Webhook
 def upload_file(uploaded_file: UploadFile, location: list, uuid: bool):
     if uuid is True:
         file_name = f"{uuid4()}-{Path(str(uploaded_file.filename)).name}"
+        print(file_name)
     else:
         file_name = Path(str(uploaded_file.filename)).name
 

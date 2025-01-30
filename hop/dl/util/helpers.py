@@ -14,6 +14,7 @@ def set_env(vars: list):
 def submit_decode(command: str) -> list:
     return re.findall(r"JobID=([a-f0-9]+)", command)
 
+
 def file_name(path: str):
     name = os.path.basename(path)
     index = name.index(".")
@@ -49,7 +50,7 @@ def create_job(
         f"CustomPluginDirectory={os.path.join(os.environ['DEADLINE_CUSTOM_PATH'], 'plugins')}\n"
     )
     job_file.write("OverrideJobFailureDetection=True\n")
-    job_file.write("OverrideTaskFailureDetection=True\n")    
+    job_file.write("OverrideTaskFailureDetection=True\n")
     job_file.write("FailureDetectionJobErrors=1\n")
     job_file.write("FailureDetectionTaskErrors=1\n")
     scripts_path = os.path.join(
@@ -84,7 +85,7 @@ def create_job(
         "RES",
         "HOP",
         "PATH",
-        "HOP_TEMP"
+        "HOP_TEMP",
     ]):
         job_file.write(var)
     job_file.close()
@@ -97,8 +98,8 @@ def discord(deadlinePlugin, message: str, file_path: str | None = None):
     env_keys = job.GetJobEnvironmentKeys()
     for key in env_keys:
         env[key] = job.GetJobEnvironmentKeyValue(key)
-
-    script = f"from hop.util import post; post('discord', {{'message': '{message}'}}, {file_path})"
+    file = f"'{file_path}'" if type(file_path) is str else file_path
+    script = f"from hop.util import post; post('discord', {{'message': '{message}'}}, {file})"
     cmd = [os.environ["PYTHON"], "-c", script]
 
     deadlinePlugin.LogInfo(f"Subprocess Command: {cmd}")
@@ -159,3 +160,4 @@ def call_deadline(arguments, hideWindow=True, readStdout=True):
     if sys.version_info[0] > 2 and type(output) is bytes:
         output = output.decode()
     return output
+
