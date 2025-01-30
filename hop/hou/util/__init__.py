@@ -6,6 +6,7 @@ from .helpers import (
     import_hou,
     load_style,
     place_node,
+    convert_exr,
 )
 
 __all__ = [
@@ -17,4 +18,5 @@ __all__ = [
     "confirmation_dialog",
     "error_dialog",
     "load_style",
+    "convert_exr",
 ]

@@ -7,7 +7,7 @@ import OpenEXR
 import OpenImageIO as oiio
 from pathlib import Path
 from hop.hou.util import error_dialog, expand_path, alembic_helpers, confirmation_dialog
-from hop.util import convert_exr
+from hop.hou.util import convert_exr
 
 if TYPE_CHECKING:
     from hop.hou.shot_management import Shot

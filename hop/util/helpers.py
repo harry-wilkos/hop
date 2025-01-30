@@ -5,10 +5,7 @@ import sys
 from importlib import reload
 from pathlib import Path
 from shutil import copy2, move
-
 import numpy as np
-import OpenImageIO as oiio
-import PyOpenColorIO as ocio
 
 
 def copy_file(path: str, target: list) -> None | str:
@@ -107,42 +104,3 @@ def pop_dict(data: dict, key_to_split: str) -> tuple:
     dict_1 = {key_to_split: data[key_to_split]} if key_to_split in data else {}
     dict_2 = {k: v for k, v in data.items() if k != key_to_split}
     return dict_1, dict_2
-
-
-def convert_exr(exr_path: str, output_path: str):
-    img = oiio.ImageInput.open(exr_path)
-    if not img:
-        raise RuntimeError(f"Could not open input image: {oiio.geterror()}")
-    spec = img.spec()
-    pixels = img.read_image(format="float")
-    img.close()
-
-    config = ocio.GetCurrentConfig()
-    processor = config.getProcessor(
-        os.environ["CAM"], os.environ["VIEW"]
-    ).getDefaultCPUProcessor()
-    if pixels.shape[2] > 3:
-        rgb_pixels = pixels[..., :3]
-    else:
-        rgb_pixels = pixels
-    processor.applyRGB(rgb_pixels)
-
-    buf = oiio.ImageBuf(oiio.ImageSpec(spec.width, spec.height, 3, "float"))
-    buf.set_pixels(oiio.ROI(0, spec.width, 0, spec.height, 0, 1, 0, 3), rgb_pixels)
-    resized_buf = oiio.ImageBuf()
-    oiio.ImageBufAlgo.resize(resized_buf, buf, roi=oiio.ROI(0, 1280, 0, 720))
-    resized_pixels = resized_buf.get_pixels(oiio.FLOAT)
-    uint8_pixels = np.clip(resized_pixels * 255, 0, 255).astype(np.uint8)
-
-    output_spec = oiio.ImageSpec(1280, 720, 3, "uint8")
-    output_spec.channelnames = ["R", "G", "B"]
-    output_spec.attribute("Compression", "none")
-    out = oiio.ImageOutput.create(output_path)
-    if not out:
-        raise RuntimeError(f"Could not create output: {oiio.geterror()}")
-
-    if not out.open(output_path, output_spec):
-        raise RuntimeError(f"Could not open output: {out.geterror()}")
-    success = out.write_image(uint8_pixels)
-    out.close()
-    return success
