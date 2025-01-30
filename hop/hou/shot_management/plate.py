@@ -1,7 +1,7 @@
 import os
 from glob import glob
 from typing import TYPE_CHECKING
-
+from time import sleep
 import clique
 import OpenEXR
 import OpenImageIO as oiio
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from hop.hou.shot_management import Shot
 
 
-def generate_back_plate(shot: "Shot") -> bool:
+def generate_back_plate(progress, shot: "Shot") -> bool:
     if shot.shot_data is None:
         return False
 
@@ -33,10 +33,12 @@ def generate_back_plate(shot: "Shot") -> bool:
     )
     os.makedirs(back_plate_path, exist_ok=True)
     frame = shot.shot_data["start_frame"] - shot.shot_data["padding"]
-    for exr in exrs:
-        if not convert_exr(exr, os.path.join(back_plate_path, f"bp.{frame:04d}.png")):
+    for count, exr in enumerate(exrs):
+        if not convert_exr(
+            exr, os.path.join(back_plate_path, f"bp.{(frame + count):04d}.png")
+        ):
             return False
-        frame += 1
+        progress.updateProgress((count + 1) / len(exrs))
 
     shot.shot_data["back_plate"] = os.path.join(back_plate_path, "bp.$F.png").replace(
         os.environ["HOP"], "$HOP"

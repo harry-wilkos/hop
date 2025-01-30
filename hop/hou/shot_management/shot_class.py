@@ -278,7 +278,7 @@ class Shot:
                     post(
                         "discord",
                         {
-                            "message": f":camera: **Shot {self.shot_data['shot_number']}** was updated at *{self.shot_data['start_frame']} - {self.shot_data['end_frame']}{description}** :camera:"
+                            "message": f":camera: **Shot {self.shot_data['shot_number']}** was updated at **{self.shot_data['start_frame']} - {self.shot_data['end_frame']}{description}** :camera:"
                         },
                     )
 

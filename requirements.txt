@@ -5,3 +5,4 @@ clique
 ffmpeg-python
 OpenEXR
 opencolorio
+oiio-python
