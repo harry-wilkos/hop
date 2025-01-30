@@ -1,6 +1,6 @@
 import os
 import shutil
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from uuid import uuid4
 import json
 from fastapi import FastAPI, UploadFile, Request
@@ -12,7 +12,7 @@ from discord import Webhook
 
 def upload_file(uploaded_file: UploadFile, location: list, uuid: bool):
     if uuid is True:
-        file_name = f"{uuid4()}-{Path(str(uploaded_file.filename)).name}"
+        file_name = f"{uuid4()}-{PurePosixPath(str(uploaded_file.filename).replace('\\', '/')).name}"
         print(file_name)
     else:
         file_name = Path(str(uploaded_file.filename)).name
