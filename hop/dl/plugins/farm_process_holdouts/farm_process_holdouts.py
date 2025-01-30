@@ -2,6 +2,7 @@
 from Deadline.Plugins import DeadlinePlugin, PluginType
 import os
 from shutil import which
+from tempfile import NamedTemporaryFile
 
 
 def GetDeadlinePlugin():
@@ -38,7 +39,7 @@ class Farm_Cache(DeadlinePlugin):
         )
 
     def get_args(self):
-        start_frame = int(f"{self.GetStartFrame():04d}")
+        start_frame = f"{self.GetStartFrame():04d}"
         run = self.GetPluginInfoEntry("back_plate").replace("$F", start_frame)
         exrs = [
             os.path.join(path, f"{start_frame}.exr")
@@ -46,13 +47,15 @@ class Farm_Cache(DeadlinePlugin):
         ]
 
         for count, exr in enumerate(exrs):
-            exr = rf" \( {exr} -gamma 2.2 -resize 1280x720 \) "
+            exr = rf" ( {exr} -resize 1280x720 ) "
             if not count and not run:
                 run += exr
                 continue
             run += f"{exr} -compose Over -composite"
 
-        output = os.path.join(self.GetPluginInfoEntry("output"), f"{start_frame}.png")
+        output = os.path.normpath(
+            os.path.join(self.GetPluginInfoEntry("output"), f"{start_frame}.png")
+        )
         return f"{run} -gamma 2.2 -resize 1280x720 {output}"
 
     def clean_up(self):
@@ -67,3 +70,4 @@ class Farm_Cache(DeadlinePlugin):
 
         for stdoutHandler in self.StdoutHandlers:
             del stdoutHandler.HandleCallback
+

@@ -131,9 +131,9 @@ def farm_render(kwargs: dict) -> None:
     stored_args = []
     for file in usds:
         count = os.path.basename(file).split(".")[0]
-        if (
+        if count != "Deep" and ((
             parm := node.parm(f"render_holdout{int(count)}")
-        ) is None or not parm.eval():
+        ) is None or not parm.eval()):
             continue
         comment = f"Holdout {int(count)}" if count != "Deep" else count
         job = create_job(

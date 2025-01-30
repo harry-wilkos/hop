@@ -83,7 +83,8 @@ def create_job(
         "FPS",
         "RES",
         "HOP",
-        "PATH"
+        "PATH",
+        "HOP_TEMP"
     ]):
         job_file.write(var)
     job_file.close()
