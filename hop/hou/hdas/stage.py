@@ -193,8 +193,8 @@ def farm_render(kwargs: dict) -> None:
         if (basename := os.path.basename(file).split(".")[0]) != "Deep"
     ]
     post_plugin.write(f"exrs={';'.join(exrs)}\n")
-    post_plugin.write(f"output={os.path.join(os.environ['HOP_TEMP'], uuid)}\n")
-    post_plugin.write(f"renders={';'.join(all_renders)}")
+    post_plugin.write(f"output={os.environ['HOP_TEMP']}/{uuid}\n")
+    post_plugin.write(f"renders={';'.join(all_renders)}\n")
     post_plugin.write(f"back_plate={node.evalParm('back_plate')}\n")
     post_plugin.close()
     deadline_return.append(
@@ -224,3 +224,4 @@ def farm_cancel(kwargs: dict) -> None:
             )
         hou.ui.displayMessage("Render cancelled", title="Shot")
     node.parm("farm_id").set("")
+

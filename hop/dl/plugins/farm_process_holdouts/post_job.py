@@ -16,7 +16,7 @@ def __main__(*args):
     output_dir = deadlinePlugin.GetPluginInfoEntry("output")
 
     pngs = sorted(glob(os.path.join(output_dir, "*.png")))
-    mp4 = os.path.join(output_dir, "output.mp4")
+    mp4 = os.path.join(output_dir, "preview.mp4")
     cmd = [
         "ffmpeg",
         "-framerate",
