@@ -192,10 +192,11 @@ def farm_render(kwargs: dict) -> None:
         for file in usds
         if (basename := os.path.basename(file).split(".")[0]) != "Deep"
     ]
+    back_plate = node.parm("back_plate").rawValue().replace("$HOP", os.environ["HOP"])
     post_plugin.write(f"exrs={';'.join(exrs)}\n")
     post_plugin.write(f"output={os.environ['HOP_TEMP']}/{uuid}\n")
     post_plugin.write(f"renders={';'.join(all_renders)}\n")
-    post_plugin.write(f"back_plate={node.evalParm('back_plate')}\n")
+    post_plugin.write(f"back_plate={back_plate}\n")
     post_plugin.close()
     deadline_return.append(
         submit_decode(str(call_deadline([post_job, post_plugin.name])))[0]

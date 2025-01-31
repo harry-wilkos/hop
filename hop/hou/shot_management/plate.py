@@ -34,9 +34,10 @@ def generate_back_plate(progress, shot: "Shot") -> bool:
     os.makedirs(back_plate_path, exist_ok=True)
     frame = shot.shot_data["start_frame"] - shot.shot_data["padding"]
     for count, exr in enumerate(exrs):
-        if not convert_exr(
-            exr, os.path.join(back_plate_path, f"bp.{(frame + count):04d}.png")
-        ):
+        output = os.path.join(back_plate_path, f"bp.{(frame + count):04d}.png")
+        if os.path.exists(output):
+            os.remove(output)
+        if not convert_exr(exr, output):
             return False
         progress.updateProgress((count + 1) / len(exrs))
 

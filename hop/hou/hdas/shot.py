@@ -45,11 +45,11 @@ def load(kwargs: dict) -> None:
                 parm.set(value)
     else:
         for parm in node.parms():
-            if parm.name() not in ["loaded_shot", "shot_backend"]:
-                try:
-                    parm.revertToDefaults()
-                except hou.ObjectWasDeleted:
-                    continue
+            try:
+                if parm.name() not in ["loaded_shot", "shot_backend"]:
+                        parm.revertToDefaults()
+            except hou.ObjectWasDeleted:
+                continue
 
 
 def publish(kwargs: dict) -> None:
