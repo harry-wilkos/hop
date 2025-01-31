@@ -156,9 +156,6 @@ def farm_render(kwargs: dict) -> None:
             delete=False, mode="w", encoding="utf-16", suffix=".job"
         )
         plugin.write(f"usd_file={file}\n")
-        plugin.write(
-            f"output={os.path.join(output, os.path.basename(file).split('.')[0])}\n"
-        )
         plugin.close()
         stored_args.extend(["job", job, plugin.name])
 

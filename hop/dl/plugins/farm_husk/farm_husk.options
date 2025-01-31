@@ -5,12 +5,3 @@ Description=The usd file to render
 Filter=HIP File (*.usd*)
 Required=True
 DisableIfBlank=True
-
-[output]
-Type=filename
-Label=Output
-Description=The exr product location
-Filter=HIP File (*.exr)
-Required=True
-DisableIfBlank=True
-
