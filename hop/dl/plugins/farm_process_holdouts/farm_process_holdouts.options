@@ -18,3 +18,12 @@ Type=filename
 Label=Back-plate
 Description=The back-plate file to composite
 Filter=HIP File (*.png)
+
+[renders]
+Type=filename
+Label=Renders
+Description=All renders including deep
+Filter=HIP File (*.exr)
+Required=True
+DisableIfBlank=True
+

@@ -180,6 +180,13 @@ def farm_render(kwargs: dict) -> None:
         delete=False, mode="w", encoding="utf-16", suffix=".job"
     )
 
+    all_renders = [
+        os.path.join(
+            output.replace(os.environ["HOP"], "$HOP"),
+            os.path.basename(file).split(".")[0],
+        )
+        for file in usds
+    ]
     exrs = [
         os.path.join(output, basename)
         for file in usds
@@ -187,6 +194,7 @@ def farm_render(kwargs: dict) -> None:
     ]
     post_plugin.write(f"exrs={';'.join(exrs)}\n")
     post_plugin.write(f"output={os.path.join(os.environ['HOP_TEMP'], uuid)}\n")
+    post_plugin.write(f"renders={';'.join(all_renders)}")
     post_plugin.write(f"back_plate={node.evalParm('back_plate')}\n")
     post_plugin.close()
     deadline_return.append(
