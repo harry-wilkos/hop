@@ -29,8 +29,6 @@ class ShotLoadUI(QDialog):
         shots = self.collection.find({}).sort("shot_number", 1)
 
         exclusive_buttons = QButtonGroup(self)
-        exclusive_buttons.buttonPressed.connect(self.handle_pressed)
-        exclusive_buttons.buttonClicked.connect(self.handle_clicked)
 
         main_button_layout = QVBoxLayout()
         h_layout = QHBoxLayout()
@@ -68,6 +66,8 @@ class ShotLoadUI(QDialog):
         self.main_layout.addLayout(main_button_layout)
         if loaded_button is not None:
             loaded_button.click()
+        exclusive_buttons.buttonPressed.connect(self.handle_pressed)
+        exclusive_buttons.buttonClicked.connect(self.handle_clicked)
 
     def make_reload(self):
         reload_layout = QHBoxLayout()

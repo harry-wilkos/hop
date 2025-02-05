@@ -122,7 +122,7 @@ class Shot:
 
         def description(self, description: str):
             if self.shot.shot_data:
-                self.shot.shot_data["description"] = description
+                self.shot.shot_data["description"] = description.capitalize()
             return self.shot
 
     def __init__(

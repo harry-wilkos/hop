@@ -19,10 +19,8 @@ def reload(group=None):
     offset = 0
     if shot:
         stored_cam = str(store_id.value()) if (store_id := shot.knob("cam")) else ""
-
         with shot.begin():
             offset = nuke.toNode("Read1").knob("offset").value()
-
     with group.begin():
         cam = nuke.toNode("Camera1")
         cam.knob("file").setValue("")
@@ -61,24 +59,25 @@ def create_camera():
     scale.setValue(0.01)
     group.addKnob(scale)
 
-    shot_tag = nuke.String_Knob("HOP", None)
-    shot_tag.setValue("camera")
-    shot_tag.setVisible(False)
-    group.addKnob(shot_tag)
-
     group.setName("Shot Cam")
-    reload = nuke.PyScript_Knob(
-        "reload", "Reload", "from hop.nk.gizmos.camera import reload; reload()"
+    reload_knob = nuke.PyScript_Knob(
+        "reload",
+        "Reload",
+        "from hop.nk.gizmos.camera import reload as cam_reload; cam_reload(nuke.thisNode())",
     )
-    group.addKnob(reload)
+    group.addKnob(reload_knob)
 
-    group.knob("label").setValue("")
     shot = group.input(0)
     stored_cam = (
         str(store_id.value())
         if (store_id := shot.knob("cam") if shot else False)
         else ""
     )
+
+    shot_tag = nuke.String_Knob("HOP", None)
+    shot_tag.setValue("camera")
+    shot_tag.setVisible(False)
+    group.addKnob(shot_tag)
 
     with group.begin():
         axis = nuke.createNode("Axis3")
