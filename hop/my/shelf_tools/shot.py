@@ -142,13 +142,14 @@ def create_shot(shot: dict | None = None):
             cam_file_path = os.path.expandvars(shot["cam"])
             if not cmds.pluginInfo("AbcImport", query=True, loaded=True):
                 cmds.loadPlugin("AbcImport")
-            cmds.AbcImport(cam_file_path, mode="import", filterObjects=shot["cam_path"])
+            store_a_cam = cmds.AbcImport(cam_file_path, mode="import", filterObjects=shot["cam_path"])
             [
                 cmds.AbcImport(cam_file_path, mode="import", filterObjects=geo)
                 for geo in shot["geo_paths"]
             ]
             start = shot["start_frame"] - shot["padding"]
             end = shot["end_frame"] + shot["padding"]
+            store_a_cam = cmds.setAttr(f"{store_a_cam}.offset", start - 1001)
             cmds.playbackOptions(
                 minTime=start,
                 maxTime=end,
@@ -157,9 +158,10 @@ def create_shot(shot: dict | None = None):
             )
             cmds.currentTime(start)
             cam_path = shot["cam_path"].split("/")
+            maya_cam_path = shot['cam_path'].replace('/', '|')
             geo_path = [geo.replace("/", "|") for geo in shot["geo_paths"]]
             plate = cmds.imagePlane(
-                camera=shot["cam_path"].replace("/", "|"),
+                camera=maya_cam_path,
                 name="Plate",
                 fileName=shot["back_plate"].replace("$F", "####"),
                 showInAllViews=False,
@@ -169,21 +171,21 @@ def create_shot(shot: dict | None = None):
             cmds.setAttr(f"{plate[1]}.useFrameExtension", 1)
             cmds.setAttr(f"{plate[1]}.ignoreColorSpaceFileRules", 1)
             cmds.expression(
-                s=f"{plate[1]}.depth = {shot['cam_path'].replace('/', '|')}.farClipPlane;",
+                s=f"{plate[1]}.depth = {maya_cam_path}.farClipPlane;",
                 name="imagePlaneDepthExpression",
                 o="auto",
                 ae=True,
                 uc="all",
             )
-            cmds.setAttr(f"{plate[1]}.colorSpace", "Raw", type="string")
+            cmds.setAttr(f"{plate[1]}.colorSpace", os.environ["VIEW"], type="string")
             cmds.setAttr(
                 f"{plate[1]}.frameCache",
                 shot["end_frame"] - shot["start_frame"] + (2 * shot["padding"]),
             )
             cmds.setAttr(f"{plate[0]}.overrideEnabled", 1)
             cmds.setAttr(f"{plate[0]}.overrideDisplayType", 2)
-            cmds.setAttr(f"{shot['cam_path'].replace('/', '|')}.overrideEnabled", 1)
-            cmds.setAttr(f"{shot['cam_path'].replace('/', '|')}.overrideDisplayType", 1)
+            cmds.setAttr(f"{maya_cam_path}.overrideEnabled", 1)
+            cmds.setAttr(f"{maya_cam_path}.overrideDisplayType", 1)
 
             if (
                 cmds.objExists("Proxy_Geo")

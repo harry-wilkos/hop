@@ -1,5 +1,4 @@
 import nuke
-import os
 from hop.util import get_collection
 from hop.nk.gizmos.shot import reload
 from PySide2.QtWidgets import (
@@ -56,7 +55,7 @@ class ShotLoadUI(QDialog):
             total_width_with_button = (
                 current_row_width + button_min_width + button_spacing
             )
-            if total_width_with_button > self.width()/2:
+            if total_width_with_button > self.width() / 2:
                 h_layout = QHBoxLayout()
                 layouts.append(h_layout)
                 current_row_width = 0
@@ -95,7 +94,6 @@ class ShotLoadUI(QDialog):
 
     def handle_reload(self):
         self.node.removeKnob(self.node.knob("loadUI"))
-        reload(self.node)
         load = nuke.PyCustom_Knob(
             "loadUI",
             "Load Shot",
@@ -113,7 +111,7 @@ class ShotLoadUI(QDialog):
                 self.node.knob("start").setValue(shot_data["start_frame"])
                 self.node.knob("end").setValue(shot_data["end_frame"])
                 self.node.knob("cam").setValue(
-                    shot_data["cam"].replace("$HOP", os.environ["HOP"])
+                    shot_data["cam"].replace("$HOP", "[getenv HOP]").replace("\\", "/")
                 )
 
                 with self.node.begin():
@@ -122,7 +120,9 @@ class ShotLoadUI(QDialog):
                     first = 1001
                     last = 1001 + shot_data["end_frame"] - shot_data["start_frame"]
 
-                    read.knob("offset").setValue(shot_data["start_frame"] - first - shot_data["padding"])
+                    read.knob("offset").setValue(
+                        shot_data["start_frame"] - first - shot_data["padding"]
+                    )
                     read.knob("frame").setValue("frame - offset")
 
                     read.knob("first").setValue(first)
@@ -131,22 +131,29 @@ class ShotLoadUI(QDialog):
                     read.knob("origlast").setValue(last)
 
                     read.knob("file").setValue(
-                        shot_data["plate"].replace("$HOP", "[getenv HOP]").replace("\\", "\\\\")
+                        shot_data["plate"]
+                        .replace("$HOP", "[getenv HOP]")
+                        .replace("\\", "/")
                     )
 
                     st_map = nuke.toNode("Read2")
                     st_map.knob("file").setValue(
-                        shot_data["st_map"].replace("$HOP", "[getenv HOP]").replace("\\", "\\\\")
+                        shot_data["st_map"]
+                        .replace("$HOP", "[getenv HOP]")
+                        .replace("\\", "/")
                     )
 
-                    nuke.Root().knob("first_frame").setValue(shot_data["start_frame"] - shot_data["padding"])
-                    nuke.Root().knob("last_frame").setValue(shot_data["end_frame"] + shot_data["padding"])
+                    nuke.Root().knob("first_frame").setValue(
+                        shot_data["start_frame"] - shot_data["padding"]
+                    )
+                    nuke.Root().knob("last_frame").setValue(
+                        shot_data["end_frame"] + shot_data["padding"]
+                    )
                 dependents = self.node.dependent()
                 for out in dependents:
-                    reload = out.knob("reload")
-                    if reload:
-                        reload.execute()
-
+                    reload_button = out.knob("reload")
+                    if reload_button:
+                        reload_button.execute()
 
         else:
             self.node.knob("store_id").setValue(None)

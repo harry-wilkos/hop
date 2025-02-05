@@ -2,7 +2,6 @@ requests
 pymongo
 numpy<2
 clique
-ffmpeg-python
 OpenEXR
 opencolorio
 oiio-python

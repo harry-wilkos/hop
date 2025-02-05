@@ -43,6 +43,8 @@ def load(kwargs: dict) -> None:
             parm = node.parm(key)
             if parm:
                 parm.set(value)
+        if node.evalParm("load_shot") != -1:
+
     else:
         for parm in node.parms():
             try:
@@ -50,6 +52,12 @@ def load(kwargs: dict) -> None:
                         parm.revertToDefaults()
             except hou.ObjectWasDeleted:
                 continue
+
+    padding = node.evalParm("padding")
+    start = node.evalParm("frame_rangex") - padding
+    end = node.evalParm("frame_rangey") + padding
+    hou.playbar.setFrameRange(start, end)
+    hou.playbar.setPlaybackRange(start, end)
 
 
 def publish(kwargs: dict) -> None:

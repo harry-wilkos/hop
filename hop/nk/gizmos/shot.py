@@ -136,11 +136,11 @@ def reload(node):
             node.knob("start").setValue(shot_data["start_frame"])
             node.knob("end").setValue(shot_data["end_frame"])
 
-    dependents = node.dependent()
-    for out in dependents:
-        reload = out.knob("reload")
-        if reload:
-            reload.execute()
+    # dependents = node.dependent()
+    # for out in dependents:
+    #     reload = out.knob("reload")
+    #     if reload:
+    #         reload.execute()
 
 
 # def reload_shots(filename=None):
