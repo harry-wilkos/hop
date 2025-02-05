@@ -5,8 +5,6 @@ import _curvelib
 import re
 from hop.util import get_collection, custom_dialogue, find_shot
 
-global shots
-shots = []
 collection = get_collection("shots", "active_shots")
 
 
@@ -64,16 +62,16 @@ def shift_keyframes(offset):
                     )
 
 
-def recreate_shots():
-    _shots = []
-    for node in nuke.allNodes():
-        if node.knob("HOP_Shot") and node["HOP_Shot"].value():
-            _shots.append(node)
-    global shots
-    shots = _shots
+# def recreate_shots():
+#     _shots = []
+#     for node in nuke.allNodes():
+#         if node.knob("HOP_Shot") and node["HOP_Shot"].value():
+#             _shots.append(node)
+#     global shots
+#     shots = _shots
 
 
-def handle_change(node):
+def reload(node):
     id = node.knob("store_id").value()
     off_pipe = node.knob("off_pipe").value()
     if id and not off_pipe:
@@ -145,10 +143,10 @@ def handle_change(node):
             reload.execute()
 
 
-def reload_shots(filename=None):
-    for node in shots:
-        handle_change(node)
-    return filename
+# def reload_shots(filename=None):
+#     for node in shots:
+#         handle_change(node)
+#     return filename
 
 
 def create_shot():
@@ -162,8 +160,8 @@ def create_shot():
     )
     node.addKnob(load)
 
-    shot_tag = nuke.Boolean_Knob("HOP_Shot", None)
-    shot_tag.setValue(True)
+    shot_tag = nuke.String_Knob("HOP", None)
+    shot_tag.setValue("shot")
     shot_tag.setVisible(False)
     node.addKnob(shot_tag)
 
@@ -172,7 +170,7 @@ def create_shot():
     node.addKnob(store_shot_id)
 
     off_pipe = nuke.Boolean_Knob("off_pipe", None)
-    shot_tag.setValue(False)
+    off_pipe.setValue(False)
     off_pipe.setVisible(False)
     node.addKnob(off_pipe)
 
@@ -198,6 +196,7 @@ def create_shot():
 
         read.knob("auto_alpha").setExpression("parent.auto_alpha")
         read.knob("raw").setValue(True)
+        read.knob("on_error").setValue("checkerboard")
 
         offset = nuke.Int_Knob("offset", None)
         read.addKnob(offset)
@@ -214,6 +213,7 @@ def create_shot():
 
         st_map = nuke.createNode("Read")
         st_map.knob("raw").setValue(True)
+        st_map.knob("on_error").setValue("checkerboard")
         st_map.hideControlPanel()
 
         shuffle = nuke.createNode("Shuffle2")
@@ -227,5 +227,3 @@ def create_shot():
         out = nuke.createNode("Output")
         out.setInput(0, shuffle)
         out.hideControlPanel()
-
-    shots.append(node)

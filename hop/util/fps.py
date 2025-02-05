@@ -14,10 +14,12 @@ def change_fps(start_folder: str, fps: int | None = None):
             path = folder / file
             if not exr.isOpenExrFile(str(path)):
                 continue
+            print(f"Checking: {path}")
             with exr.File(str(path), separate_channels=True) as buffer:
                 parts = []
                 for part in buffer.parts:
                     header = dict(part.header)
+                    print(header)
                     if "framesPerSecond" in header.keys() and header["framesPerSecond"] == fps:
                         continue
                     header["framesPerSecond"] = fps

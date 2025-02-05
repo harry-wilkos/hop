@@ -71,6 +71,7 @@ def mplay(kwargs: dict) -> None:
 
 
 def local_render(kwargs: dict) -> None:
+    load(kwargs)
     node = kwargs["node"]
     location = node.evalParm("render_output")
     if not location or Path(location).suffix:

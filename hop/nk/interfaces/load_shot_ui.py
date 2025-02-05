@@ -1,8 +1,7 @@
 import nuke
 import os
 from hop.util import get_collection
-from hop.nk.gizmos.shot import handle_change
-from PySide2.QtCore import QSize
+from hop.nk.gizmos.shot import reload
 from PySide2.QtWidgets import (
     QButtonGroup,
     QCheckBox,
@@ -19,7 +18,7 @@ class ShotLoadUI(QDialog):
         super().__init__()
         self.node = node
         self.collection = get_collection("shots", "active_shots")
-        handle_change(self.node)
+        reload(self.node)
         self.main_layout = QVBoxLayout(self)
         self.setup_ui()
 
@@ -96,7 +95,7 @@ class ShotLoadUI(QDialog):
 
     def handle_reload(self):
         self.node.removeKnob(self.node.knob("loadUI"))
-        handle_change(self.node)
+        reload(self.node)
         load = nuke.PyCustom_Knob(
             "loadUI",
             "Load Shot",
