@@ -23,7 +23,7 @@ def reload(group=None):
             offset = nuke.toNode("Read1").knob("offset").value()
     with group.begin():
         cam = nuke.toNode("Camera1")
-        cam.knob("file").setValue("")
+        cam.knob("file").setValue(os.environ["HOP"].replace("\\", "/"))
         shift = nuke.toNode("TimeOffset1").knob("time_offset")
         shift.setValue(0)
         for knob in (
