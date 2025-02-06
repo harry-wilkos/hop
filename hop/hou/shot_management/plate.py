@@ -77,7 +77,7 @@ def update_padding(shot: "Shot", padding: int):
                     )
                     os.rename(back_plate, new_name)
 
-        if shot.shot_data["cam"]:
+        if shot.shot_data["cam"] and not shot.cam_checked:
             cam_file = expand_path(shot.shot_data["cam"])
             if cam_file:
                 alembic_info = alembic_helpers.frame_info(
