@@ -2,7 +2,7 @@ import OpenEXR as exr
 import os
 from pathlib import Path
 from argparse import ArgumentParser
-
+from fractions import Fraction
 
 def change_fps(start_folder: str, fps: int | None = None):
     fps = fps if type(fps) is int else int(os.environ["FPS"])
@@ -19,10 +19,9 @@ def change_fps(start_folder: str, fps: int | None = None):
                 parts = []
                 for part in buffer.parts:
                     header = dict(part.header)
-                    print(header)
                     if "framesPerSecond" in header.keys() and header["framesPerSecond"] == fps:
                         continue
-                    header["framesPerSecond"] = fps
+                    header["framesPerSecond"] = Fraction(fps)
                     channels = {
                         name: ch.pixels.copy() for name, ch in part.channels.items()
                     }

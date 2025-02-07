@@ -1,0 +1,23 @@
+[nk_file]
+Type=filename
+Label=Nuke File
+Description=The Nuke file that contains the write node
+Filter=Nk File (*.nk*)
+Required=True
+DisableIfBlank=True
+
+[node_path]
+Type=string
+Label=Node Path
+Description=The path to the write node
+Required=True
+DisableIfBlank=True
+
+[discord]
+Type=boolean
+Label=Discord Notifications
+Description=Whether to send farm errors to discord
+Default=False
+Required=True
+
+

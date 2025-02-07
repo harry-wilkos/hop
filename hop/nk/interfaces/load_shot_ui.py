@@ -108,8 +108,8 @@ class ShotLoadUI(QDialog):
 
             if shot_data:
                 self.node.knob("label").setValue(str(shot_data["shot_number"]))
-                self.node.knob("start").setValue(shot_data["start_frame"])
-                self.node.knob("end").setValue(shot_data["end_frame"])
+                self.node.knob("start").setValue(shot_data["start_frame"] - shot_data["padding"])
+                self.node.knob("end").setValue(shot_data["end_frame"] + shot_data["padding"])
                 self.node.knob("cam").setValue(
                     shot_data["cam"].replace("$HOP", "[getenv HOP]").replace("\\", "/")
                 )
@@ -118,7 +118,7 @@ class ShotLoadUI(QDialog):
                     read = nuke.toNode("Read1")
 
                     first = 1001
-                    last = 1001 + shot_data["end_frame"] - shot_data["start_frame"]
+                    last = 1001 + shot_data["end_frame"] - shot_data["start_frame"] + shot_data["padding"]
 
                     read.knob("offset").setValue(
                         shot_data["start_frame"] - first - shot_data["padding"]

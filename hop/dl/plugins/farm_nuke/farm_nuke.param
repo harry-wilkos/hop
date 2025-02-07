@@ -1,0 +1,17 @@
+[About]
+Type=label
+Label=About
+Default=A plugin to render Nuke scripts
+Description=Not configurable
+
+
+[Nuke]
+Type=multilinemultifilename
+Label=Nuke Path
+Description=The path to the Nuke executable file used for rendering. Enter alternative paths on separate lines.
+Default=C:\Program Files\Nuke15.0v4\Nuke15.0.exe
+Required=True
+DisableIfBlank=True
+
+
+

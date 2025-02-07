@@ -7,7 +7,7 @@ Description=Not configurable
 
 [hbatch]
 Type=multilinemultifilename
-Label=Hython Path
+Label=Hbatch Path
 Description=The path to the hbatch executable file used for rendering. Enter alternative paths on separate lines.
 Default=C:\Program Files\Side Effects Software\Houdini 20.0.653\bin\hbatch.exe
 Required=True
