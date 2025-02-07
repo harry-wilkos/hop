@@ -151,6 +151,7 @@ def reload(node):
 
 def create_shot():
     node = nuke.createNode("Group")
+    node.knob("postage_stamp").setValue(True)
     node.setName("Shot")
 
     load = nuke.PyCustom_Knob(
