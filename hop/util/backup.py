@@ -14,30 +14,29 @@ def backup(
 ):
     collection = get_collection("backups", "files")
     ignore_paths = [
-        os.path.abspath(os.path.join(start_folder, ignore)) for ignore in ignore_folders
+        Path(start_folder) / ignore for ignore in ignore_folders
     ]
     for walk in os.walk(start_folder):
         folder = walk[0]
+        folder_parts = [part.lower() for part in Path(folder).parts]
+
         if any(
-            skip_string.lower() in [part.lower() for part in Path(folder).parts]
+            skip_string.lower() in folder_parts
             for skip_string in ignore_folder_names
         ):
             continue
-
         for file in walk[2]:
-            path = os.path.abspath(os.path.join(folder, file))
+            path = Path(folder) / file
             if any(
-                path.replace("\\", "\\\\") == ignore
-                or path.replace("\\", "\\\\").startswith(ignore)
+                path == ignore
+                or path.is_relative_to(ignore)
                 for ignore in ignore_paths
             ):
                 continue
-
             if any(file.lower().endswith(ext.lower()) for ext in ignore_file_types):
                 continue
-
-            file_time = datetime.fromtimestamp(os.stat(path).st_mtime).timestamp()
-            doc = collection.find_one({"path": path})
+            file_time = datetime.fromtimestamp(os.stat(str(path)).st_mtime).timestamp()
+            doc = collection.find_one({"path": str(path)})
             upload_file = True
             delete = False
             if doc is not None:
@@ -47,17 +46,17 @@ def backup(
                     upload_file = False
 
             if upload_file is True:
-                file_parts = list(Path(path.replace(start_folder, "")).parts)
+                file_parts = list(Path(str(path).replace(start_folder, "")).parts)
                 if file_parts[0] == os.sep:
                     file_parts.pop(0)
                 file_parts.insert(0, "backup")
                 if delete:
                     post("delete", {"location": file_parts})
-                post("upload", {"location": file_parts[:-1], "uuid": False}, path)
+                post("upload", {"location": file_parts[:-1], "uuid": False}, str(path))
 
                 if doc is None:
                     collection.insert_one({
-                        "path": path,
+                        "path": str(path),
                         "time": file_time,
                     })
                 else:
@@ -95,3 +94,4 @@ if __name__ == "__main__":
         ignore_folder_names=args.ignore_folder_names,
         ignore_file_types=args.ignore_file_types,
     )
+
