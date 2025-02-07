@@ -47,7 +47,7 @@ def reload(group=None):
             knob_class.clearAnimated()
             knob_class.setValue(knob_class.defaultValue())
         if stored_cam:
-            cam.knob("file").setValue(stored_cam)
+            cam.knob("file").setValue(stored_cam).replace("\\", "/")
             cam.knob("reload").execute()
             shift.setValue(offset)
 
@@ -70,7 +70,7 @@ def create_camera():
     shot = group.input(0)
     stored_cam = (
         str(store_id.value())
-        if (store_id := shot.knob("cam") if shot else False)
+        if (store_id := shot.knob("cam").replace("\\", "/") if shot else False)
         else ""
     )
 
@@ -88,7 +88,7 @@ def create_camera():
         cam.knob("frame_rate").setValue(int(os.environ["FPS"]))
         cam.knob("use_frame_rate").setValue(True)
         cam.knob("suppress_dialog").setValue(True)
-        cam.knob("file").setValue(stored_cam)
+        cam.knob("file").setValue(stored_cam).replace("\\", "/")
         cam.knob("read_from_file").setValue(True)
         cam.setInput(0, axis)
         cam.hideControlPanel()
