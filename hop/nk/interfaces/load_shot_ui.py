@@ -121,7 +121,7 @@ class ShotLoadUI(QDialog):
                     last = 1001 + shot_data["end_frame"] - shot_data["start_frame"] + shot_data["padding"]
 
                     read.knob("offset").setValue(
-                        shot_data["start_frame"] - first - shot_data["padding"]
+                        shot_data["start_frame"] - first
                     )
                     read.knob("frame").setValue("frame - offset")
 
