@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from datetime import datetime
 from hop.util.api_helpers import post
+import logging
 
 
 def backup(
@@ -11,29 +12,33 @@ def backup(
     ignore_folders: list = [],
     ignore_folder_names: list = [],
     ignore_file_types: list = [],
+    verbose: bool = False,
 ):
     collection = get_collection("backups", "files")
-    ignore_paths = [
-        Path(start_folder) / ignore for ignore in ignore_folders
-    ]
+    if verbose:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(levelname)s - %(message)s",
+        )
+    ignore_paths = [Path(start_folder) / ignore for ignore in ignore_folders]
     for walk in os.walk(start_folder):
         folder = walk[0]
         folder_parts = [part.lower() for part in Path(folder).parts]
 
         if any(
-            skip_string.lower() in folder_parts
-            for skip_string in ignore_folder_names
+            skip_string.lower() in folder_parts for skip_string in ignore_folder_names
         ):
+            logging.debug(f"Skipping {folder}: Ignored folder name") if verbose else None
             continue
         for file in walk[2]:
             path = Path(folder) / file
             if any(
-                path == ignore
-                or path.is_relative_to(ignore)
-                for ignore in ignore_paths
+                path == ignore or path.is_relative_to(ignore) for ignore in ignore_paths
             ):
+                logging.debug(f"Skipping {str(path)}: Ignored path") if verbose else None
                 continue
             if any(file.lower().endswith(ext.lower()) for ext in ignore_file_types):
+                logging.debug(f"Skipping {str(path)}: Ignored file type") if verbose else None
                 continue
             file_time = datetime.fromtimestamp(os.stat(str(path)).st_mtime).timestamp()
             doc = collection.find_one({"path": str(path)})
@@ -51,8 +56,10 @@ def backup(
                     file_parts.pop(0)
                 file_parts.insert(0, "backup")
                 if delete:
+                    logging.info(f"Deleting {str(path)}") if verbose else None
                     post("delete", {"location": file_parts})
                 post("upload", {"location": file_parts[:-1], "uuid": False}, str(path))
+                logging.info(f"Uploading {str(path)}") if verbose else None
 
                 if doc is None:
                     collection.insert_one({
@@ -60,7 +67,9 @@ def backup(
                         "time": file_time,
                     })
                 else:
-                    collection.update_one({"path": str(path)}, {"$set": {"time": file_time}})
+                    collection.update_one(
+                        {"path": str(path)}, {"$set": {"time": file_time}}
+                    )
 
 
 if __name__ == "__main__":
@@ -86,13 +95,17 @@ if __name__ == "__main__":
         default=[],
         help="List of file extensions to ignore (e.g., '.tmp', '.log').",
     )
-
+    parser.add_argument(
+        "--verbose",
+        nargs=1,
+        default=False,
+        help="Whether to print information to stdout",
+    )
     args = parser.parse_args()
     backup(
         start_folder=args.start_folder,
         ignore_folders=args.ignore_folders,
         ignore_folder_names=args.ignore_folder_names,
         ignore_file_types=args.ignore_file_types,
+        verbose=args.verbose,
     )
-
-
