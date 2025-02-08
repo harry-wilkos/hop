@@ -40,7 +40,7 @@ class RenderLoadUI(QDialog):
             )
             else []
         )
-
+        self.node.knob("postage_stamp").setValue(False)
         self.make_version()
         self.make_holdouts()
         self.make_reload()
@@ -136,6 +136,7 @@ class RenderLoadUI(QDialog):
             read.knob("file").setValue(path)
             read.knob("first").setValue(int(nuke.Root().knob("first_frame").value()))
             read.knob("last").setValue(int(nuke.Root().knob("last_frame").value()))
+        self.node.knob("postage_stamp").setValue(True)
 
     def makeUI(self):
         return self

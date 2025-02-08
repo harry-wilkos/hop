@@ -154,11 +154,13 @@ class ShotLoadUI(QDialog):
                     reload_button = out.knob("reload")
                     if reload_button:
                         reload_button.execute()
+            self.node.knob("postage_stamp").setValue(True)
 
         else:
             self.node.knob("store_id").setValue(None)
             self.node.knob("label").setValue(None)
             self.node.knob("cam").setValue(None)
+            self.node.knob("postage_stamp").setValue(False)
 
             with self.node.begin():
                 read = nuke.toNode("Read1")
