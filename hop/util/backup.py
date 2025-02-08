@@ -50,6 +50,7 @@ def backup(
                 if doc["time"] < file_time:
                     delete = True
                 else:
+                    logger.debug(f"Skipping {str(path)}: No change")
                     upload_file = False
 
             if upload_file:
