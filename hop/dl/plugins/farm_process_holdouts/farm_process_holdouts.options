@@ -2,7 +2,7 @@
 Type=filename
 Label=EXR Files
 Description=The EXR files to composite
-Filter=HIP File (*.exr)
+Filter=EXR Files (*.exr)
 Required=True
 DisableIfBlank=True
 

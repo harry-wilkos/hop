@@ -60,7 +60,7 @@ def backup(
                         "time": file_time,
                     })
                 else:
-                    collection.update_one({"path": path}, {"$set": {"time": file_time}})
+                    collection.update_one({"path": str(path)}, {"$set": {"time": file_time}})
 
 
 if __name__ == "__main__":
