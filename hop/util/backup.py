@@ -14,12 +14,14 @@ def backup(
     ignore_file_types: list = [],
     verbose: bool = False,
 ):
+    logger = logging.getLogger("HOP Backup")
+    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(logging.Formatter("%(levelname)s - %(message)s"))
+    logger.addHandler(console_handler)
+    logging.getLogger().setLevel(logging.WARNING)
+
     collection = get_collection("backups", "files")
-    if verbose:
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(levelname)s - %(message)s",
-        )
     ignore_paths = [Path(start_folder) / ignore for ignore in ignore_folders]
     for walk in os.walk(start_folder):
         folder = walk[0]
@@ -28,17 +30,17 @@ def backup(
         if any(
             skip_string.lower() in folder_parts for skip_string in ignore_folder_names
         ):
-            logging.debug(f"Skipping {folder}: Ignored folder name") if verbose else None
+            logger.debug(f"Skipping {folder}: Ignored folder name")
             continue
         for file in walk[2]:
             path = Path(folder) / file
             if any(
                 path == ignore or path.is_relative_to(ignore) for ignore in ignore_paths
             ):
-                logging.debug(f"Skipping {str(path)}: Ignored path") if verbose else None
+                logger.debug(f"Skipping {str(path)}: Ignored path")
                 continue
             if any(file.lower().endswith(ext.lower()) for ext in ignore_file_types):
-                logging.debug(f"Skipping {str(path)}: Ignored file type") if verbose else None
+                logger.debug(f"Skipping {str(path)}: Ignored file type")
                 continue
             file_time = datetime.fromtimestamp(os.stat(str(path)).st_mtime).timestamp()
             doc = collection.find_one({"path": str(path)})
@@ -50,16 +52,16 @@ def backup(
                 else:
                     upload_file = False
 
-            if upload_file is True:
+            if upload_file:
                 file_parts = list(Path(str(path).replace(start_folder, "")).parts)
                 if file_parts[0] == os.sep:
                     file_parts.pop(0)
                 file_parts.insert(0, "backup")
                 if delete:
-                    logging.info(f"Deleting {str(path)}") if verbose else None
+                    logger.info(f"Deleting {str(path)}")
                     post("delete", {"location": file_parts})
+                logger.info(f"Uploading {str(path)}")
                 post("upload", {"location": file_parts[:-1], "uuid": False}, str(path))
-                logging.info(f"Uploading {str(path)}") if verbose else None
 
                 if doc is None:
                     collection.insert_one({
@@ -97,9 +99,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--verbose",
-        nargs=1,
-        default=False,
-        help="Whether to print information to stdout",
+        action="store_true",
+        help="Enable verbose output (prints debug information)",
     )
     args = parser.parse_args()
     backup(
