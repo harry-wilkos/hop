@@ -102,14 +102,19 @@ class ShotLoadUI(QDialog):
         self.node.addKnob(load)
 
     def handle_pressed(self, button):
+        self.node.knob("postage_stamp").setValue(False)
         if not button.isChecked():
             self.node.knob("store_id").setValue(str(button.id))
             shot_data = self.collection.find_one({"_id": button.id})
 
             if shot_data:
                 self.node.knob("label").setValue(str(shot_data["shot_number"]))
-                self.node.knob("start").setValue(shot_data["start_frame"] - shot_data["padding"])
-                self.node.knob("end").setValue(shot_data["end_frame"] + shot_data["padding"])
+                self.node.knob("start").setValue(
+                    shot_data["start_frame"] - shot_data["padding"]
+                )
+                self.node.knob("end").setValue(
+                    shot_data["end_frame"] + shot_data["padding"]
+                )
                 self.node.knob("cam").setValue(
                     shot_data["cam"].replace("$HOP", "[getenv HOP]").replace("\\", "/")
                 )
@@ -118,7 +123,12 @@ class ShotLoadUI(QDialog):
                     read = nuke.toNode("Read1")
 
                     first = 1001
-                    last = 1001 + shot_data["end_frame"] - shot_data["start_frame"] + (2 * shot_data["padding"])
+                    last = (
+                        1001
+                        + shot_data["end_frame"]
+                        - shot_data["start_frame"]
+                        + (2 * shot_data["padding"])
+                    )
 
                     read.knob("offset").setValue(
                         shot_data["start_frame"] - first - shot_data["padding"]
@@ -160,7 +170,6 @@ class ShotLoadUI(QDialog):
             self.node.knob("store_id").setValue(None)
             self.node.knob("label").setValue(None)
             self.node.knob("cam").setValue(None)
-            self.node.knob("postage_stamp").setValue(False)
 
             with self.node.begin():
                 read = nuke.toNode("Read1")

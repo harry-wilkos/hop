@@ -40,7 +40,6 @@ class RenderLoadUI(QDialog):
             )
             else []
         )
-        self.node.knob("postage_stamp").setValue(False)
         self.make_version()
         self.make_holdouts()
         self.make_reload()
@@ -111,6 +110,7 @@ class RenderLoadUI(QDialog):
         self.holdout_widget.setEnabled(True)
 
     def load(self, index):
+        self.node.knob("postage_stamp").setValue(False)        
         self.node.knob("holdout").setValue(index)
         r_pass = (
             r_pass
