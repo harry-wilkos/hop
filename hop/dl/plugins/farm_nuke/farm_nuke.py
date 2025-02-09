@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from Deadline.Plugins import DeadlinePlugin, PluginType
 import os
+from hop.dl import discord
 
 
 def GetDeadlinePlugin():
@@ -40,8 +41,15 @@ class Farm_Cache(DeadlinePlugin):
         node = self.GetPluginInfoEntry("node_path")
         if not file or not os.path.exists(file):
             if use_discord:
-                # send message to discord
-                pass
+                name = self.GetJob().JobName
+                discord(
+                    self,
+                    f":pouring_liquid: **{node}** in **{name}** failed rendering :pouring_liquid:",
+                )
+                discord(
+                    self,
+                    f":exclamation: Nuke file path is invalid or does not exist: {file} :exclamation:",
+                )
 
             self.FailRender(f"Nuke file path is invalid or does not exist: {file}")
         return f"-X {node} -F {start_frame} -V 2 --topdown {file}"
@@ -49,9 +57,16 @@ class Farm_Cache(DeadlinePlugin):
     def handle_error(self):
         if self.GetBooleanPluginInfoEntry("discord"):
             if not self.fail:
-                # Render failed message
+                name = self.GetJob().JobName
+                node = self.GetPluginInfoEntry("node_path")
+                discord(
+                    self,
+                    f":pouring_liquid: **{node}** in **{name}** failed rendering :pouring_liquid:",
+                )
                 self.fail = True
-            # Error message
+            discord(
+                self, f":exclamation: {self.GetRegexMatch(0).strip()} :exclamation:"
+            )
         self.FailRender("Detected an error: " + self.GetRegexMatch(0).strip())
 
     def clean_up(self):
