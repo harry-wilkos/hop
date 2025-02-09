@@ -27,7 +27,7 @@ def farm_render():
     discord = nuke.ask("Send job updates to the Discord?")
 
     batch = None
-    if len(write_nodes) > 1 or discord:
+    if len(write_nodes) > 1:
         batch = f"{job_name} ({''.join(random.choices(string.ascii_letters + string.digits, k=4))})"
 
     stored_args = []
