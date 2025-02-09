@@ -8,6 +8,7 @@ from tempfile import NamedTemporaryFile
 
 def farm_render():
     write_nodes = nuke.selectedNodes("Write")
+    [node.knob("create_directories").setValue(True) for node in write_nodes]
     root = nuke.root()
     if not write_nodes:
         return
@@ -31,9 +32,13 @@ def farm_render():
         batch = f"{job_name} ({''.join(random.choices(string.ascii_letters + string.digits, k=4))})"
 
     stored_args = []
-    start = nuke.Root().knob("first_frame").value()
-    end = nuke.Root().knob("last_frame").value()
+    start = int(nuke.Root().knob("first_frame").value())
+    end = int(nuke.Root().knob("last_frame").value())
     for node in write_nodes:
+        if bool(node.knob("use_limit").value()):
+            start = int(node.knob("first").value())
+            end = int(node.knob("last").value())
+
         path = node.name()
         job = create_job(
             job_name,

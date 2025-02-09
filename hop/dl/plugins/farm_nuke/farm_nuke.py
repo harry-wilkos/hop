@@ -23,6 +23,12 @@ class Farm_Cache(DeadlinePlugin):
         self.PluginType = PluginType.Simple
         self.StdoutHandling = True
         self.SingleFramesOnly = True
+        self.AddStdoutHandlerCallback(r"(\d+)%").HandleCallback += (
+            lambda: self.SetProgress(int(self.GetRegexMatch(1)))
+        )
+        self.AddStdoutHandlerCallback(
+            r"(?i)(?<=Error:)(.|\n)*"
+        ).HandleCallback += self.handle_error
 
     def get_executable(self):
         return self.GetConfigEntry("nuke")
@@ -38,7 +44,15 @@ class Farm_Cache(DeadlinePlugin):
                 pass
 
             self.FailRender(f"Nuke file path is invalid or does not exist: {file}")
-        return f"-x -t {file} -X {node} -F {start_frame} -V 2"
+        return f"-X {node} -F {start_frame} -V 2 --topdown {file}"
+
+    def handle_error(self):
+        if self.GetBooleanPluginInfoEntry("discord"):
+            if not self.fail:
+                # Render failed message
+                self.fail = True
+            # Error message
+        self.FailRender("Detected an error: " + self.GetRegexMatch(0).strip())
 
     def clean_up(self):
         handlers = [
