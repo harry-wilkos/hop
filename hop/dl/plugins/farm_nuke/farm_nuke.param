@@ -5,7 +5,7 @@ Default=A plugin to render Nuke scripts
 Description=Not configurable
 
 
-[Nuke]
+[nuke]
 Type=multilinemultifilename
 Label=Nuke Path
 Description=The path to the Nuke executable file used for rendering. Enter alternative paths on separate lines.
