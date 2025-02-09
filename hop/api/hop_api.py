@@ -10,6 +10,8 @@ import aiohttp
 from discord import Webhook
 import logging
 
+logging.basicConfig(level=logging.INFO)
+
 
 def upload_file(uploaded_file: UploadFile, location: list, uuid: bool):
     if uuid is True:
@@ -21,7 +23,7 @@ def upload_file(uploaded_file: UploadFile, location: list, uuid: bool):
     for i in location + [file_name]:
         save_path = os.path.join(save_path, i)
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    
+
     logging.info(f"Writing {save_path}")
     with open(save_path, "w+b") as file:
         shutil.copyfileobj(uploaded_file.file, file)
@@ -66,7 +68,7 @@ async def upload(request: Request, file: UploadFile):
     location_str = form.get("location")
     uuid_str = form.get("uuid")
     if type(location_str) is not str or type(uuid_str) is not str:
-        return 
+        return
     location = list(json.loads(location_str))
     uuid = bool(json.loads(uuid_str))
     return os.environ["API_ADDRESS"] + upload_file(file, location, uuid)
