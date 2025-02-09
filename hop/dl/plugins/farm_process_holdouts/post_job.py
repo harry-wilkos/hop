@@ -40,5 +40,5 @@ def __main__(*args):
     if error:
         deadlinePlugin.LogWarning(f"Subprocess Error: {error}")
 
-    discord(deadlinePlugin, f":eyes: {job.JobName} preview :eyes:", mp4)
+    discord(deadlinePlugin, f":eyes: **{job.JobName}** preview :eyes:", mp4)
 

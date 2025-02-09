@@ -1,6 +1,5 @@
 import os
 import subprocess
-from glob import glob
 from pathlib import Path
 from hop.dl.util import discord
 import string
@@ -20,7 +19,7 @@ def __main__(*args):
     output_dir = deadlinePlugin.GetPluginInfoEntry("output")
 
     mp4 = str(
-        Path(job.GetJobEnvironmentKeyValue("HOP_TEMP"))
+        Path(env["HOP_TEMP"])
         / f"{''.join(random.choices(string.ascii_letters + string.digits, k=4))}.mp4"
     )
     cmd = [
@@ -28,7 +27,7 @@ def __main__(*args):
         "-framerate",
         env["FPS"],
         "-start_number",
-        job.JobFramesList[0],
+        str(job.JobFramesList[0]),
         "-i",
         output_dir.replace("####", "%04d"),
         "-c:v",
@@ -48,4 +47,4 @@ def __main__(*args):
 
     node = deadlinePlugin.GetPluginInfoEntry("node_path")
     discord(deadlinePlugin, f":tada: **{node}** in **{name}** finished caching :tada:")
-    discord(deadlinePlugin, f":eyes: {name} preview :eyes:", mp4)
+    discord(deadlinePlugin, f":eyes: **{name}** preview :eyes:", mp4.replace("\\", "/"))
