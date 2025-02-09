@@ -8,7 +8,6 @@ from tempfile import NamedTemporaryFile
 
 def farm_render():
     write_nodes = nuke.selectedNodes("Write")
-    [node.knob("create_directories").setValue(True) for node in write_nodes]
     root = nuke.root()
     if not write_nodes:
         return
@@ -38,6 +37,7 @@ def farm_render():
         if bool(node.knob("use_limit").value()):
             start = int(node.knob("first").value())
             end = int(node.knob("last").value())
+        output = node.knob("file").value()
 
         path = node.name()
         job = create_job(
@@ -50,7 +50,7 @@ def farm_render():
             "farm_nuke",
             "main",
             batch,
-            discord,
+            True,
             discord,
         )
         plugin = NamedTemporaryFile(
@@ -59,6 +59,7 @@ def farm_render():
         plugin.write(f"nk_file={root.name()}\n")
         plugin.write(f"node_path={path}\n")
         plugin.write(f"discord={discord}\n")
+        plugin.write(f"output={output}\n")
         plugin.close()
         if not batch:
             deadline_return = submit_decode(str(call_deadline([job, plugin.name])))

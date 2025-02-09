@@ -20,4 +20,10 @@ Description=Whether to send farm errors to discord
 Default=False
 Required=True
 
+[output]
+Type=filename
+Label=Output location
+Description=The location that frames will be rendered to
+Required=True
+DisableIfBlank=True
 
