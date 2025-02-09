@@ -10,8 +10,6 @@ import aiohttp
 from discord import Webhook
 import logging
 
-logging.basicConfig(level=logging.INFO)
-
 
 def upload_file(uploaded_file: UploadFile, location: list, uuid: bool):
     if uuid is True:
@@ -24,7 +22,7 @@ def upload_file(uploaded_file: UploadFile, location: list, uuid: bool):
         save_path = os.path.join(save_path, i)
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
 
-    logging.info(f"Writing {save_path}")
+    logging.info(f"Writing -> {save_path}")
     with open(save_path, "w+b") as file:
         shutil.copyfileobj(uploaded_file.file, file)
     return save_path
@@ -55,7 +53,7 @@ async def send(request: Request, file: UploadFile | None = None):
             session=session,
         )
         await webhook.send(message)
-        logging.info(f"Posting to Discord: {message}")
+        logging.info(f"Posting to Discord -> {message}")
         if file_location:
             await webhook.send(file_location)
 
@@ -85,12 +83,13 @@ async def delete(request: Request):
     for i in file[1:]:
         delete_path = os.path.join(delete_path, i)
     if os.path.exists(delete_path):
-        logging.info(f"Removing: {delete_path}")
+        logging.info(f"Removing -> {delete_path}")
         os.remove(delete_path)
     return file
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     uvicorn.run(
         f"{__name__}:app",
         host="0.0.0.0",
