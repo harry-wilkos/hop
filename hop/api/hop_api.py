@@ -10,6 +10,11 @@ import aiohttp
 from discord import Webhook
 import logging
 
+logging.basicConfig(level=logging.INFO)
+app = FastAPI()
+os.makedirs("static_files", exist_ok=True)
+app.mount("/static_files", StaticFiles(directory="static_files"), name="static_files")
+
 
 def upload_file(uploaded_file: UploadFile, location: list, uuid: bool):
     if uuid is True:
@@ -26,11 +31,6 @@ def upload_file(uploaded_file: UploadFile, location: list, uuid: bool):
     with open(save_path, "w+b") as file:
         shutil.copyfileobj(uploaded_file.file, file)
     return save_path
-
-
-app = FastAPI()
-os.makedirs("static_files", exist_ok=True)
-app.mount("/static_files", StaticFiles(directory="static_files"), name="static_files")
 
 
 @app.post("/discord")
@@ -89,7 +89,6 @@ async def delete(request: Request):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
     uvicorn.run(
         f"{__name__}:app",
         host="0.0.0.0",
