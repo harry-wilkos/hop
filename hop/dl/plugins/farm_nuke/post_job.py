@@ -33,7 +33,7 @@ def __main__(*args):
         "-vf",
         "scale=-1:720",
         "format=yuv420p",
-        "-c:v"
+        "-c:v",
         "libx264",
         mp4,
     ]
