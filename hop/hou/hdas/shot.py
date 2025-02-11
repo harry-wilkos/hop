@@ -16,8 +16,8 @@ def load_frame_range(uievent) -> None:
         padding = node.evalParm("padding")
         start = node.evalParm("frame_rangex") - padding
         end = node.evalParm("frame_rangey") + padding
-        hou.playbar.setFrameRange(start, end)
-        hou.playbar.setPlaybackRange(start, end)
+        hou.playbar.setFrameRange(1001, 1001 + (end - start))
+        hou.playbar.setPlaybackRange(1001, 1001 + (end - start))
     return
 
 
@@ -47,7 +47,7 @@ def load(kwargs: dict) -> None:
         for parm in node.parms():
             try:
                 if parm.name() not in ["loaded_shot", "shot_backend"]:
-                        parm.revertToDefaults()
+                    parm.revertToDefaults()
             except hou.ObjectWasDeleted:
                 continue
     padding = node.evalParm("padding")
@@ -55,7 +55,7 @@ def load(kwargs: dict) -> None:
     end = node.evalParm("frame_rangey") + padding
     finish = end - start
     hou.playbar.setFrameRange(1001, 1001 + finish)
-    hou.playbar.setPlaybackRange(1001 , 1001 + finish)
+    hou.playbar.setPlaybackRange(1001, 1001 + finish)
 
 
 def publish(kwargs: dict) -> None:

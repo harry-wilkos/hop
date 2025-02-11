@@ -10,7 +10,7 @@ def shift(start_folder: str, pattern: str, start: int):
         files = sorted(glob(str(folder / pattern)))
         if files:
             temp_names = [
-                f"tmp_{folder / pattern.replace("*", str(i))}" for i in range(len(files))
+                folder / f"tmp_{pattern.replace('*', str(i))}" for i in range(len(files))
             ]
 
             for temp_name, back_plate in zip(temp_names, files):
@@ -39,4 +39,6 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-    shift(args.start_folder, args.patthern, args.start)
+    shift(args.start_folder, args.pattern, args.start)
+
+
