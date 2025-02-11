@@ -31,8 +31,7 @@ def __main__(*args):
         "-i",
         output_dir.replace("####", "%04d"),
         "-vf",
-        "scale=-1:720",
-        "format=yuv420p",
+        "scale=-1:720,format=yuv420p",
         "-c:v",
         "libx264",
         mp4,
@@ -47,5 +46,8 @@ def __main__(*args):
         deadlinePlugin.LogWarning(f"Subprocess Error: {error}")
 
     node = deadlinePlugin.GetPluginInfoEntry("node_path")
-    discord(deadlinePlugin, f":tada: **{node}** in **{name}** finished rendering :tada:")
+    discord(
+        deadlinePlugin, f":tada: **{node}** in **{name}** finished rendering :tada:"
+    )
     discord(deadlinePlugin, f":eyes: **{name}** preview :eyes:", mp4.replace("\\", "/"))
+
