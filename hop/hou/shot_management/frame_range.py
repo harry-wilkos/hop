@@ -193,30 +193,28 @@ def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
 
     if shot.shot_data["back_plate"]:
         back_plates = shot.shot_data["back_plate"].replace("$HOP", os.environ["HOP"])
-        print(back_plates)
         pngs = sorted(glob(back_plates.replace("$F", "*")))
-        print(len(pngs))
         if len(pngs) < (end_frame - start_frame) + (2 * shot.shot_data["padding"]):
             error_dialog(
                 "Update Frame Range",
                 "Not enough frames in plate for given frame range and padding",
             )
             return False
-        back_plate_dir = os.path.dirname(pngs[0])
-        temp_names = [
-            os.path.join(back_plate_dir, f"temp_bp.{i:04d}.png")
-            for i in range(len(pngs))
-        ]
+        # back_plate_dir = os.path.dirname(pngs[0])
+        # temp_names = [
+        #     os.path.join(back_plate_dir, f"temp_bp.{i:04d}.png")
+        #     for i in range(len(pngs))
+        # ]
 
-        for temp_name, back_plate in zip(temp_names, pngs):
-            os.rename(back_plate, temp_name)
+        # for temp_name, back_plate in zip(temp_names, pngs):
+        #     os.rename(back_plate, temp_name)
 
-        for count, temp_name in enumerate(temp_names):
-            new_name = os.path.join(
-                back_plate_dir,
-                f"bp.{start_frame - shot.shot_data['padding'] + count:04d}.png",
-            )
-            os.rename(temp_name, new_name)
+        # for count, temp_name in enumerate(temp_names):
+        #     new_name = os.path.join(
+        #         back_plate_dir,
+        #         f"bp.{start_frame - shot.shot_data['padding'] + count:04d}.png",
+        #     )
+        #     os.rename(temp_name, new_name)
 
 
 

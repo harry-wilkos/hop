@@ -32,7 +32,7 @@ def generate_back_plate(progress, shot: "Shot") -> bool:
         "back_plate",
     )
     os.makedirs(back_plate_path, exist_ok=True)
-    frame = shot.shot_data["start_frame"] - shot.shot_data["padding"]
+    frame = 1001
     for count, exr in enumerate(exrs):
         output = os.path.join(back_plate_path, f"bp.{(frame + count):04d}.png")
         if os.path.exists(output):
@@ -64,18 +64,18 @@ def update_padding(shot: "Shot", padding: int):
                         "Not enough frames in plate for given frame range",
                     )
                     return False
-            if shot.shot_data["back_plate"]:
-                back_plates = shot.shot_data["back_plate"].replace(
-                    "$HOP", os.environ["HOP"]
-                )
-                pngs = sorted(glob(back_plates.replace("$F", "*")))
-                back_plate_dir = os.path.dirname(pngs[0])
-                for count, back_plate in enumerate(pngs):
-                    new_name = os.path.join(
-                        back_plate_dir,
-                        f"bp.{shot.shot_data['start_frame'] - padding + count:04d}.png",
-                    )
-                    os.rename(back_plate, new_name)
+            # if shot.shot_data["back_plate"]:
+            #     back_plates = shot.shot_data["back_plate"].replace(
+            #         "$HOP", os.environ["HOP"]
+            #     )
+            #     pngs = sorted(glob(back_plates.replace("$F", "*")))
+            #     back_plate_dir = os.path.dirname(pngs[0])
+            #     for count, back_plate in enumerate(pngs):
+            #         new_name = os.path.join(
+            #             back_plate_dir,
+            #             f"bp.{shot.shot_data['start_frame'] - padding + count:04d}.png",
+            #         )
+            #         os.rename(back_plate, new_name)
 
         if shot.shot_data["cam"] and not shot.cam_checked:
             cam_file = expand_path(shot.shot_data["cam"])

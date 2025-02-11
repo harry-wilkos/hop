@@ -37,7 +37,7 @@ def load(kwargs: dict) -> None:
     if shot:
         shot["frame_rangex"] = shot["start_frame"]
         shot["frame_rangey"] = shot["end_frame"]
-        hou.setFrame(shot["start_frame"])
+        hou.setFrame(1001)
         node.parm("render_version").set(len(shot["render_versions"]) + 1)
         for key, value in shot.items():
             parm = node.parm(key)
@@ -53,8 +53,9 @@ def load(kwargs: dict) -> None:
     padding = node.evalParm("padding")
     start = node.evalParm("frame_rangex") - padding
     end = node.evalParm("frame_rangey") + padding
-    hou.playbar.setFrameRange(start, end)
-    hou.playbar.setPlaybackRange(start, end)
+    finish = end - start
+    hou.playbar.setFrameRange(1001, 1001 + finish)
+    hou.playbar.setPlaybackRange(1001 , 1001 + finish)
 
 
 def publish(kwargs: dict) -> None:
