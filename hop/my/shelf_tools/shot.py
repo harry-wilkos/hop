@@ -72,7 +72,7 @@ def handle_change():
                     )
                     if result == 0:
                         create_shot(shot)
-                        shift_keyframes(shot["start_frame"] - start_frame)
+                        # shift_keyframes(shot["start_frame"] - start_frame)
 
                     elif result == 1:
                         create_shot(find_shot(collection, start_frame, end_frame))
@@ -87,27 +87,27 @@ def handle_change():
                             "",
                             type="string",
                         )
-                        children = get_children(
-                            cmds.getAttr("defaultRenderGlobals.shotPath")
-                        )
-                        cmds.setAttr(
-                            f"{children[-1]}.frameOffset",
-                            shot["start_frame"] - start_frame,
-                        )
+                        # children = get_children(
+                        #     cmds.getAttr("defaultRenderGlobals.shotPath")
+                        # )
+                        # cmds.setAttr(
+                        #     f"{children[-1]}.frameOffset",
+                        #     shot["start_frame"] - start_frame,
+                        # )
 
-                        for connection in cmds.listConnections(children[1]) or []:
-                            if "AlembicNode" in connection:
-                                cmds.setAttr(
-                                    f"{connection}.offset",
-                                    shot["start_frame"] - start_frame,
-                                )
-                                break
+                        # for connection in cmds.listConnections(children[1]) or []:
+                        #     if "AlembicNode" in connection:
+                        #         cmds.setAttr(
+                        #             f"{connection}.offset",
+                        #             shot["start_frame"] - start_frame,
+                        #         )
+                        #         break
 
                         cmds.setAttr("defaultRenderGlobals.offPipe", 1)
 
                 elif start_frame != shot["start_frame"]:
                     create_shot(shot)
-                    shift_keyframes(shot["start_frame"] - start_frame)
+                    # shift_keyframes(shot["start_frame"] - start_frame)
 
 
 def create_shot(shot: dict | None = None):
@@ -140,8 +140,10 @@ def create_shot(shot: dict | None = None):
 
         if not shot:
             return
-        start = shot["start_frame"] - shot["padding"]
-        end = shot["end_frame"] + shot["padding"]
+        start_ = shot["start_frame"] - shot["padding"]
+        end_ = shot["end_frame"] + shot["padding"]
+        start = 1001
+        end = 1001 + (end_ - start_)
         cmds.currentTime(start)
         cmds.playbackOptions(
             minTime=start,
@@ -162,14 +164,12 @@ def create_shot(shot: dict | None = None):
             cam_file_path = os.path.expandvars(shot["cam"])
             if not cmds.pluginInfo("AbcImport", query=True, loaded=True):
                 cmds.loadPlugin("AbcImport")
-            store_a_cam = cmds.AbcImport(
-                cam_file_path, mode="import", filterObjects=shot["cam_path"]
-            )
+            cmds.AbcImport(cam_file_path, mode="import", filterObjects=shot["cam_path"])
             [
                 cmds.AbcImport(cam_file_path, mode="import", filterObjects=geo)
                 for geo in shot["geo_paths"]
             ]
-            store_a_cam = cmds.setAttr(f"{store_a_cam}.offset", start - 1001)
+            # store_a_cam = cmds.setAttr(f"{store_a_cam}.offset", start - 1001)
             cam_path = shot["cam_path"].split("/")
             maya_cam_path = shot["cam_path"].replace("/", "|")
             geo_path = [geo.replace("/", "|") for geo in shot["geo_paths"]]
