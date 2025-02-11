@@ -14,7 +14,7 @@ def post(method: str, data: dict, file_path: str | None = None):
     if not file_path:
         resp = requests.post(url, data=data)
     else:
-        with open(file_path, "rb") as file:
+        with open(os.path.normpath(file_path), "rb") as file:
             files = {"file": (file.name, file, "application/octet-stream")}
             resp = requests.post(
                 url,
