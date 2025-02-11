@@ -77,4 +77,5 @@ def reload(filename=None):
         elif value == "camera":
             cam_reload(node)
         node.setSelected(True)
+    print("reloaded")
     return filename

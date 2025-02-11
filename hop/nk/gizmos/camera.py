@@ -24,8 +24,8 @@ def reload(group=None):
     with group.begin():
         cam = nuke.toNode("Camera1")
         cam.knob("file").setValue(os.environ["HOP"].replace("\\", "/"))
-        shift = nuke.toNode("TimeOffset1").knob("time_offset")
-        shift.setValue(0)
+        # shift = nuke.toNode("TimeOffset1").knob("time_offset")
+        # shift.setValue(0)
         for knob in (
             "translate",
             "rotate",
@@ -49,7 +49,7 @@ def reload(group=None):
         if stored_cam:
             cam.knob("file").setValue(stored_cam)
             cam.knob("reload").execute()
-            shift.setValue(offset)
+            # shift.setValue(offset)
 
 
 def create_camera():
@@ -93,12 +93,13 @@ def create_camera():
         cam.setInput(0, axis)
         cam.hideControlPanel()
 
-        offset = nuke.createNode("TimeOffset")
-        offset.setInput(0, cam)
-        offset.hideControlPanel()
+        # offset = nuke.createNode("TimeOffset")
+        # offset.setInput(0, cam)
+        # offset.hideControlPanel()
 
         out = nuke.createNode("Output")
-        out.setInput(0, offset)
+        # out.setInput(0, offset)
+        out.setInput(0, cam)        
         out.hideControlPanel()
 
         input = nuke.createNode("Input")

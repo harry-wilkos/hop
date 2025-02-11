@@ -120,7 +120,7 @@ def reload(node):
                 ],
             )
             if result == 0:
-                shift_keyframes(shot_data["start_frame"] - start)
+                # shift_keyframes(shot_data["start_frame"] - start)
                 node.knob("start").setValue(shot_data["start_frame"])
                 node.knob("end").setValue(shot_data["end_frame"])
 
@@ -132,7 +132,7 @@ def reload(node):
                 node.knob("off_pipe").setValue(True)
 
         elif start != shot_data["start_frame"]:
-            shift_keyframes(shot_data["start_frame"] - start)
+            # shift_keyframes(shot_data["start_frame"] - start)
             node.knob("start").setValue(shot_data["start_frame"])
             node.knob("end").setValue(shot_data["end_frame"])
 

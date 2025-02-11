@@ -130,9 +130,9 @@ class ShotLoadUI(QDialog):
                         + (2 * shot_data["padding"])
                     )
 
-                    read.knob("offset").setValue(
-                        shot_data["start_frame"] - first - shot_data["padding"]
-                    )
+                    # read.knob("offset").setValue(
+                    #     shot_data["start_frame"] - first - shot_data["padding"]
+                    # )
                     read.knob("frame").setValue("frame - offset")
 
                     read.knob("first").setValue(first)
@@ -154,10 +154,12 @@ class ShotLoadUI(QDialog):
                     )
 
                     nuke.Root().knob("first_frame").setValue(
-                        shot_data["start_frame"] - shot_data["padding"]
+                        # shot_data["start_frame"] - shot_data["padding"]
+                        first
                     )
                     nuke.Root().knob("last_frame").setValue(
-                        shot_data["end_frame"] + shot_data["padding"]
+                        # shot_data["end_frame"] + shot_data["padding"]
+                        last
                     )
                 dependents = self.node.dependent()
                 for out in dependents:
