@@ -56,7 +56,7 @@ def create_camera():
     group = nuke.createNode("Group")
 
     scale = nuke.Double_Knob("scale", "Scale")
-    scale.setValue(0.01)
+    scale.setValue(1)
     group.addKnob(scale)
 
     group.setName("Shot Cam")

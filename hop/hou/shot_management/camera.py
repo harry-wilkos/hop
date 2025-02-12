@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING
 from hop.hou.util import expand_path, confirmation_dialog, error_dialog, alembic_helpers
 import os
+import random
+import string
 
 if TYPE_CHECKING:
     from hop.hou.shot_management import Shot
@@ -31,7 +33,7 @@ def update_camera(shot: "Shot", cam: str) -> bool:
             return False
         shot.cam_checked = True
 
-    ripped_cam_path = ["shots", "active_shots", str(shot.shot_data["_id"]), "camera"]
+    ripped_cam_path = ["shots", "active_shots", str(shot.shot_data["_id"]), ''.join(random.choices(string.ascii_letters + string.digits, k=4))]
     shot.shot_data["cam_path"] = alembic_helpers.find_cam_paths(cam_file)[0]
     shot.shot_data["geo_paths"] = alembic_helpers.find_geo_paths(cam_file)
     shot.shot_data["cam"] = f"{os.path.join('$HOP', *ripped_cam_path)}.abc"
