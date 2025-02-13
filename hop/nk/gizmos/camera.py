@@ -49,10 +49,12 @@ def reload(group=None):
             knob_class.clearAnimated()
             knob_class.setValue(knob_class.defaultValue())
         if stored_cam:
+            cam.showControlPanel()
             cam.knob("read_from_file").setValue(True)
             cam.knob("file").setValue(stored_cam)
             cam.knob("reload").execute()
-            cam.knob("read_from_file").setValue(False)            
+            cam.knob("read_from_file").setValue(False)
+            cam.hideControlPanel()
             # shift.setValue(offset)
 
 
