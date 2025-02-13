@@ -39,6 +39,12 @@ class Farm_Cache(DeadlinePlugin):
         file = self.GetPluginInfoEntry("nk_file")
         use_discord = self.GetBooleanPluginInfoEntry("discord")
         node = self.GetPluginInfoEntry("node_path")
+        remap = "{},{}".format(
+            self.GetProcessEnvironmentVariable("TWELVEFOLD_ROOT"),
+            self.GetProcessEnvironmentVariable("TWELVEFOLD_ROOT_MOUNT").replace(
+                "\\", "/"
+            ),
+        )
         if not file or not os.path.exists(file):
             if use_discord:
                 name = self.GetJob().JobName
@@ -52,7 +58,7 @@ class Farm_Cache(DeadlinePlugin):
                 )
 
             self.FailRender(f"Nuke file path is invalid or does not exist: {file}")
-        return f"-X {node} -F {start_frame} -V 2 --topdown {file}"
+        return f"-X {node} -F {start_frame} -V 2 --topdown --remap {remap} {file}"
 
     def handle_error(self):
         if self.GetBooleanPluginInfoEntry("discord"):
