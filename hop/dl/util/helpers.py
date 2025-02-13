@@ -70,7 +70,6 @@ def create_job(
 
     for var in set_env([
         "TWELVEFOLD_ROOT",
-        "TWELVEFOLD_ROOT_MOUNT",
         "PYTHON",
         "PYTHONPATH",
         "NUKE_PATH",

@@ -23,7 +23,9 @@ def reload(group=None):
             offset = nuke.toNode("Read1").knob("offset").value()
     with group.begin():
         cam = nuke.toNode("Camera1")
-        cam.knob("file").setValue(os.environ["HOP"].replace("\\", "/"))
+        # cam.knob("read_from_file").setValue(True)                
+        # cam.knob("file").setValue(os.environ["HOP"].replace("\\", "/"))
+        # cam.knob("read_from_file").setValue(False)                 
         # shift = nuke.toNode("TimeOffset1").knob("time_offset")
         # shift.setValue(0)
         for knob in (
@@ -47,8 +49,10 @@ def reload(group=None):
             knob_class.clearAnimated()
             knob_class.setValue(knob_class.defaultValue())
         if stored_cam:
+            cam.knob("read_from_file").setValue(True)
             cam.knob("file").setValue(stored_cam)
             cam.knob("reload").execute()
+            cam.knob("read_from_file").setValue(False)            
             # shift.setValue(offset)
 
 
@@ -89,7 +93,7 @@ def create_camera():
         cam.knob("use_frame_rate").setValue(True)
         cam.knob("suppress_dialog").setValue(True)
         cam.knob("file").setValue(stored_cam)
-        cam.knob("read_from_file").setValue(True)
+        # cam.knob("read_from_file").setValue(True)
         cam.setInput(0, axis)
         cam.hideControlPanel()
 
