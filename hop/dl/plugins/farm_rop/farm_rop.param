@@ -12,3 +12,12 @@ Description=The path to the husk executable file used for rendering. Enter alter
 Default=C:\Program Files\Side Effects Software\Houdini 20.0.653\bin\husk.exe
 Required=True
 DisableIfBlank=True
+
+[hython]
+Type=multilinemultifilename
+Label=Hython Path
+Description=The path to the hython executable file used for caching. Enter alternative paths on separate lines.
+Default=C:\Program Files\Side Effects Software\Houdini 20.0.653\bin\hython.exe
+Required=True
+DisableIfBlank=True
+

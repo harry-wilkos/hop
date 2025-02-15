@@ -41,10 +41,10 @@ class Farm_Cache(DeadlinePlugin):
             if self.GetBooleanPluginInfoEntry("discord"):
                 job = self.GetJob()
                 shot = job.JobName
-                holdout = job.JobComment
+                node = job.JobComment
                 discord(
                     self,
-                    f":boom: **{holdout}** for **{shot}** failed rendering :boom:",
+                    f":red_circle: **{node}** in **{shot}** failed rendering :red_circle:",
                 )
                 discord(
                     self,
@@ -56,12 +56,12 @@ class Farm_Cache(DeadlinePlugin):
     def handle_error(self):
         job = self.GetJob()
         shot = job.JobName
-        holdout = job.JobComment
+        node = job.JobComment
         if self.GetBooleanPluginInfoEntry("discord"):
             if not self.fail:
                 discord(
                     self,
-                    f":boom: **{holdout}** for **{shot}** failed rendering :boom:",
+                    f":red_circle: **{node}** in **{shot}** failed rendering :red_circle:",
                 )
                 self.fail = True
             discord(

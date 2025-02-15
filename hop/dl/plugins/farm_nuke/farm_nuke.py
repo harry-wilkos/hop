@@ -31,6 +31,10 @@ class Farm_Cache(DeadlinePlugin):
             r"(?i)(?<=Error:)(.|\n)*"
         ).HandleCallback += self.handle_error
 
+        self.AddStdoutHandlerCallback(
+            r"(You must specify a proxy file name to write to)"
+        ).HandleCallback += self.handle_error
+
     def get_executable(self):
         return self.GetConfigEntry("nuke")
 
