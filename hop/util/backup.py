@@ -15,10 +15,11 @@ def backup(
     verbose: bool = False,
 ):
     logger = logging.getLogger("HOP Backup")
-    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
-    console_handler = logging.StreamHandler()
-    console_handler.setFormatter(logging.Formatter("%(levelname)s - %(message)s"))
-    logger.addHandler(console_handler)
+    if not logger.handlers:
+        logger.setLevel(logging.DEBUG if verbose else logging.INFO)
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(logging.Formatter("%(levelname)s - %(message)s"))
+        logger.addHandler(console_handler)
     logging.getLogger().setLevel(logging.WARNING)
 
     collection = get_collection("backups", "files")

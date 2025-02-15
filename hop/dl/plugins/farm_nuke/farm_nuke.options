@@ -27,3 +27,10 @@ Description=The location that frames will be rendered to
 Required=True
 DisableIfBlank=True
 
+[proxy]
+Type=boolean
+Label=Toggle proxy rendering
+Description=Whether to allow proxy rendering
+Default=False
+Required=True
+

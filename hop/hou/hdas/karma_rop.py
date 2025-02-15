@@ -1,6 +1,8 @@
 import os
 from hop.hou.util.usd_helpers import compare_scene
-from time import sleep
+from hop.util import post
+from hop.dl import create_job, call_deadline, submit_decode, file_name
+import hou
 
 
 def find_aovs(kwargs: dict):
@@ -54,16 +56,42 @@ def export(kwargs: dict):
 
 def local_render(kwargs: dict):
     node = kwargs["node"]
+    node.parm("rendering").set(True)
     node.parm("targettopnetwork").set("Local_Render")
     export(kwargs)
+    discord = node.evalParm("discord")
+    if discord:
+        file = file_name(hou.hipFile.path())
+        post(
+            "discord",
+            {
+                "message": f":green_circle: **{node.path()}** in **{file}** started rendering :green_circle:"
+            },
+        )
     node.parm("dirty").pressButton()
     node.parm("cook").pressButton()
 
+def farm_render(kwargs:dict):
+    pass
 
-def clear_cache(kwargs: dict):
+def cancel(kwargs):
     node = kwargs["node"]
     node.parm("cancel").pressButton()
     node.parm("targettopnetwork").set("")
+    if node.evalParm("discord") and node.evalParm("rendering"):
+        file = file_name(hou.hipFile.path())
+        post(
+            "discord",
+            {
+                "message": f":orange_circle: **{node.path()}** in **{file}** was cancelled :orange_circle:"
+            },
+        )
+    node.parm("rendering").set(False)
+
+
+def clear_cache(kwargs: dict):
+    cancel(kwargs)
+    node = kwargs["node"]
     for i in range(1, 4):
         path = node.node(f"Set_Path{i}").evalParm("savepath")
         if os.path.exists(path):

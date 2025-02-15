@@ -17,6 +17,7 @@ def farm_render():
         elif not nuke.scriptSave():
             return
 
+    proxy = nuke.ask("Disable proxy rendering?")
     job_name = nuke.getInput("Job name")
     if not job_name:
         if type(job_name) is str:
@@ -60,6 +61,7 @@ def farm_render():
         plugin.write(f"node_path={path}\n")
         plugin.write(f"discord={discord}\n")
         plugin.write(f"output={output}\n")
+        plugin.write(f"proxy={proxy}\n")
         plugin.close()
         if not batch:
             deadline_return = submit_decode(str(call_deadline([job, plugin.name])))

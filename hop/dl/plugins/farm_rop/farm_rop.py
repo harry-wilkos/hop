@@ -38,17 +38,18 @@ class Farm_Cache(DeadlinePlugin):
         start_frame = self.GetStartFrame()
         file = self.GetPluginInfoEntry("usd_file")
         if not file or not os.path.exists(file):
-            job = self.GetJob()
-            shot = job.JobName
-            holdout = job.JobComment
-            discord(
-                self,
-                f":boom: **{holdout}** for **{shot}** failed rendering :boom:",
-            )
-            discord(
-                self,
-                f":exclamation: USD file path is invalid or does not exist: {file} :exclamation:",
-            )
+            if self.GetBooleanPluginInfoEntry("discord"):
+                job = self.GetJob()
+                shot = job.JobName
+                holdout = job.JobComment
+                discord(
+                    self,
+                    f":boom: **{holdout}** for **{shot}** failed rendering :boom:",
+                )
+                discord(
+                    self,
+                    f":exclamation: USD file path is invalid or does not exist: {file} :exclamation:",
+                )
             self.FailRender(f"USD file path is invalid or does not exist: {file}")
         return f"-V7 --make-output-path -f {start_frame} {file}"
 
@@ -56,14 +57,16 @@ class Farm_Cache(DeadlinePlugin):
         job = self.GetJob()
         shot = job.JobName
         holdout = job.JobComment
-        if not self.fail:
+        if self.GetBooleanPluginInfoEntry("discord"):
+            if not self.fail:
+                discord(
+                    self,
+                    f":boom: **{holdout}** for **{shot}** failed rendering :boom:",
+                )
+                self.fail = True
             discord(
-                self,
-                f":boom: **{holdout}** for **{shot}** failed rendering :boom:",
+                self, f":exclamation: {self.GetRegexMatch(0).strip()} :exclamation:"
             )
-            self.fail = True
-        discord(self, f":exclamation: {self.GetRegexMatch(0).strip()} :exclamation:")
-
         self.FailRender("Detected an error: " + self.GetRegexMatch(0).strip())
 
     def clean_up(self):
@@ -78,3 +81,4 @@ class Farm_Cache(DeadlinePlugin):
 
         for stdoutHandler in self.StdoutHandlers:
             del stdoutHandler.HandleCallback
+
