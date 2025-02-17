@@ -80,8 +80,12 @@ def farm_render(kwargs: dict):
     node = kwargs["node"]
     file = hou.hipFile
     discord = bool(node.evalParm("discord"))
-    start = node.evalParm("frame_rangex")
-    end = node.evalParm("frame_rangey")
+    if bool(node.evalParm("frame_type")):
+        start = node.evalParm("frame_rangex")
+        end = node.evalParm("frame_rangey")
+    else:
+        frame = int(hou.frame())
+        start, end = frame, frame
     step = node.evalParm("frame_rangez")
     if file.hasUnsavedChanges():
         if confirmation_dialog(
@@ -115,7 +119,7 @@ def farm_render(kwargs: dict):
         end,
         step,
         1,
-        "farm_render",
+        "farm_rop",
         "main",
         None,
         True,

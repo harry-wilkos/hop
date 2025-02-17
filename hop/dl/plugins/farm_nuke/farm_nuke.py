@@ -43,7 +43,7 @@ class Farm_Cache(DeadlinePlugin):
         file = self.GetPluginInfoEntry("nk_file")
         use_discord = self.GetBooleanPluginInfoEntry("discord")
         node = self.GetPluginInfoEntry("node_path")
-        proxy = "-f" if self.GetBooleanPluginInfoEntry("proxy") else ""
+        proxy = "-f" if bool(self.GetBooleanPluginInfoEntry("proxy")) else ""
         if not file or not os.path.exists(file):
             if use_discord:
                 name = self.GetJob().JobName
