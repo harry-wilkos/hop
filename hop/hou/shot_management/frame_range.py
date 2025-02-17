@@ -225,7 +225,7 @@ def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
             alembic_info = alembic_helpers.frame_info(cam_file, int(os.environ["FPS"]))
             if alembic_info:
                 camera_len = alembic_info[1] - alembic_info[0]
-                if camera_len != 0 and camera_len < (shot_len := shot.shot_data["end_frame"] - shot.shot_data["start_frame"])
+                if camera_len != 0 and camera_len < (shot_len := shot.shot_data["end_frame"] - shot.shot_data["start_frame"]):
                     if not confirmation_dialog(
                         title="Update Camera",
                         text=f"The camera's frame length {camera_len} doesn't match the input frame range with padding {shot_len}",
