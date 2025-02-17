@@ -47,13 +47,7 @@ def export(kwargs: dict):
         compare_scene(settings_stage, settings_path)
     ):
         node.parm("export_settings").pressButton()
-
-    scene_export = node.node("Set_Path1")
-    scene_path = scene_export.evalParm("savepath")
-    scene_stage = scene_export.stage()
-    if not (os.path.exists(scene_path)) or not (compare_scene(scene_stage, scene_path)):
-        node.parm("export_scene").pressButton()
-
+    node.parm("export_scene").pressButton()
     node.parm("reload").pressButton()
     node.parm("export_render").pressButton()
 

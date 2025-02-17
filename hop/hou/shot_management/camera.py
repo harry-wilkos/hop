@@ -18,20 +18,19 @@ def update_camera(shot: "Shot", cam: str) -> bool:
         return False
 
     alembic_info = alembic_helpers.frame_info(cam_file, int(os.environ["FPS"]))
-    if alembic_info[0] != 1001:
+    if alembic_info[0] != 1001 or alembic_info[0] != 0:
         error_dialog("Update Camera", "Camera doesn't start at 1001")
         return False
 
-    if alembic_info and (
-        (camera_len := alembic_info[1] - alembic_info[0])
-        < (shot_len := shot.shot_data["end_frame"] - shot.shot_data["start_frame"])
-    ):
-        if not confirmation_dialog(
-            title="Update Camera",
-            text=f"The camera's frame length {camera_len} doesn't match the input frame range with padding {shot_len}",
-        ):
-            return False
-        shot.cam_checked = True
+    if alembic_info: 
+        camera_len = alembic_info[1] - alembic_info[0]
+        if camera_len != 0 and camera_len < (shot_len := shot.shot_data["end_frame"] - shot.shot_data["start_frame"])
+            if not confirmation_dialog(
+                title="Update Camera",
+                text=f"The camera's frame length {camera_len} doesn't match the input frame range with padding {shot_len}",
+            ):
+                return False
+            shot.cam_checked = True
 
     ripped_cam_path = ["shots", "active_shots", str(shot.shot_data["_id"]), ''.join(random.choices(string.ascii_letters + string.digits, k=4))]
     shot.shot_data["cam_path"] = alembic_helpers.find_cam_paths(cam_file)[0]

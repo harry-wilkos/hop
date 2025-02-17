@@ -45,14 +45,8 @@ def export(kwargs: dict) -> bool:
         node.parm("Reload_Settings").pressButton()
     else:
         node.parm("Export_Settings").pressButton()
-
-    assets_node = node.node("Shot_Assets_Save")
-    assets_path = assets_node.evalParm("savepath")
-    assets_stage = assets_node.stage()
-    if os.path.exists(assets_path) and compare_scene(assets_stage, assets_path):
-        node.parm("Reload_Assets").pressButton()
-    else:
-        node.parm("Export_Assets").pressButton()
+    node.parm("Export_Assets").pressButton()
+    node.parm("Reload_Assets").pressButton()
 
     for file in glob(os.path.join(node.evalParm("usd_output"), "Passes", "*")):
         if "Deep" not in os.path.basename(file):

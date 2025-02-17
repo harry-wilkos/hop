@@ -19,7 +19,10 @@ def find_cam_paths(path: str) -> list:
 
 
 def frame_info(path: str, frame_rate: float | None = None) -> tuple:
-    start_time, end_time = abc.alembicTimeRange(path)
+    time_range = abc.alembicTimeRange(path)
+    if not time_range:
+        return 0, 0, 0
+    start_time, end_time = time_range
     frame_rate = frame_rate or next(
         rate for rate in [24, 25, 48, 50, 60] if int(start_time * rate) >= 1001
     )
@@ -42,3 +45,4 @@ def find_geo_paths(path: str) -> list:
                 stack.append((current_path, sub_children))
 
     return geo
+
