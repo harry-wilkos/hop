@@ -34,6 +34,8 @@ def create_job(
     pre_script: bool = False,
     post_script: bool = False,
     job_dependencies: list = [],
+    pre_task: bool = False,
+    post_task: bool = False,
 ):
     job_file = NamedTemporaryFile(
         delete=False, mode="w", encoding="utf-16", suffix=".job"
@@ -68,6 +70,12 @@ def create_job(
     if post_script:
         job_file.write(f"PostJobScript={os.path.join(scripts_path, 'post_job.py')}\n")
 
+    if pre_task:
+        job_file.write(f"PreTaskScript={os.path.join(scripts_path, 'pre_task.py')}\n")
+
+    if post_task:
+        job_file.write(f"PostTaskScript={os.path.join(scripts_path, 'post_task.py')}\n")
+
     for var in set_env([
         "TWELVEFOLD_ROOT",
         "PYTHON",
@@ -86,6 +94,8 @@ def create_job(
         "HOP",
         "PATH",
         "HOP_TEMP",
+        "CAM",
+        "VIEW"
     ]):
         job_file.write(var)
     job_file.close()
@@ -160,4 +170,3 @@ def call_deadline(arguments, hideWindow=True, readStdout=True):
     if sys.version_info[0] > 2 and type(output) is bytes:
         output = output.decode()
     return output
-

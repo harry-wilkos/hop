@@ -1,7 +1,6 @@
 import os
 from glob import glob
 from typing import TYPE_CHECKING
-from time import sleep
 import clique
 import OpenEXR
 import OpenImageIO as oiio

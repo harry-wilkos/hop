@@ -175,6 +175,7 @@ def farm_render(kwargs: dict) -> None:
         True,
         True,
         deadline_return[:-1] if deep else deadline_return,
+        True
     )
     post_plugin = NamedTemporaryFile(
         delete=False, mode="w", encoding="utf-16", suffix=".job"
