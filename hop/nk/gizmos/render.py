@@ -37,6 +37,7 @@ def create_render():
         read.knob("on_error").setValue("checkerboard")
 
         deep = nuke.createNode("DeepRead")
+        deep.knob("file").setValue(".exr")
         deep.hideControlPanel()
         deep.knob("first").setValue(int(nuke.Root().knob("first_frame").value()))
         deep.knob("last").setValue(int(nuke.Root().knob("last_frame").value()))

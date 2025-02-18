@@ -5,3 +5,4 @@ clique
 OpenEXR
 opencolorio
 oiio-python
+requests-toolbelt
