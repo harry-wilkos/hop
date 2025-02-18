@@ -50,6 +50,8 @@ def export(kwargs: dict):
     node.parm("export_scene").pressButton()
     node.parm("reload").pressButton()
     node.parm("export_render").pressButton()
+    output = os.path.basename(node.evalParm("output"))
+    os.makedirs(output, exist_ok=True)
 
 
 def local_render(kwargs: dict):

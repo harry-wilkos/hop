@@ -29,6 +29,8 @@ def __main__(*args):
         "libx264",
         "-pix_fmt",
         "yuv420p",
+        "-movflags",
+        "+faststart",
         mp4,
     ]
 
@@ -41,4 +43,3 @@ def __main__(*args):
         deadlinePlugin.LogWarning(f"Subprocess Error: {error}")
 
     discord(deadlinePlugin, f":eyes: **{job.JobName}** preview :eyes:", mp4)
-
