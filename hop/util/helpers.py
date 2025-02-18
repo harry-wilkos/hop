@@ -70,21 +70,22 @@ def refresh_modules(ignore_module_paths: str | list = []) -> list:
 def matrix_to_euler(matrix):
     if not isinstance(matrix, np.ndarray) or matrix.shape != (3, 3):
         raise ValueError("Input must be a 3x3 numpy array.")
-
-    if abs(matrix[0, 2]) != 1:
-        y = math.asin(-matrix[0, 2])
-        x = math.atan2(matrix[1, 2], matrix[2, 2])
-        z = math.atan2(matrix[0, 1], matrix[0, 0])
-    else:
-        # Gimbal lock case
-        z = 0
-        if matrix[0, 2] == -1:
-            y = np.pi / 2
-            x = math.atan2(matrix[1, 0], matrix[1, 1])
-        else:
-            y = -np.pi / 2
-            x = math.atan2(-matrix[1, 0], -matrix[1, 1])
-
+    y = math.asin(-matrix[0, 2])
+    x = math.atan2(matrix[1, 2], matrix[2, 2])
+    z = math.atan2(matrix[0, 1], matrix[0, 0])
+    # if abs(matrix[0, 2]) != 1:
+    #     y = math.asin(-matrix[0, 2])
+    #     x = math.atan2(matrix[1, 2], matrix[2, 2])
+    #     z = math.atan2(matrix[0, 1], matrix[0, 0])
+    # else:
+    #     # Gimbal lock case
+    #     z = 0
+    #     if matrix[0, 2] == -1:
+    #         y = np.pi / 2
+    #         x = math.atan2(matrix[1, 0], matrix[1, 1])
+    #     else:
+    #         y = -np.pi / 2
+    #         x = math.atan2(-matrix[1, 0], -matrix[1, 1])
     return [math.degrees(x), math.degrees(y), math.degrees(z)]
 
 
