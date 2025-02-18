@@ -133,7 +133,11 @@ def farm_render(kwargs: dict) -> None:
             continue
         elif count == "Deep" and not deep:
             continue
-        comment = f"Holdout {int(count)}" if count != "Deep" else count
+        comment = (
+            f"Holdout {int(count)} ({node.evalParm(f'holdout_description{int(count)}')})"
+            if count != "Deep"
+            else count
+        )
         job = create_job(
             job_name,
             comment,
@@ -220,4 +224,3 @@ def farm_cancel(kwargs: dict) -> None:
             )
         hou.ui.displayMessage("Render cancelled", title="Shot")
     node.parm("farm_id").set("")
-
