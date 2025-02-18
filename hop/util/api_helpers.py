@@ -4,23 +4,27 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 import json
 from pathlib import Path
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 
 def post(method: str, data: dict, file_path: str | None = None):
     url = f"{os.environ['API_ADDRESS']}/{method}"
-    for key, value in data.items():
-        data[key] = json.dumps(value)
-
-    if not file_path:
+    data = {key: json.dumps(value) for key, value in data.items()}
+    if file_path is None:
         resp = requests.post(url, data=data)
     else:
-        with open(os.path.normpath(file_path), "rb") as file:
-            files = {"file": (file.name, file, "application/octet-stream")}
-            resp = requests.post(
-                url,
-                files=files,
-                data=data | {"source_path": json.dumps(list(Path(file_path).parts))},
+        norm_path = os.path.normpath(file_path)
+        extra = {"source_path": json.dumps(list(Path(file_path).parts))}
+        fields = {**data, **extra}
+        with open(norm_path, "rb") as f:
+            fields["file"] = (
+                os.path.basename(file_path),
+                f,
+                "application/octet-stream",
             )
+            encoder = MultipartEncoder(fields=fields)
+            headers = {"Content-Type": encoder.content_type}
+            resp = requests.post(url, data=encoder, headers=headers)
     return resp.json()
 
 

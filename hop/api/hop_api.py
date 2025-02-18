@@ -18,7 +18,8 @@ app.mount("/static_files", StaticFiles(directory="static_files"), name="static_f
 
 def upload_file(uploaded_file: UploadFile, location: list, uuid: bool):
     if uuid is True:
-        file_name = f"{uuid4()}-{os.path.basename(str(uploaded_file.filename).replace('\\', '/'))}"
+        dir = os.path.basename(str(uploaded_file.filename).replace('\\', '/'))
+        file_name = f"{uuid4()}-{dir}"
     else:
         file_name = Path(str(uploaded_file.filename)).name
 
@@ -65,6 +66,7 @@ async def upload(request: Request, file: UploadFile):
     form = await request.form()
     location_str = form.get("location")
     uuid_str = form.get("uuid")
+    print(location_str, type(location_str))
     if type(location_str) is not str or type(uuid_str) is not str:
         return
     location = list(json.loads(location_str))

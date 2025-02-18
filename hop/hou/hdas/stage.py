@@ -133,11 +133,12 @@ def farm_render(kwargs: dict) -> None:
             continue
         elif count == "Deep" and not deep:
             continue
-        comment = (
-            f"Holdout {int(count)} ({node.evalParm(f'holdout_description{int(count)}')})"
-            if count != "Deep"
-            else count
+        description = (
+            f" ({h_desc})"
+            if (h_desc := node.evalParm(f"holdout_description{int(count)}"))
+            else ""
         )
+        comment = f"Holdout {int(count)}{description}" if count != "Deep" else count
         job = create_job(
             job_name,
             comment,
