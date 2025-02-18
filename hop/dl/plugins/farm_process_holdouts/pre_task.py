@@ -18,11 +18,12 @@ def __main__(*args):
         for path in deadlinePlugin.GetPluginInfoEntry("exrs").split(";")
     ]
     for exr in exrs:
+        parts = Path(exr).parts
         cmd = [
             "ocioconvert",
             exr,
             "role_rendering",
-            output_dir / os.path.basename(exr),
+            output_dir / parts[-2] / parts[-1],
             env["VIEW"],
         ]
 

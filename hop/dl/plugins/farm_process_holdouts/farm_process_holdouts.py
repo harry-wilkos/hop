@@ -2,6 +2,7 @@
 from Deadline.Plugins import DeadlinePlugin, PluginType
 import os
 from shutil import which
+from pathlib import Path
 
 
 def GetDeadlinePlugin():
@@ -47,7 +48,9 @@ class Farm_Cache(DeadlinePlugin):
         ]
 
         for count, exr in enumerate(exrs):
-            exr = rf" ( {exr} -resize 1280x720 ) "
+            parts = Path(exr).parts
+            exr_path = Path(output_path) / parts[-2] / parts[-1]
+            exr = rf" ( {exr_path} -resize 1280x720 ) "
             if not count and not run:
                 run += exr
                 continue
