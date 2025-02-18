@@ -18,7 +18,7 @@ def update_camera(shot: "Shot", cam: str) -> bool:
         return False
 
     alembic_info = alembic_helpers.frame_info(cam_file, int(os.environ["FPS"]))
-    if alembic_info[0] != 1001 or alembic_info[0] != 0:
+    if alembic_info[0] != 1001 and alembic_info[0] != 0:
         error_dialog("Update Camera", "Camera doesn't start at 1001")
         return False
 

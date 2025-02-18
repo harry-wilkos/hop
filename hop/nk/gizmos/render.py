@@ -4,7 +4,6 @@ import nuke
 def create_render():
     node = nuke.createNode("Group")
     node.setName("Shot_Render")
-    node.knob("postage_stamp").setValue(True)
     load = nuke.PyCustom_Knob(
         "loadUI",
         "Load Render",

@@ -119,7 +119,7 @@ class RenderLoadUI(QDialog):
             else ""
         )
         path = (
-            f"{value.replace('$HOP', '[getenv HOP]')}/####.exr"
+            f"{value.replace('$HOP', '[getenv HOP]')}/####.exr".replace("\\", "/")
             if (value := self.holdout_widget.itemData(index))
             else ""
         )
