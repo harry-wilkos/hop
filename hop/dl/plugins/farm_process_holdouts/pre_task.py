@@ -19,11 +19,13 @@ def __main__(*args):
     ]
     for exr in exrs:
         parts = Path(exr).parts
+        folder = output_dir / parts[-2]
+        folder.mkdir(parents=True, exist_ok=True)
         cmd = [
             "ocioconvert",
             exr,
             "role_rendering",
-            output_dir / parts[-2] / parts[-1],
+            folder / parts[-1],
             env["VIEW"],
         ]
 
@@ -34,3 +36,4 @@ def __main__(*args):
         error = result.stderr.strip()
         if error:
             deadlinePlugin.LogWarning(f"Subprocess Error: {error}")
+
