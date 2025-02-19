@@ -2,6 +2,15 @@ from pxr.Usd import Stage, Prim
 from pxr import Sdf
 
 
+def convert_bind_strength(strength):
+    convert = {
+        None: None,
+        "strongerThanDescendants": True,
+        "weakerThanDescendants": False,
+    }
+    return convert[strength]
+
+
 def expand_stage(stage: Stage, depth: int | None = None, start: str = "/") -> Prim:
     queue = [(stage.GetPrimAtPath(start), 0)]
     while queue:

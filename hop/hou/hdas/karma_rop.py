@@ -163,3 +163,20 @@ def clear_cache(kwargs: dict):
         path = node.node(f"Set_Path{i}").evalParm("savepath")
         if os.path.exists(path):
             os.remove(path)
+
+
+def frame_range(kwargs):
+    node = kwargs["node"]
+    start = int(float(kwargs["script_value0"]))
+    end = int(float(kwargs["script_value1"]))
+    step = int(float(kwargs["script_value2"]))
+    node.parm("frame_rangex").set(start)
+    if step <= 0:
+        node.parm("frame_rangez").set(1)
+    if start < 0:
+        node.parm("frame_rangez").set(1)
+        start = 1
+    if end <= start:
+        node.parm("frame_rangey").set(start + 1)
+    else:
+        node.parm("frame_rangey").set(end)
