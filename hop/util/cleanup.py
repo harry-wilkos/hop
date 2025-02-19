@@ -24,10 +24,10 @@ def cleanup(start_folder: str, hours: float, verbose: bool = False):
             logger.debug(f"Checking: {str(file_path)}")
             file_mtime = file_path.stat().st_mtime
             if file_mtime < cutoff_time:
-                logger.info(f"Removing: {file_path} (Older than cutoff)")
+                logger.info(f"Removing {file_path}: Older than cutoff")
                 file_path.unlink()
-        if not os.listdir(root):
-            logger.info(f"Removing: {root} (Empty)")
+        if not os.listdir(root) and root != start_folder:
+            logger.info(f"Removing {root}: Empty Folder")
             os.rmdir(root)
 
 
