@@ -39,14 +39,6 @@ def export(kwargs: dict):
     tags.parm("manualtags").set(0)
     if node.evalParm("preprocess") != 0:
         tags.parm("populate").pressButton()
-
-    settings_export = node.node("Set_Path2")
-    settings_path = settings_export.evalParm("savepath")
-    settings_stage = settings_export.stage()
-    if not (os.path.exists(settings_path)) or not (
-        compare_scene(settings_stage, settings_path)
-    ):
-        node.parm("export_settings").pressButton()
     node.parm("export_scene").pressButton()
     node.parm("reload").pressButton()
     node.parm("export_render").pressButton()

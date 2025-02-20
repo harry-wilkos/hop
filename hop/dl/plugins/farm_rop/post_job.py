@@ -6,6 +6,6 @@ def __main__(*args):
     node = deadlinePlugin.GetPluginInfoEntry("node_path")
     name = deadlinePlugin.GetJob().JobName
     message = (
-        f":checkered_flag: **{node}** in **{name}** finished caching :checkered_flag:"
+        f":checkered_flag: **{node}** in **{name}** finished rendering :checkered_flag:"
     )
     discord(deadlinePlugin, message)

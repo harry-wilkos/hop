@@ -12,7 +12,7 @@ def __main__(*args):
     if deadlinePlugin.GetBooleanPluginInfoEntry("discord"):
         name = job.JobName
         message = (
-            f":green_circle: **{node}** in **{name}** started caching :green_circle:"
+            f":green_circle: **{node}** in **{name}** started rendering :green_circle:"
         )
         discord(deadlinePlugin, message)
     env = os.environ.copy()
