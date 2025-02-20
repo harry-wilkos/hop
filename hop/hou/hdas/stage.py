@@ -135,7 +135,8 @@ def farm_render(kwargs: dict) -> None:
             continue
         description = (
             f" ({h_desc})"
-            if (h_desc := node.evalParm(f"holdout_description{int(count)}"))
+            if count != "Deep"
+            and (h_desc := node.evalParm(f"holdout_description{int(count)}"))
             else ""
         )
         comment = f"Holdout {int(count)}{description}" if count != "Deep" else count
@@ -175,7 +176,7 @@ def farm_render(kwargs: dict) -> None:
         True,
         True,
         deadline_return[:-1] if deep else deadline_return,
-        True
+        True,
     )
     post_plugin = NamedTemporaryFile(
         delete=False, mode="w", encoding="utf-16", suffix=".job"
