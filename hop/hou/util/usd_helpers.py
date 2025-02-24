@@ -1,6 +1,6 @@
 from pxr.Usd import Stage, Prim
-from pxr import Sdf, UsdShade, UsdGeom
-
+from pxr import Sdf, UsdShade
+import hou
 
 def expand_stage(stage: Stage, depth: int | None = None, start: str = "/") -> Prim:
     queue = [(stage.GetPrimAtPath(start), 0)]
@@ -160,34 +160,21 @@ def compare_scene(stage: Stage, file: str, time_check: bool = False) -> bool:
 
     return True
 
+def is_mat(prim) -> bool:
+    if prim.IsA(UsdShade.Material):
+        return True
+    parent_prim = prim.GetParent()
+    while parent_prim:
+        if parent_prim.IsA(UsdShade.Material):
+            return True
+        parent_prim = parent_prim.GetParent()
+    return False
 
-def resolve_materials(stage: Stage, remove: bool = True):
-    prims = [prim for prim in expand_stage(stage)]
-    prims.reverse()
-    mats = []
-    for prim in prims:
-        imageable = UsdGeom.Imageable(prim)
-        if not imageable:
-            continue
-        visibility = imageable.ComputeVisibility()
-        if visibility == UsdGeom.Tokens.invisible:
-            continue
-        if not prim.HasAPI(UsdShade.MaterialBindingAPI):
-            UsdShade.MaterialBindingAPI.Apply(prim)
-        binding_api = UsdShade.MaterialBindingAPI(prim)
-        material, rel = binding_api.ComputeBoundMaterial()
-        if material:
-            binding_rel = binding_api.GetMaterialBindingStrength(rel)
-            strength = (
-                binding_rel
-                if binding_rel
-                else UsdShade.Tokens.strongerThanDescendants
-            )
-            binding_api.UnbindAllBindings()
-            binding_api.Bind(material, bindingStrength=strength)
-            if (mat_path := material.GetPath()) not in mats:
-                mats.append(mat_path)
-    if remove:
-        for prim in prims:
-            if prim.IsA(UsdShade.Material) and (path := prim.GetPath()) not in mats:
-                stage.RemovePrim(path)
+def get_info(stage: Stage) -> dict:
+    prim = stage.GetPrimAtPath("/HoudiniLayerInfo")
+    attribs = prim.GetAttributes()
+    data = {}
+    for attrib in attribs:
+        data[attrib.GetName()] = attrib.Get(hou.frame())
+    return data 
+
