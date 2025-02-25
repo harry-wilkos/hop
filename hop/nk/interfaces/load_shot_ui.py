@@ -1,4 +1,5 @@
 import nuke
+import os
 from hop.util import get_collection
 from hop.nk.gizmos.shot import reload
 from PySide2.QtWidgets import (
@@ -102,6 +103,7 @@ class ShotLoadUI(QDialog):
         self.node.addKnob(load)
 
     def handle_pressed(self, button):
+        nuke.root().knob("fps").setValue(int(os.environ["FPS"]))
         self.node.knob("postage_stamp").setValue(False)
         if not button.isChecked():
             self.node.knob("store_id").setValue(str(button.id))

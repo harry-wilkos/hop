@@ -8,6 +8,7 @@ import os
 import hashlib
 import hou
 from hop.hou.asset_management import resolve_texture
+from hop.util import get_collection
 
 
 def check_materials(stage: Stage):
@@ -65,5 +66,29 @@ def tag_textures(stage: Stage):
                             "hop:hash", Sdf.ValueTypeNames.String
                         )
                         hash_attr.Set(hex_hash)
-                        if (texture_path := resolve_texture(hex_hash)):
+                        if texture_path := resolve_texture(hex_hash):
                             attr.Set(texture_path)
+
+
+def retrieve_assets() -> list:
+    collection = get_collection("assets", "active_assets")
+    assets = ["", "Select Asset..."]
+    for asset in collection.find({}).sort("name", 1):
+        name = asset["name"]
+        assets.append(name)
+        assets.append(name.capitalize())
+    return assets
+
+
+def check_branches() -> list:
+    asset = hou.pwd().evalParm("name")
+    collection = get_collection("assets", "active_assets")
+    collection.find_one({"name": asset})
+
+    options = ["main", "Main"]
+    if (
+        not (asset_dict := collection.find_one({"name": asset}))
+        or not asset_dict["init"]
+    ):
+        return options
+    return options + ["anim", "Anim", "fx", "FX"]
