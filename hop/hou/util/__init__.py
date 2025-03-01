@@ -1,5 +1,5 @@
-from . import alembic_helpers, usd_helpers
-from .helpers import (
+from hop.hou.util import alembic_helpers, usd_helpers
+from hop.hou.util.helpers import (
     confirmation_dialog,
     error_dialog,
     expand_path,
@@ -7,6 +7,7 @@ from .helpers import (
     load_style,
     place_node,
     convert_exr,
+    convert_rat,
 )
 
 __all__ = [
@@ -19,4 +20,5 @@ __all__ = [
     "error_dialog",
     "load_style",
     "convert_exr",
+    "convert_rat",
 ]

@@ -20,8 +20,8 @@ def create_asset(name: str):
     asset_dict = {
         "name": name,
         "init": False,
-        "main": {"proxy": [], "geo": [], "mtl": []},
-        "branches": {},
+        "main": 0,
+        "overrides": {},
     }
     collection.insert_one(asset_dict)
     logger.info(f"{name.capitalize()} published!")

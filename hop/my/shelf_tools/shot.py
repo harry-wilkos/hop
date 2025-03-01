@@ -231,12 +231,12 @@ def create_shot(shot: dict | None = None):
                 shot_path,
                 type="string",
             )
-        script_job = cmds.scriptJob(event=["timeChanged", handle_change])
-        if not cmds.attributeQuery(
-            "scriptJob", node="defaultRenderGlobals", exists=True
-        ):
-            cmds.addAttr("defaultRenderGlobals", longName="scriptJob")
-        cmds.setAttr("defaultRenderGlobals.scriptJob", script_job)
+        # script_job = cmds.scriptJob(event=["timeChanged", handle_change])
+        # if not cmds.attributeQuery(
+        #     "scriptJob", node="defaultRenderGlobals", exists=True
+        # ):
+        #     cmds.addAttr("defaultRenderGlobals", longName="scriptJob")
+        # cmds.setAttr("defaultRenderGlobals.scriptJob", script_job)
 
         if not cmds.attributeQuery("offPipe", node="defaultRenderGlobals", exists=True):
             cmds.addAttr("defaultRenderGlobals", longName="offPipe")

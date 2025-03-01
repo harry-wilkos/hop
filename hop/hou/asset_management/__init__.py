@@ -1,4 +1,4 @@
-from hop.hou.asset_management import asset_class
-from hop.hou.asset_management.textures import resolve_texture
+from hop.hou.asset_management.asset_class import Asset
+from hop.hou.asset_management.textures import resolve_texture, create_hash
 
-__all__ = ["asset_class", "resolve_texture"]
+__all__ = ["Asset", "resolve_texture", "create_hash"]

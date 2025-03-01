@@ -1,12 +1,12 @@
-import tempfile
-from typing import Callable, Sequence, Union, Any
-import inspect
-import sys
-import subprocess
-import pickle
-import os
 import importlib
+import inspect
+import os
+import pickle
+import subprocess
+import sys
+import tempfile
 from concurrent.futures import ProcessPoolExecutor
+from typing import Any, Callable, Sequence, Union
 
 
 class MultiProcess:
@@ -27,8 +27,8 @@ class MultiProcess:
 
     def get_module(self) -> str:
         module = inspect.getmodule(self.function)
-        if module and module.__file__:
-            return str(module.__file__)
+        if module:
+            return module.__name__
         raise ImportError(
             f"Cannot determine module for function {self.function.__name__}"
         )
@@ -44,8 +44,12 @@ class MultiProcess:
             }
             for param in function_signature.parameters.values()
         )
-
-        # Determine whether the input is already chunked
+        if (
+            len(args) == 1
+            and hasattr(args[0], "__iter__")
+            and not isinstance(args[0], (list, tuple, str, bytes))
+        ):
+            args = (list(args[0]),)
         if (
             len(args) == 1
             and isinstance(args[0], (list, tuple))
