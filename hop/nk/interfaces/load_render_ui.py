@@ -110,7 +110,7 @@ class RenderLoadUI(QDialog):
         self.holdout_widget.setEnabled(True)
 
     def load(self, index):
-        self.node.knob("postage_stamp").setValue(False)        
+        self.node.knob("postage_stamp").setValue(False)
         self.node.knob("holdout").setValue(index)
         r_pass = (
             r_pass
@@ -125,19 +125,18 @@ class RenderLoadUI(QDialog):
         )
         self.node.knob("label").setValue(r_pass)
         with self.node.begin():
-            switch = nuke.toNode("Switch1")
+            out = nuke.toNode("Output1")
             if r_pass == "Deep":
                 read = nuke.toNode("DeepRead1")
-                switch.knob("which").setValue(1)
                 self.node.knob("tile_color").setValue(19201)
             else:
                 read = nuke.toNode("Read1")
                 read.knob("raw").setValue(True)
-                switch.knob("which").setValue(0)
                 self.node.knob("tile_color").setValue(4294967041)
             read.knob("file").setValue(path)
             read.knob("first").setValue(int(nuke.Root().knob("first_frame").value()))
             read.knob("last").setValue(int(nuke.Root().knob("last_frame").value()))
+            out.setInput(0, read)
         self.node.knob("postage_stamp").setValue(True)
 
     def makeUI(self):

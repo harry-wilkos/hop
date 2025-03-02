@@ -137,3 +137,8 @@ def publish(kwargs):
 
             asset.update.mat(textures)
     asset.publish(node)
+
+def load_frame_range(kwargs: dict):
+    node = kwargs["node"]
+    value = kwargs["script_value"]
+    print(value)

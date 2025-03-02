@@ -43,11 +43,6 @@ def create_render():
         deep.knob("last").setValue(int(nuke.Root().knob("last_frame").value()))
         deep.knob("on_error").setValue("checkerboard")
 
-        switch = nuke.createNode("Switch")
-        switch.hideControlPanel()
-        switch.setInput(0, read)
-        switch.setInput(1, deep)
 
         out = nuke.createNode("Output")
-        out.setInput(0, switch)
         out.hideControlPanel()
