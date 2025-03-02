@@ -6,6 +6,7 @@ import hou
 from hop.hou.asset_management import resolve_texture, create_hash
 from hop.util import get_collection
 from hop.hou.asset_management import Asset
+from pymongo.collection import ObjectId
 
 collection = get_collection("assets", "active_assets")
 shot_collection = get_collection("shots", "active_shots")
@@ -94,7 +95,6 @@ def check_init(kwargs):
     node.parm("toggle_override").set(0)
 
 
-
 def publish(kwargs):
     node = kwargs["node"]
     name = node.evalParm("name")
@@ -138,7 +138,78 @@ def publish(kwargs):
             asset.update.mat(textures)
     asset.publish(node)
 
+
 def load_frame_range(kwargs: dict):
     node = kwargs["node"]
     value = kwargs["script_value"]
-    print(value)
+    start = node.parm("frame_rangex")
+    end = node.parm("frame_rangey")
+    if not value:
+        start.setExpression("$FSTART", replace_expression=True)
+        end.setExpression("$FEND", replace_expression=True)
+    else:
+        shot_dict = shot_collection.find_one({"_id": ObjectId(value)})
+        if shot_dict:
+            start.deleteAllKeyframes()
+            start.set(1001)
+            end.deleteAllKeyframes()
+            end.set(shot_dict["end_frame"] - shot_dict["start_frame"] + 1001)
+
+
+def retrieve_shot_assets(kwargs) -> list:
+    node = kwargs["node"]
+    assets = ["", "Select Asset..."]
+    if shot := node.evalParm("shot"):
+        shot_dict = shot_collection.find_one({"_id": ObjectId(shot)})
+        if shot_dict:
+            shot_assets = tuple(shot_dict["assets"])
+            for asset in shot_assets:
+                asset_dict = collection.find_one({"name": asset})
+                if asset_dict:
+                    assets.append(asset)
+                    assets.append(asset.capitalize())
+    return list(assets)
+
+
+def unload_shot(kwargs):
+    node = kwargs["node"]
+    node.parm("asset").set("")
+    node.parm("load").set(False)
+    for parm in ("main", "anim", "fx"):
+        node.parm(f"{parm}_ver").set(-1)
+
+
+def retrieve_asset_versions(kwargs) -> list:
+    node = kwargs["node"]
+    branch = kwargs["parm"].name().split("_")[0]
+    asset = node.evalParm("asset")
+    asset = node.evalParm("asset")
+    versions = ["-1", "Latest Version"]
+    loops = 0
+    if asset and (asset_dict := collection.find_one({"name": asset})):
+        if branch == "main":
+            loops = asset_dict["main"]
+        elif (shot := node.evalParm("shot")) and shot in asset_dict["overrides"]:
+            shot_override = asset_dict["overrides"][shot]
+            loops = (
+                shot_override[branch]
+                if branch in (shot_override := asset_dict["overrides"][shot])
+                else 0
+            )
+    for ver in range(loops):
+        versions.append(str(ver))
+        versions.append(f"V{ver + 1:02}")
+
+    return versions
+
+
+def check_shot_subnet(kwargs):
+    node = kwargs["node"]
+    parent = node.parent().parent()
+    if (
+        parent.type().name().split(":")[0] == "Shot"
+        and (shot_num := parent.evalParm("load_shot")) > 0
+    ):
+        shot_dict = shot_collection.find_one({"shot_number": shot_num})
+        node.parm("shot").set(str(shot_dict["_id"])) if shot_dict else None
+    node.setColor(hou.Color(1, 0.9, 0.6))

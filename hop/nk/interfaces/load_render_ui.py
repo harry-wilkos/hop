@@ -129,15 +129,17 @@ class RenderLoadUI(QDialog):
             if r_pass == "Deep":
                 read = nuke.toNode("DeepRead1")
                 self.node.knob("tile_color").setValue(19201)
+                postage = False
             else:
                 read = nuke.toNode("Read1")
                 read.knob("raw").setValue(True)
                 self.node.knob("tile_color").setValue(4294967041)
+                postage = True
             read.knob("file").setValue(path)
             read.knob("first").setValue(int(nuke.Root().knob("first_frame").value()))
             read.knob("last").setValue(int(nuke.Root().knob("last_frame").value()))
             out.setInput(0, read)
-        self.node.knob("postage_stamp").setValue(True)
+        self.node.knob("postage_stamp").setValue(postage)
 
     def makeUI(self):
         return self

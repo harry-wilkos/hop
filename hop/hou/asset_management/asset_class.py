@@ -159,7 +159,7 @@ class Asset:
 
                 node.parm("version").set(self.store_version)
                 node.parm("store_override").set(
-                    "Main" if self.override == "main" else self.branch
+                    "main" if self.override == "main" else self.branch
                 )
 
                 if not self.asset_info or not (
@@ -232,6 +232,13 @@ class Asset:
                     self.asset_collection.update_one(
                         {"name": self.asset_name}, {"$set": self.asset_dict}
                     )
+                    if self.shot_dict:
+                        self.shot_dict["assets"].append(
+                            self.asset_name
+                        ) if self.asset_name not in self.shot_dict["assets"] else None
+                        self.shot_collection.update_one(
+                            {"_id": ObjectId(self.override)}, {"$set": self.shot_dict}
+                        )
                 call_progress()
                 node.parm("init").set(1)
                 hou.ui.displayMessage(
