@@ -55,7 +55,7 @@ def tag_textures(stage: Stage):
                             / "textures"
                             / prim.GetName()
                             / f"{node.GetName()}.<UDIM>.rat"
-                        )
+                        ).replace("\\", "/")
                         attr.Set(update_path)
                         hash = create_hash(path)
                         if hash:
@@ -155,7 +155,7 @@ def publish(node) -> Asset | None:
                                                         / "textures"
                                                         / prim.GetName()
                                                         / f"{texture_node.GetName()}.<UDIM>.rat"
-                                                    ),
+                                                    ).replace("\\", "/"),
                                                 ))
 
                     asset.update.mat(textures)

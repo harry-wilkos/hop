@@ -117,7 +117,7 @@ class Asset:
         self.asset_info["branch_ver"] = str(
             base / f"V{version:02}" / f"{self.asset_name}.{usd}"
         )
-        return str(base / asset_ver)
+        return str(base / asset_ver).replace("\\", "/")
 
     def publish(self, node):
         caching = node.parm("caching")
@@ -168,7 +168,7 @@ class Asset:
                     caching.set(0)
                     return
                 node.parm("branch_path").set(
-                    str(branch_ver.parent.parent / branch_ver.name)
+                    str(branch_ver.parent.parent / branch_ver.name).replace("\\", "/")
                 )
                 call_progress()
                 # Set Convert textures
@@ -195,7 +195,6 @@ class Asset:
                 call_progress()
 
                 # Export
-                self.asset_info.items()
                 [
                     node.parm(f"{key}_publish").pressButton()
                     for key, path in self.asset_info.items()
