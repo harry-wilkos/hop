@@ -3,7 +3,8 @@ import nuke
 import nuke.rotopaint as rp
 import _curvelib
 import re
-from hop.util import get_collection, custom_dialogue, find_shot
+from hop.util import get_collection, find_shot
+from hop.util.custom_dialogue import custom_dialogue
 
 collection = get_collection("shots", "active_shots")
 

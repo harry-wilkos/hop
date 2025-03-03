@@ -1,8 +1,9 @@
 from pymongo.collection import ObjectId
 import maya.cmds as cmds
 from hop.my.interfaces import load_shot
-from hop.my.util import set_fps, undo_chunk, get_children
-from hop.util import get_collection, custom_dialogue, find_shot
+from hop.my.util import set_fps, undo_chunk
+from hop.util import get_collection, find_shot
+from hop.util.custom_dialogue import custom_dialogue
 import os
 
 

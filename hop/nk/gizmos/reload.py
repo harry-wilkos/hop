@@ -2,7 +2,8 @@ from hop.nk.interfaces.load_render_ui import RenderLoadUI
 import nuke
 from hop.nk.gizmos.shot import reload as shot_reload
 from hop.nk.gizmos.camera import reload as cam_reload
-from hop.util import get_collection, custom_dialogue
+from hop.util import get_collection
+from hop.util.custom_dialogue import custom_dialogue
 from pymongo.collection import ObjectId
 
 

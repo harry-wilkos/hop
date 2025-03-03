@@ -10,7 +10,6 @@ from hop.util.helpers import (
     convert_rat,
 )
 from hop.util.multi_process import MultiProcess
-from hop.util.custom_dialogue import custom_dialogue
 
 __all__ = [
     "MultiProcess",
@@ -22,7 +21,6 @@ __all__ = [
     "pop_dict",
     "post",
     "get_collection",
-    "custom_dialogue",
     "find_shot",
     "convert_rat",
 ]
