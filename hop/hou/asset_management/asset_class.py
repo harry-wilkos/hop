@@ -9,6 +9,7 @@ from hop.util import MultiProcess, convert_rat
 from hop.hou.util import error_dialog
 import hou
 from shutil import rmtree
+from hop.util import post
 
 
 class Asset:
@@ -244,4 +245,11 @@ class Asset:
                 pass
         finally:
             caching.set(0)
+            if result:
+                post(
+                    "discord",
+                    {
+                        "message": f"{(self.branch if self.override != 'main' else 'Main').capitalize()}{self.asset_name.capitalize()} V{self.store_version:02} started publishing"
+                    },
+                )
             return result

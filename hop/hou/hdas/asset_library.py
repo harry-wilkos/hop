@@ -10,6 +10,7 @@ from pymongo.collection import ObjectId
 from shutil import rmtree
 from hop.dl import create_job, call_deadline
 from tempfile import NamedTemporaryFile
+from hop.util import post
 import os
 
 collection = get_collection("assets", "active_assets")
@@ -201,6 +202,12 @@ def publish(node, farm=False) -> Asset | None:
 def local_publish(kwargs):
     node = kwargs["node"]
     asset = publish(node)
+    post(
+        "discord",
+        {
+            "message": f"{(asset.branch if asset.override != 'main' else 'Main').capitalize()}{asset.asset_name.capitalize()} V{asset.store_version:02} started publishing"
+        },
+    )
     result = asset.publish(node) if asset else None
     if result:
         hou.ui.displayMessage(
@@ -211,6 +218,7 @@ def local_publish(kwargs):
 def farm_execute(kwargs):
     node = kwargs["node"]
     asset = publish(node, True)
+
     asset.publish(node) if asset else None
 
 
