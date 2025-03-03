@@ -7,6 +7,7 @@ from hop.util.helpers import (
     move_folder,
     pop_dict,
     refresh_modules,
+    convert_rat,
 )
 from hop.util.multi_process import MultiProcess
 from hop.util.custom_dialogue import custom_dialogue
@@ -23,4 +24,5 @@ __all__ = [
     "get_collection",
     "custom_dialogue",
     "find_shot",
+    "convert_rat",
 ]

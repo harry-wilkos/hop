@@ -7,7 +7,6 @@ from hop.hou.util.helpers import (
     load_style,
     place_node,
     convert_exr,
-    convert_rat,
 )
 
 __all__ = [
@@ -20,5 +19,4 @@ __all__ = [
     "error_dialog",
     "load_style",
     "convert_exr",
-    "convert_rat",
 ]

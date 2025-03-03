@@ -5,8 +5,8 @@ from hop.hou.asset_management.textures import create_hash, resolve_texture
 from hop.util import get_collection
 from glob import glob
 import clique
-from hop.util import MultiProcess
-from hop.hou.util import convert_rat, error_dialog
+from hop.util import MultiProcess, convert_rat
+from hop.hou.util import error_dialog
 import hou
 from shutil import rmtree
 
