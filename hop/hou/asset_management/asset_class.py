@@ -94,8 +94,8 @@ class Asset:
             return self.store_version
         if self.branch == "anim" and key not in ("anim", "proxy"):
             return None
-        if key == "proxy" and not (self.asset_info["anim"] or self.asset_info["model"]):
-            return None
+        # if key == "proxy" and not (self.asset_info["anim"] or self.asset_info["model"]):
+        #     return None
         overrides = self.asset_dict.get("overrides", {})
         if self.override not in overrides:
             self.store_version = 1
