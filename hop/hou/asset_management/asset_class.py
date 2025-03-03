@@ -116,7 +116,7 @@ class Asset:
         asset_ver = Path(f"V{version:02}") / f"{key}.{usd}"
         self.asset_info["branch_ver"] = str(
             base / f"V{version:02}" / f"{self.asset_name}.{usd}"
-        )
+        ).replace("\\", "/")
         return str(base / asset_ver).replace("\\", "/")
 
     def publish(self, node):
@@ -138,23 +138,6 @@ class Asset:
                 open_interrupt_dialog=True,
             ) as overall_progress:
                 caching.set(1)
-
-                # if not self.asset_dict:
-                #     error_dialog("Asset Publisher", "Failed to initalise asset")
-                #     return
-
-                # # Set Parms
-                # run = False
-                # for key, path in self.asset_info.items():
-                #     node.parm(f"{key}_path").set(path)
-                #     if path:
-                #         run = True
-                # if not run:
-                #     hou.ui.displayMessage(
-                #         "Nothing to publish",
-                #         severity=hou.severityType.ImportantMessage,
-                #     )
-                #     return
                 call_progress()
 
                 node.parm("version").set(self.store_version)

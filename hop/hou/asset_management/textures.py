@@ -4,10 +4,11 @@ import os
 from glob import glob
 import clique
 import hashlib
+from pathlib import Path
 
 
 def resolve_texture(hash, path: str = ""):
-    hop_value, hop_id = os.environ["HOP"], "$HOP"
+    hop_value, hop_id = str(Path(os.environ["HOP"])), "$HOP"
     hash = ObjectId(hash)
     collection = get_collection("assets", "textures")
     texture_dict = collection.find_one({"_id": hash})
