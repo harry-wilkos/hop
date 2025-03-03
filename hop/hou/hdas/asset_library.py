@@ -202,12 +202,6 @@ def publish(node, farm=False) -> Asset | None:
 def local_publish(kwargs):
     node = kwargs["node"]
     asset = publish(node)
-    post(
-        "discord",
-        {
-            "message": f"{(asset.branch if asset.override != 'main' else 'Main').capitalize()}{asset.asset_name.capitalize()} V{asset.store_version:02} started publishing"
-        },
-    )
     result = asset.publish(node) if asset else None
     if result:
         hou.ui.displayMessage(
@@ -218,8 +212,15 @@ def local_publish(kwargs):
 def farm_execute(kwargs):
     node = kwargs["node"]
     asset = publish(node, True)
+    if asset:
+        post(
+            "discord",
+            {
+                "message": f":green_circle: **{(asset.branch if asset.override != 'main' else 'Main').capitalize()} {asset.asset_name.capitalize()} V{asset.store_version:02}**  started publishing :green_circle:"
+            },
+        )
 
-    asset.publish(node) if asset else None
+        asset.publish(node)
 
 
 def farm_publish(kwargs):

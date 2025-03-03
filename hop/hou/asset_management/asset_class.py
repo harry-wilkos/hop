@@ -249,7 +249,7 @@ class Asset:
                 post(
                     "discord",
                     {
-                        "message": f"{(self.branch if self.override != 'main' else 'Main').capitalize()}{self.asset_name.capitalize()} V{self.store_version:02} started publishing"
+                        "message": f":teddy_bear: **{(self.branch if self.override != 'main' else 'Main').capitalize()} {self.asset_name.capitalize()}** updated to  **V{self.store_version:02}** :teddy_bear: "
                     },
                 )
             return result
