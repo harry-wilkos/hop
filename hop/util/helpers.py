@@ -6,7 +6,6 @@ from importlib import reload
 from pathlib import Path
 from shutil import copy2, move
 import numpy as np
-import subprocess
 
 
 def copy_file(path: str, target: list) -> None | str:
@@ -106,16 +105,3 @@ def pop_dict(data: dict, key_to_split: str) -> tuple:
     dict_1 = {key_to_split: data[key_to_split]} if key_to_split in data else {}
     dict_2 = {k: v for k, v in data.items() if k != key_to_split}
     return dict_1, dict_2
-
-
-def convert_rat(input: str, output: str):
-    output_path = Path(output)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    if Path(input).suffix != ".rat":
-        cmd = ["iconvert", input, output]
-        subprocess.run(cmd)
-    else:
-        copy2(input, output)
-    if (hou_path := os.environ["HOP"]) in output:
-        output = output.replace(hou_path, "$HOP")
-    return output

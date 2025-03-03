@@ -76,7 +76,7 @@ class MultiProcess:
             script_file += ".py"
 
         env = os.environ.copy()
-        env["PYTHONPATH"] = ":".join(sys.path)
+        env["PYTHONPATH"] = os.pathsep.join(sys.path)
 
         # Write arguments to a temporary file
         temp_file = tempfile.NamedTemporaryFile(delete=False)
