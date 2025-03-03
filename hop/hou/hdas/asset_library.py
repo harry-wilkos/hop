@@ -99,7 +99,7 @@ def check_init(kwargs):
     node.parm("toggle_override").set(0)
 
 
-def publish(node) -> Asset | None:
+def publish(node, farm=False) -> Asset | None:
     stepping = 1 / 2
     store_step = 0
     asset = None
@@ -159,30 +159,31 @@ def publish(node) -> Asset | None:
                                                 ))
 
                     asset.update.mat(textures)
-            call_progress()
-            if asset.override == "main":
-                debug = node.node("Debug_Info")
-                debug.cook(force=True)
-                errors = node.node("Debug_Info").warnings()
-                if errors and not confirmation_dialog(
-                    "Asset Publisher", "\n".join(errors)
-                ):
+            if not farm:
+                call_progress()
+                if asset.override == "main":
+                    debug = node.node("Debug_Info")
+                    debug.cook(force=True)
+                    errors = node.node("Debug_Info").warnings()
+                    if errors and not confirmation_dialog(
+                        "Asset Publisher", "\n".join(errors)
+                    ):
+                        return
+                if not asset.asset_dict:
+                    error_dialog("Asset Publisher", "Failed to initalise asset")
                     return
-            if not asset.asset_dict:
-                error_dialog("Asset Publisher", "Failed to initalise asset")
-                return
-            # Set Parms
-            run = False
-            for key, path in asset.asset_info.items():
-                node.parm(f"{key}_path").set(path)
-                if path:
-                    run = True
-            if not run:
-                hou.ui.displayMessage(
-                    "Nothing to publish",
-                    severity=hou.severityType.ImportantMessage,
-                )
-                return
+                # Set Parms
+                run = False
+                for key, path in asset.asset_info.items():
+                    node.parm(f"{key}_path").set(path)
+                    if path:
+                        run = True
+                if not run and farm:
+                    hou.ui.displayMessage(
+                        "Nothing to publish",
+                        severity=hou.severityType.ImportantMessage,
+                    )
+                    return
             call_progress()
             return asset
     except hou.OperationInterrupted:
@@ -205,6 +206,12 @@ def local_publish(kwargs):
         hou.ui.displayMessage(
             f" The {(asset.branch if asset.override != 'main' else 'Main').capitalize()} {asset.asset_name} branch was updated to V{asset.store_version:02}!"
         )
+
+
+def farm_execute(kwargs):
+    node = kwargs["node"]
+    asset = publish(node, False)
+    asset.publish(node) if asset else None
 
 
 def farm_publish(kwargs):
@@ -233,7 +240,7 @@ def farm_publish(kwargs):
         suffix=".py",
         dir=os.path.normpath(os.environ["HOP_TEMP"]),
     )
-    python_file.write(f"hou.node('{node.path()}').parm('publish_all').pressButton()")
+    python_file.write(f"hou.node('{node.path()}').parm('farm_execute').pressButton()")
     python_file.close()
 
     job = create_job(
