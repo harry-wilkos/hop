@@ -195,11 +195,12 @@ class Asset:
                 call_progress()
 
                 # Export
+                self.asset_info.items()
                 [
                     node.parm(f"{key}_publish").pressButton()
                     for key, path in self.asset_info.items()
                     if path
-                    if key not in ("branch_ver")
+                    if key != "branch_ver"
                 ]
                 [
                     node.parm(f"reload_{key}").pressButton()
