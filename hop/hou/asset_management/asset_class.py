@@ -182,7 +182,7 @@ class Asset:
                             return None
                         hashs.append(create_hash(texture[0]))
                         texture_keys.append(texture[1])
-                        collection = clique.assemble(files)[0][0]
+                        collection = clique.assemble(files, minimum_items=1)[0][0]
                         frames = sorted(list(collection.indexes))
                         for index, file in enumerate(collection):
                             args.append((
