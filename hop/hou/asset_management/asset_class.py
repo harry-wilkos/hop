@@ -6,7 +6,7 @@ from hop.util import get_collection
 from glob import glob
 import clique
 from hop.util import MultiProcess
-from hop.hou.util import convert_rat, error_dialog, 
+from hop.hou.util import convert_rat, error_dialog
 import hou
 from shutil import rmtree
 
