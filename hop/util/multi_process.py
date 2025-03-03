@@ -7,6 +7,7 @@ import sys
 import tempfile
 from concurrent.futures import ProcessPoolExecutor
 from typing import Any, Callable, Sequence, Union
+import json
 
 
 class MultiProcess:
@@ -69,6 +70,25 @@ class MultiProcess:
             except TypeError as e:
                 raise ValueError(f"Argument mismatch in chunk {chunk}: {e}")
         return chunks
+
+    def get_env(self) -> dict:
+        cmd = [
+            self.interpreter,
+            "-c",
+            "import os, json; print(json.dumps(dict(os.environ)))",
+        ]
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(
+                f"Failed to get external Python environment: {result.stderr}"
+            )
+        return json.loads(result.stdout)
 
     def execute(self) -> "MultiProcess":
         script_file = str(__file__)

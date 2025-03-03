@@ -113,7 +113,10 @@ def convert_rat(input: str, output: str):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if Path(input).suffix != ".rat":
         cmd = ["iconvert", input, output]
-        subprocess.run(cmd)
+        subprocess.run(
+            cmd,
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+        )
     else:
         copy2(input, output)
     if (hou_path := os.environ["HOP"]) in output:
