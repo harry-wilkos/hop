@@ -23,7 +23,9 @@ def create_hash(path: str):
     files = glob(path.replace("<UDIM>", "*"))
     if not files:
         return None
-    for file in clique.assemble(files, minimum_items=1)[0][0]:
+    for file in clique.assemble(
+        files, minimum_items=1, patterns=[clique.PATTERNS["frames"]]
+    )[0][0]:
         stat = os.stat(file)
         hash += f"{file}{stat.st_mtime}{stat.st_size}"
     return hashlib.blake2b(hash.encode("utf-8"), digest_size=12).hexdigest()
