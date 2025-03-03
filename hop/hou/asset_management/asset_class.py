@@ -120,6 +120,7 @@ class Asset:
         return str(base / asset_ver).replace("\\", "/")
 
     def publish(self, node):
+        result = False
         caching = node.parm("caching")
 
         stepping = 1 / 4
@@ -230,6 +231,7 @@ class Asset:
                             )
                 call_progress()
                 node.parm("init").set(1)
+                result = True
 
         except hou.OperationInterrupted:
             try:
@@ -242,3 +244,4 @@ class Asset:
                 pass
         finally:
             caching.set(0)
+            return result

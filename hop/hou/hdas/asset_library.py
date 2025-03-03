@@ -178,7 +178,7 @@ def publish(node, farm=False) -> Asset | None:
                     node.parm(f"{key}_path").set(path)
                     if path:
                         run = True
-                if not run and farm:
+                if not run:
                     hou.ui.displayMessage(
                         "Nothing to publish",
                         severity=hou.severityType.ImportantMessage,
@@ -201,8 +201,8 @@ def publish(node, farm=False) -> Asset | None:
 def local_publish(kwargs):
     node = kwargs["node"]
     asset = publish(node)
-    asset.publish(node) if asset else None
-    if asset:
+    result = asset.publish(node) if asset else None
+    if result:
         hou.ui.displayMessage(
             f" The {(asset.branch if asset.override != 'main' else 'Main').capitalize()} {asset.asset_name} branch was updated to V{asset.store_version:02}!"
         )
@@ -210,7 +210,7 @@ def local_publish(kwargs):
 
 def farm_execute(kwargs):
     node = kwargs["node"]
-    asset = publish(node, False)
+    asset = publish(node, True)
     asset.publish(node) if asset else None
 
 
