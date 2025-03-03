@@ -6,7 +6,7 @@ from hop.util import get_collection
 from glob import glob
 import clique
 from hop.util import MultiProcess
-from hop.hou.util import convert_rat, error_dialog
+from hop.hou.util import convert_rat, error_dialog, confirmation_dialog
 import hou
 from shutil import rmtree
 
@@ -122,7 +122,7 @@ class Asset:
     def publish(self, node):
         caching = node.parm("caching")
 
-        stepping = 1 / 5
+        stepping = 1 / 4
         store_step = 0
 
         def call_progress():
@@ -139,22 +139,22 @@ class Asset:
             ) as overall_progress:
                 caching.set(1)
 
-                if not self.asset_dict:
-                    error_dialog("Asset Publisher", "Failed to initalise asset")
-                    return
+                # if not self.asset_dict:
+                #     error_dialog("Asset Publisher", "Failed to initalise asset")
+                #     return
 
-                # Set Parms
-                run = False
-                for key, path in self.asset_info.items():
-                    node.parm(f"{key}_path").set(path)
-                    if path:
-                        run = True
-                if not run:
-                    hou.ui.displayMessage(
-                        "Nothing to publish",
-                        severity=hou.severityType.ImportantMessage,
-                    )
-                    return
+                # # Set Parms
+                # run = False
+                # for key, path in self.asset_info.items():
+                #     node.parm(f"{key}_path").set(path)
+                #     if path:
+                #         run = True
+                # if not run:
+                #     hou.ui.displayMessage(
+                #         "Nothing to publish",
+                #         severity=hou.severityType.ImportantMessage,
+                #     )
+                #     return
                 call_progress()
 
                 node.parm("version").set(self.store_version)
@@ -214,36 +214,37 @@ class Asset:
                 if process:
                     process.retrieve()
                     [resolve_texture(*info) for info in zip(hashs, texture_keys)]
-                if self.override == "main":
-                    self.asset_dict["main"] = self.store_version
-                    self.asset_dict["init"] = True
-                    self.asset_collection.update_one(
-                        {"name": self.asset_name}, {"$set": self.asset_dict}
-                    )
-                else:
-                    if self.override not in self.asset_dict["overrides"]:
-                        self.asset_dict["overrides"][self.override] = {
-                            "fx": 0,
-                            "anim": 0,
-                        }
-                    self.asset_dict["overrides"][self.override][self.branch] = (
-                        self.store_version
-                    )
-                    self.asset_collection.update_one(
-                        {"name": self.asset_name}, {"$set": self.asset_dict}
-                    )
-                    if self.shot_dict:
-                        self.shot_dict["assets"].append(
-                            self.asset_name
-                        ) if self.asset_name not in self.shot_dict["assets"] else None
-                        self.shot_collection.update_one(
-                            {"_id": ObjectId(self.override)}, {"$set": self.shot_dict}
+                if self.asset_dict:
+                    if self.override == "main":
+                        self.asset_dict["main"] = self.store_version
+                        self.asset_dict["init"] = True
+                        self.asset_collection.update_one(
+                            {"name": self.asset_name}, {"$set": self.asset_dict}
                         )
+                    else:
+                        if self.override not in self.asset_dict["overrides"]:
+                            self.asset_dict["overrides"][self.override] = {
+                                "fx": 0,
+                                "anim": 0,
+                            }
+                        self.asset_dict["overrides"][self.override][self.branch] = (
+                            self.store_version
+                        )
+                        self.asset_collection.update_one(
+                            {"name": self.asset_name}, {"$set": self.asset_dict}
+                        )
+                        if self.shot_dict:
+                            self.shot_dict["assets"].append(
+                                self.asset_name
+                            ) if self.asset_name not in self.shot_dict[
+                                "assets"
+                            ] else None
+                            self.shot_collection.update_one(
+                                {"_id": ObjectId(self.override)},
+                                {"$set": self.shot_dict},
+                            )
                 call_progress()
                 node.parm("init").set(1)
-                hou.ui.displayMessage(
-                    f" The {(self.branch if self.override != 'main' else 'Main').capitalize()} {self.asset_name} branch was updated to V{self.store_version:02}!"
-                )
 
         except hou.OperationInterrupted:
             try:
