@@ -6,8 +6,6 @@ from pathlib import Path
 import numpy as np
 import OpenImageIO as oiio
 import PyOpenColorIO as ocio
-import subprocess
-from shutil import copy2
 
 
 def import_hou() -> Any:
@@ -263,16 +261,3 @@ def convert_exr(exr_path: str, output_path: str):
     success = out.write_image(uint8_pixels)
     out.close()
     return success
-
-
-def convert_rat(input: str, output: str):
-    output_path = Path(output)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    if Path(input).suffix != ".rat":
-        cmd = ["iconvert", input, output]
-        subprocess.run(cmd)
-    else:
-        copy2(input, output)
-    if (hou_path := os.environ["HOP"]) in output:
-        output = output.replace(hou_path, "$HOP")
-    return output
