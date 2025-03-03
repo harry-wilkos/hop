@@ -211,6 +211,16 @@ def farm_publish(kwargs):
     node = kwargs["node"]
     asset = publish(node)
     hip = hou.hipFile
+    if hip.hasUnsavedChanges():
+        if confirmation_dialog(
+            "Farm Cache",
+            "The scene must be saved before submission",
+            default_choice=0,
+        ):
+            hip.save()
+        else:
+            return
+
     if not asset:
         return
     path = hip.path()
@@ -223,11 +233,11 @@ def farm_publish(kwargs):
         suffix=".py",
         dir=os.path.normpath(os.environ["HOP_TEMP"]),
     )
-    python_file.write(f"hou.node('{node.path()}').parm('execute').pressButton()")
+    python_file.write(f"hou.node('{node.path()}').parm('publish_all').pressButton()")
     python_file.close()
 
     job = create_job(
-        asset.asset_name,
+        asset.asset_name.capitalize(),
         "Main" if asset.override == "main" else asset.branch.capitalize(),
         1001,
         1001,
