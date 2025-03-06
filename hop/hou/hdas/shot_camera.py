@@ -28,7 +28,7 @@ def load_camera(kwargs):
         cam = shot_dict["cam"]
         cam_path = shot_dict["cam_path"]
         back_plate = shot_dict["back_plate"]
-        finish = shot_dict["end_frame"] - shot_dict["start_frame"]
+        finish = shot_dict["end_frame"] - shot_dict["start_frame"] + (2 * shot_dict["padding"])
         hou.setFps(int(os.environ.get("FPS")), False, True, True)
         hou.playbar.setFrameRange(1001, 1001 + finish)
         hou.playbar.setPlaybackRange(1001, 1001 + finish)
