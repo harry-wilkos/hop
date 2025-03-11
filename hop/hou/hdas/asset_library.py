@@ -213,10 +213,13 @@ def farm_execute(kwargs):
     node = kwargs["node"]
     asset = publish(node, True)
     if asset:
+        shot_message = (
+            f"in Shot {asset.shot_dict['shot_number']} " if asset.shot_dict else ""
+        )
         post(
             "discord",
             {
-                "message": f":green_circle: **{(asset.branch if asset.override != 'main' else 'Main').capitalize()} {asset.asset_name.capitalize()} V{asset.store_version:02}**  started publishing :green_circle:"
+                "message": f":green_circle: **{(asset.branch if asset.override != 'main' else 'Main').capitalize()} {asset.asset_name.capitalize()} V{asset.store_version:02}**  started publishing {shot_message}:green_circle:"
             },
         )
 

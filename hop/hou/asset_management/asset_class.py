@@ -246,10 +246,15 @@ class Asset:
         finally:
             caching.set(0)
             if result:
+                shot_message = (
+                    f"in Shot {self.shot_dict['shot_number']} "
+                    if self.shot_dict
+                    else ""
+                )
                 post(
                     "discord",
                     {
-                        "message": f":teddy_bear: **{(self.branch if self.override != 'main' else 'Main').capitalize()} {self.asset_name.capitalize()}** updated to  **V{self.store_version:02}** :teddy_bear: "
+                        "message": f":teddy_bear: **{(self.branch if self.override != 'main' else 'Main').capitalize()} {self.asset_name.capitalize()}** updated to  **V{self.store_version:02}** {shot_message}:teddy_bear: "
                     },
                 )
             return result
