@@ -39,11 +39,16 @@ def generate_back_plate(progress, shot: "Shot") -> bool:
         if os.path.exists(output):
             os.remove(output)
         args.append((exr, output))
-        if not convert_exr(exr, output):
-            return False
+        # if not convert_exr(exr, output):
+        #     return False
         progress.updateProgress(((count + 1) / len(exrs)) * 0.5)
 
-    if False in MultiProcess(convert_exr, args).execute().retrieve():
+    if (
+        False
+        in MultiProcess(convert_exr, args, interpreter=os.environ["PYTHON"])
+        .execute()
+        .retrieve()
+    ):
         return False
     shot.shot_data["back_plate"] = os.path.join(back_plate_path, "bp.$F.png").replace(
         os.environ["HOP"], "$HOP"
