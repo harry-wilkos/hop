@@ -7,7 +7,6 @@ import OpenImageIO as oiio
 from pathlib import Path
 from hop.hou.util import error_dialog, expand_path, alembic_helpers, confirmation_dialog
 from hop.hou.util import convert_exr
-from hop.util import MultiProcess
 
 if TYPE_CHECKING:
     from hop.hou.shot_management import Shot
@@ -39,17 +38,10 @@ def generate_back_plate(progress, shot: "Shot") -> bool:
         if os.path.exists(output):
             os.remove(output)
         args.append((exr, output))
-        # if not convert_exr(exr, output):
-        #     return False
-        progress.updateProgress(((count + 1) / len(exrs)) * 0.5)
+        if not convert_exr(exr, output):
+            return False
+        progress.updateProgress(((count + 1) / len(exrs)))
 
-    if (
-        False
-        in MultiProcess(convert_exr, args, interpreter=os.environ["PYTHON"])
-        .execute()
-        .retrieve()
-    ):
-        return False
     shot.shot_data["back_plate"] = os.path.join(back_plate_path, "bp.$F.png").replace(
         os.environ["HOP"], "$HOP"
     )
