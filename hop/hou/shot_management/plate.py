@@ -7,6 +7,7 @@ import OpenImageIO as oiio
 from pathlib import Path
 from hop.hou.util import error_dialog, expand_path, alembic_helpers, confirmation_dialog
 from hop.hou.util import convert_exr
+from hop.util import MultiProcess
 
 if TYPE_CHECKING:
     from hop.hou.shot_management import Shot
@@ -31,15 +32,19 @@ def generate_back_plate(progress, shot: "Shot") -> bool:
         "back_plate",
     )
     os.makedirs(back_plate_path, exist_ok=True)
+    args = []
     frame = 1001
     for count, exr in enumerate(exrs):
         output = os.path.join(back_plate_path, f"bp.{(frame + count):04d}.png")
         if os.path.exists(output):
             os.remove(output)
+        args.append((exr, output))
         if not convert_exr(exr, output):
             return False
         progress.updateProgress((count + 1) / len(exrs))
 
+    if False in MultiProcess(convert_exr, args).execute().retrieve():
+        return False
     shot.shot_data["back_plate"] = os.path.join(back_plate_path, "bp.$F.png").replace(
         os.environ["HOP"], "$HOP"
     )
@@ -84,7 +89,10 @@ def update_padding(shot: "Shot", padding: int):
                 )
                 if alembic_info and (
                     (camera_len := alembic_info[1] - alembic_info[0])
-                    < (shot_len := shot.shot_data["end_frame"] - shot.shot_data["start_frame"])
+                    < (
+                        shot_len := shot.shot_data["end_frame"]
+                        - shot.shot_data["start_frame"]
+                    )
                 ):
                     if not confirmation_dialog(
                         title="Update Camera",
