@@ -41,7 +41,7 @@ def generate_back_plate(progress, shot: "Shot") -> bool:
         args.append((exr, output))
         if not convert_exr(exr, output):
             return False
-        progress.updateProgress((count + 1) / len(exrs))
+        progress.updateProgress(((count + 1) / len(exrs)) * 0.5)
 
     if False in MultiProcess(convert_exr, args).execute().retrieve():
         return False
