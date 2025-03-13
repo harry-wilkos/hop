@@ -214,7 +214,7 @@ def farm_execute(kwargs):
     asset = publish(node, True)
     if asset:
         shot_message = (
-            f"in Shot {asset.shot_dict['shot_number']} " if asset.shot_dict else ""
+            f"in **Shot {asset.shot_dict['shot_number']}** " if asset.shot_dict else ""
         )
         post(
             "discord",

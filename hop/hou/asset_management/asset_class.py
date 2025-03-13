@@ -247,7 +247,7 @@ class Asset:
             caching.set(0)
             if result:
                 shot_message = (
-                    f"in Shot {self.shot_dict['shot_number']} "
+                    f"in **Shot {self.shot_dict['shot_number']}** "
                     if self.shot_dict
                     else ""
                 )
