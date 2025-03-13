@@ -293,7 +293,7 @@ def load_frame_range(kwargs: dict):
             start.deleteAllKeyframes()
             start.set(1001)
             end.deleteAllKeyframes()
-            end.set(shot_dict["end_frame"] - shot_dict["start_frame"] + 1001)
+            end.set(shot_dict["end_frame"] - shot_dict["start_frame"] + 1001 + (shot_dict["padding"] * 2))
 
 
 def retrieve_shot_assets(kwargs) -> list:
