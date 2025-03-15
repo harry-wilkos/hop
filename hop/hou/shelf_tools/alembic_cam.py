@@ -39,13 +39,13 @@ def alembic_transform_value():
     parm_name = hou.expandString("$CH")
     file = node.evalParm("alembic_file")
     alembic_path = node.evalParm("alembic_path")
+    offset = node.evalParm("frame_offset")
     alembic_file = expand_path(file)
-
     final_transform = np.identity(4)
     current_path = alembic_path
     while current_path:
         xform = abc.getLocalXform(
-            alembic_file, current_path, hou.frameToTime(hou.frame() + 1)
+            alembic_file, current_path, hou.frameToTime(hou.frame() + 1 + offset)
         )[0]
         xform_matrix = np.array(xform).reshape((4, 4))
         final_transform = np.dot(final_transform, xform_matrix)
@@ -61,11 +61,12 @@ def alembic_transform_value():
 def alembic_parm_value():
     node = hou.pwd()
     parm_name = hou.expandString("$CH")
+    offset = node.evalParm("frame_offset")
     file = node.evalParm("alembic_file")
     alembic_file = Path(hou.text.expandString(file)).resolve().as_posix()
     alembic_path = node.evalParm("alembic_path")
     cam_dic = abc.alembicGetCameraDict(
-        alembic_file, alembic_path, hou.frameToTime(hou.frame())
+        alembic_file, alembic_path, hou.frameToTime(hou.frame() + 1 + offset)
     )
     if parm_name in cam_dic:
         value = cam_dic[parm_name]
@@ -126,9 +127,17 @@ def import_alembic_cam(kwargs: dict):
                         num_components=1,
                         default_value=(1.0,),
                     )
+                    offset = hou.IntParmTemplate(
+                        name="frame_offset",
+                        label="Frame Offset",
+                        num_components=1,
+                        min=-250,
+                        max=250,
+                    )
                     template.append(alembic_file)
                     template.append(alembic_path)
                     template.appendToFolder("Transform", scale)
+                    template.appendToFolder("Transform", offset)
                     node.setParmTemplateGroup(template)
                     node.setParms({"alembic_file": file, "alembic_path": cam})
                     parms = abc.alembicGetCameraDict(path, cam, 0)
