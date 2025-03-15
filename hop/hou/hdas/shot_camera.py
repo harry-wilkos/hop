@@ -36,4 +36,4 @@ def load_camera(kwargs):
 
     node.parm("cam").set(cam)
     node.parm("cam_path").set(cam_path)
-    node.parm("back_plate").set(back_plate)
+    node.parm("back_plate").set(back_plate.replace("$F", '`$F + ch("frame_offset")`'))
