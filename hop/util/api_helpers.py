@@ -8,6 +8,7 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 
 def post(method: str, data: dict, file_path: str | None = None):
+    return data
     url = f"{os.environ['API_ADDRESS']}/{method}"
     data = {key: json.dumps(value) for key, value in data.items()}
     if file_path is None:
