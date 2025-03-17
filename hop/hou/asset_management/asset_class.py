@@ -172,7 +172,7 @@ class Asset:
                         )
                         if pattern := collection[0]:
                             resolved_sequence = pattern[0]
-                            frames = sorted(list(collection.indexes))
+                            frames = sorted(list(resolved_sequence.indexes))
                         else:
                             resolved_sequence = collection[1]
                             if len(resolved_sequence) != 1:

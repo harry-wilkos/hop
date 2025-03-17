@@ -12,6 +12,7 @@ from hop.dl import create_job, call_deadline
 from tempfile import NamedTemporaryFile
 from hop.util import post
 import os
+from glob import glob
 
 collection = get_collection("assets", "active_assets")
 shot_collection = get_collection("shots", "active_shots")
@@ -51,11 +52,12 @@ def tag_textures(stage: Stage):
                         path := attr.Get(), Sdf.AssetPath
                     ):
                         path = path.path
+                        udim = "<UDIM>" if "<UDIM>" in path.path else "1001"
                         update_path = str(
                             root
                             / "textures"
                             / prim.GetName()
-                            / f"{node.GetName()}.<UDIM>.rat"
+                            / f"{node.GetName()}.{udim}.rat"
                         )
                         attr.Set(update_path)
                         hash = create_hash(path)
@@ -293,7 +295,12 @@ def load_frame_range(kwargs: dict):
             start.deleteAllKeyframes()
             start.set(1001)
             end.deleteAllKeyframes()
-            end.set(shot_dict["end_frame"] - shot_dict["start_frame"] + 1001 + (shot_dict["padding"] * 2))
+            end.set(
+                shot_dict["end_frame"]
+                - shot_dict["start_frame"]
+                + 1001
+                + (shot_dict["padding"] * 2)
+            )
 
 
 def retrieve_shot_assets(kwargs) -> list:
