@@ -52,7 +52,7 @@ def tag_textures(stage: Stage):
                         path := attr.Get(), Sdf.AssetPath
                     ):
                         path = path.path
-                        udim = "<UDIM>" if "<UDIM>" in path.path else "1001"
+                        udim = "<UDIM>" if "<UDIM>" in path else "1001"
                         update_path = str(
                             root
                             / "textures"
