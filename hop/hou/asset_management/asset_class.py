@@ -164,17 +164,30 @@ class Asset:
                     for texture in self.textures:
                         files = glob(texture[0].replace("<UDIM>", "*"))
                         if not files:
-                            return None
+                            continue
                         hashs.append(create_hash(texture[0]))
                         texture_keys.append(texture[1])
                         collection = clique.assemble(
                             files, minimum_items=1, patterns=[clique.PATTERNS["frames"]]
                         )[0][0]
-                        frames = sorted(list(collection.indexes))
-                        for index, file in enumerate(collection):
+                        if pattern := collection[0]:
+                            resolved_sequence = pattern[0]
+                            frames = sorted(list(collection.indexes))
+                        else:
+                            resolved_sequence = collection[1]
+                            if len(resolved_sequence) != 1:
+                                raise IndexError(
+                                    f"Cannot detect UDIM number for {texture[0]}"
+                                )
+                            frames = 1001
+                        for index, file in enumerate(resolved_sequence):
+                            if type(frames) is list:
+                                number = frames[index]
+                            else:
+                                number = frames
                             args.append((
                                 file,
-                                texture[1].replace("<UDIM>", f"{frames[index]:04}"),
+                                texture[1].replace("<UDIM>", f"{number:04}"),
                             ))
                     process = MultiProcess(
                         convert_rat, args, interpreter=os.environ["PYTHON"]
