@@ -169,7 +169,7 @@ class Asset:
                         texture_keys.append(texture[1])
                         collection = clique.assemble(
                             files, minimum_items=1, patterns=[clique.PATTERNS["frames"]]
-                        )[0][0]
+                        )
                         if pattern := collection[0]:
                             resolved_sequence = pattern[0]
                             frames = sorted(list(collection.indexes))
