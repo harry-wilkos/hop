@@ -67,7 +67,7 @@ def tag_textures(stage: Stage):
                             )
                             hash_attr.Set(hash)
                             if texture_path := resolve_texture(hash):
-                                attr.Set(texture_path)
+                                attr.Set(texture_path.replace("<UDIM>", udim))
 
 
 def retrieve_assets() -> list:
