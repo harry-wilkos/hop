@@ -13,6 +13,7 @@ from tempfile import NamedTemporaryFile
 from hop.util import post
 import os
 from glob import glob
+import clique
 
 collection = get_collection("assets", "active_assets")
 shot_collection = get_collection("shots", "active_shots")
@@ -40,6 +41,24 @@ def check_prims(stage: Stage):
             mats.add(name)
             continue
     return True
+
+
+def check_textures(stage: Stage):
+    for prim in stage.Traverse():
+        if prim.IsA(UsdShade.Material):
+            for node in usd_helpers.expand_stage(stage, start=prim.GetPath()):
+                for attr in node.GetAttributes():
+                    if attr.HasValue() and isinstance(
+                        path := attr.Get(), Sdf.AssetPath
+                    ):
+                        path = path.path
+                        files = glob(path.replace("<UDIM>", "*"))
+                        collection = clique.assemble(
+                            files, minimum_items=1, patterns=[clique.PATTERNS["frames"]]
+                        )
+                        if not collection[0] and len(collection[1]) > 1:
+                            return True
+    return False
 
 
 def tag_textures(stage: Stage):
