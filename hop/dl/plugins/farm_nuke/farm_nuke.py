@@ -24,7 +24,7 @@ class Farm_Cache(DeadlinePlugin):
         self.PluginType = PluginType.Simple
         self.StdoutHandling = True
         self.SingleFramesOnly = True
-        self.AddStdoutHandlerCallback(r"(\d+)%").HandleCallback += (
+        self.AddStdoutHandlerCallback(r"(\b\d+\.\d+)(?=%)").HandleCallback += (
             lambda: self.SetProgress(int(self.GetRegexMatch(1)))
         )
         self.AddStdoutHandlerCallback(
