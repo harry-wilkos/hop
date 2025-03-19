@@ -25,7 +25,7 @@ class Farm_Cache(DeadlinePlugin):
         self.StdoutHandling = True
         self.SingleFramesOnly = True
         self.AddStdoutHandlerCallback(r"(\b\d+\.\d+)(?=%)").HandleCallback += (
-            lambda: self.SetProgress(int(self.GetRegexMatch(1)))
+            lambda: self.SetProgress(int(float(self.GetRegexMatch(1))))
         )
         self.AddStdoutHandlerCallback(
             r"(?i)(?<=Error:)(.|\n)*"

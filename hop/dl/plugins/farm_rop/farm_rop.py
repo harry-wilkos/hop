@@ -81,4 +81,3 @@ class Farm_Cache(DeadlinePlugin):
 
         for stdoutHandler in self.StdoutHandlers:
             del stdoutHandler.HandleCallback
-
