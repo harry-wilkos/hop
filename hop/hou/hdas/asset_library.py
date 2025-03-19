@@ -72,6 +72,15 @@ def tag_textures(stage: Stage):
                     ):
                         path = path.path
                         udim = "<UDIM>" if "<UDIM>" in path else "1001"
+                        files = glob(path.replace("<UDIM>", "*"))
+                        collection = clique.assemble(
+                            files, minimum_items=1, patterns=[clique.PATTERNS["frames"]]
+                        )
+                        if not collection[0] and len(collection[1]) > 1:
+                            raise IndexError(f"Cannot detect UDIM number for {path}")
+                        else:
+                            udim = 1001
+
                         update_path = str(
                             root
                             / "textures"
