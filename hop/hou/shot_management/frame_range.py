@@ -216,9 +216,6 @@ def update_frame_range(shot: "Shot", start_frame: int, end_frame: int) -> bool:
         #     )
         #     os.rename(temp_name, new_name)
 
-
-
-
     if shot.shot_data["cam"] and not shot.cam_checked:
         cam_file = expand_path(shot.shot_data["cam"])
         if cam_file:

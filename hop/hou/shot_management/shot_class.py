@@ -272,6 +272,7 @@ class Shot:
                         },
                     )
                 else:
+                    perform_step(update_shot_num, "Updating Shot Numbers", self)
                     self.collection.update_one(
                         {"_id": self.shot_data["_id"]}, {"$set": self.shot_data}
                     )
