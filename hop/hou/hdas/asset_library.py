@@ -71,18 +71,24 @@ def tag_textures(stage: Stage):
                         path := attr.Get(), Sdf.AssetPath
                     ):
                         path = path.path
-                        udim = "<UDIM>" if "<UDIM>" in path else "1001"
                         files = glob(path.replace("<UDIM>", "*"))
-                        collection = clique.assemble(
+                        collections = clique.assemble(
                             files, minimum_items=1, patterns=[clique.PATTERNS["frames"]]
                         )
-                        if not collection[0]:
-                            if len(collection[1]) > 1:
+                        if not (collection := collections[0]):
+                            if len(collections[1]) > 1:
                                 raise IndexError(
                                     f"Cannot detect UDIM number for {path}"
                                 )
                             else:
                                 udim = "1001"
+                        else:
+                            indexes = collection[0].indexes
+                            if len(indexes) == 1:
+                                udim = str(list(indexes)[0])
+                            else:
+                                udim = "<UDIM>"
+
                         update_path = str(
                             root
                             / "textures"
@@ -390,3 +396,4 @@ def check_shot_subnet(kwargs):
         shot_dict = shot_collection.find_one({"shot_number": shot_num})
         node.parm("shot").set(str(shot_dict["_id"])) if shot_dict else None
     node.setColor(hou.Color(1, 0.9, 0.6))
+
