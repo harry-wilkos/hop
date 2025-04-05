@@ -2,6 +2,7 @@ from pxr.Usd import Stage, Prim
 from pxr import Sdf, UsdShade
 import hou
 
+
 def expand_stage(stage: Stage, depth: int | None = None, start: str = "/") -> Prim:
     queue = [(stage.GetPrimAtPath(start), 0)]
     while queue:
@@ -160,6 +161,7 @@ def compare_scene(stage: Stage, file: str, time_check: bool = False) -> bool:
 
     return True
 
+
 def is_mat(prim) -> bool:
     if prim.IsA(UsdShade.Material):
         return True
@@ -170,11 +172,11 @@ def is_mat(prim) -> bool:
         parent_prim = parent_prim.GetParent()
     return False
 
+
 def get_info(stage: Stage) -> dict:
     prim = stage.GetPrimAtPath("/HoudiniLayerInfo")
     attribs = prim.GetAttributes()
     data = {}
     for attrib in attribs:
         data[attrib.GetName()] = attrib.Get(hou.frame())
-    return data 
-
+    return data
