@@ -25,7 +25,7 @@ def __main__(*args):
         deadlinePlugin.LogWarning(f"Subprocess Error: {error}")
 
     start_frame = int(deadlinePlugin.GetStartFrame())
-    end_frame = deadlinePlugin.GetEndFrame()
+    end_frame = int(deadlinePlugin.GetEndFrame())
     output_dir = Path(deadlinePlugin.GetPluginInfoEntry("output"))
     for frame in range(start_frame, end_frame):
         format_frame = f"{frame:04d}"
@@ -45,10 +45,10 @@ def __main__(*args):
                 env["VIEW"],
             ]
 
-        deadlinePlugin.LogInfo(f"Subprocess Command: {cmd}")
+            deadlinePlugin.LogInfo(f"Subprocess Command: {cmd}")
 
-        result = subprocess.run(cmd, env=env, capture_output=True, text=True)
-        deadlinePlugin.LogInfo(f"Subprocess Output: {result.stdout.strip()}")
-        error = result.stderr.strip()
-        if error:
-            deadlinePlugin.LogWarning(f"Subprocess Error: {error}")
+            result = subprocess.run(cmd, env=env, capture_output=True, text=True)
+            deadlinePlugin.LogInfo(f"Subprocess Output: {result.stdout.strip()}")
+            error = result.stderr.strip()
+            if error:
+                deadlinePlugin.LogWarning(f"Subprocess Error: {error}")
