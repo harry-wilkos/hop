@@ -56,7 +56,7 @@ def check_textures(stage: Stage):
                         collection = clique.assemble(
                             files, minimum_items=1, patterns=[clique.PATTERNS["frames"]]
                         )
-                        if not collection[0] and len(collection[1]) > 1:
+                        if not collection[0] and len(collection[1]) != 1:
                             return True
     return False
 
@@ -76,7 +76,7 @@ def tag_textures(stage: Stage):
                             files, minimum_items=1, patterns=[clique.PATTERNS["frames"]]
                         )
                         if not (collection := collections[0]):
-                            if len(collections[1]) > 1:
+                            if len(collections[1]) != 1:
                                 raise IndexError(
                                     f"Cannot detect UDIM number for {path}"
                                 )
