@@ -171,7 +171,7 @@ def farm_render(kwargs: dict) -> None:
         1,
         1,
         "farm_process_holdouts",
-        "",
+        "sim",
         batch,
         True,
         True,
