@@ -23,3 +23,32 @@ def __main__(*args):
     error = result.stderr.strip()
     if error:
         deadlinePlugin.LogWarning(f"Subprocess Error: {error}")
+
+    start_frame = int(deadlinePlugin.GetStartFrame())
+    end_frame = deadlinePlugin.GetEndFrame()
+    output_dir = Path(deadlinePlugin.GetPluginInfoEntry("output"))
+    for frame in range(start_frame, end_frame):
+        format_frame = f"{frame:04d}"
+        exrs = [
+            os.path.join(path, f"{format_frame}.exr")
+            for path in deadlinePlugin.GetPluginInfoEntry("exrs").split(";")
+        ]
+        for exr in exrs:
+            parts = Path(exr).parts
+            folder = output_dir / parts[-2]
+            folder.mkdir(parents=True, exist_ok=True)
+            cmd = [
+                "ocioconvert",
+                exr,
+                "role_rendering",
+                folder / parts[-1],
+                env["VIEW"],
+            ]
+
+        deadlinePlugin.LogInfo(f"Subprocess Command: {cmd}")
+
+        result = subprocess.run(cmd, env=env, capture_output=True, text=True)
+        deadlinePlugin.LogInfo(f"Subprocess Output: {result.stdout.strip()}")
+        error = result.stderr.strip()
+        if error:
+            deadlinePlugin.LogWarning(f"Subprocess Error: {error}")
