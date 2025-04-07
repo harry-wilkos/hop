@@ -24,15 +24,15 @@ def __main__(*args):
     if error:
         deadlinePlugin.LogWarning(f"Subprocess Error: {error}")
 
-    start_frame = int(deadlinePlugin.GetStartFrame())
-    end_frame = int(deadlinePlugin.GetEndFrame())
+
     output_dir = Path(deadlinePlugin.GetPluginInfoEntry("output"))
-    for frame in range(start_frame, end_frame):
+    for frame in job.JobFramesList:
         format_frame = f"{frame:04d}"
         exrs = [
             os.path.join(path, f"{format_frame}.exr")
             for path in deadlinePlugin.GetPluginInfoEntry("exrs").split(";")
         ]
+        deadlinePlugin.LogInfo(f"{exrs}")
         for exr in exrs:
             parts = Path(exr).parts
             folder = output_dir / parts[-2]
@@ -52,3 +52,4 @@ def __main__(*args):
             error = result.stderr.strip()
             if error:
                 deadlinePlugin.LogWarning(f"Subprocess Error: {error}")
+
