@@ -7,6 +7,7 @@ import OpenImageIO as oiio
 from pathlib import Path
 from hop.hou.util import error_dialog, expand_path, alembic_helpers, confirmation_dialog
 from hop.hou.util import convert_exr
+import math
 
 if TYPE_CHECKING:
     from hop.hou.shot_management import Shot
@@ -114,7 +115,7 @@ def update_st_map(shot: "Shot", map: str):
     image.close()
 
     target_res = os.environ["RES"].split()
-    if width != int(target_res[0]) and height != int(target_res[1]):
+    if not math.isclose(width / height, int(target_res[0]) / int(target_res[1])):
         error_dialog(
             "Update ST-Map", f"ST-Map doesn't match {target_res[0]} x {target_res[1]}"
         )
@@ -156,7 +157,9 @@ def update_plate(shot: "Shot", plate: str) -> bool:
         header["dataWindow"].max.y - header["dataWindow"].min.y + 1,
     )
     target_res = os.environ["RES"].split()
-    if resolution[0] != int(target_res[0]) and resolution[1] != int(target_res[1]):
+    if not math.isclose(
+        resolution[0] / resolution[1], int(target_res[0]) / int(target_res[1])
+    ):
         error_dialog(
             "Update Plate", f"Plate doesn't match {target_res[0]} x {target_res[1]}"
         )
