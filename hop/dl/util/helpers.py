@@ -51,6 +51,8 @@ def create_job(
     job_file.write(
         f"CustomPluginDirectory={os.path.join(os.environ['DEADLINE_CUSTOM_PATH'], 'plugins')}\n"
     )
+    job_file.write("EnableAutoTimeout=False\n")
+    job_file.write("TaskTimeoutMinutes=0\n")
     job_file.write("OverrideJobFailureDetection=True\n")
     job_file.write("OverrideTaskFailureDetection=True\n")
     job_file.write("FailureDetectionJobErrors=1\n")
@@ -95,7 +97,7 @@ def create_job(
         "PATH",
         "HOP_TEMP",
         "CAM",
-        "VIEW"
+        "VIEW",
     ]):
         job_file.write(var)
     job_file.close()
