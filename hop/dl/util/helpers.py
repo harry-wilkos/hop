@@ -57,6 +57,7 @@ def create_job(
     job_file.write("OverrideTaskFailureDetection=True\n")
     job_file.write("FailureDetectionJobErrors=1\n")
     job_file.write("FailureDetectionTaskErrors=1\n")
+    job_file.write("Priority=100\n")
     scripts_path = os.path.join(
         str(Path(__file__).parents[2]),
         "dl",
