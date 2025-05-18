@@ -47,7 +47,7 @@ def create_job(
     job_file.write(f"Comment={comment}\n")
     job_file.write(f"Frames={start}-{end}:{stepping}\n")
     job_file.write(f"ChunkSize={chunk}\n")
-    job_file.write(f"Pool={pool}\n")
+    # job_file.write(f"Pool={pool}\n")
     job_file.write(
         f"CustomPluginDirectory={os.path.join(os.environ['DEADLINE_CUSTOM_PATH'], 'plugins')}\n"
     )
